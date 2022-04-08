@@ -501,7 +501,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_docker_1_19
           path: |
@@ -876,7 +876,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_docker_1_20
           path: |
@@ -1251,7 +1251,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_docker_1_21
           path: |
@@ -1626,7 +1626,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_docker_1_22
           path: |
@@ -2001,7 +2001,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_containerd_1_19
           path: |
@@ -2376,7 +2376,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_containerd_1_20
           path: |
@@ -2751,7 +2751,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_containerd_1_21
           path: |
@@ -3126,7 +3126,7 @@ jobs:
 
       - name: Save test results
         if: always()
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: test_output_yandex-cloud_containerd_1_22
           path: |
