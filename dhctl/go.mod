@@ -5,6 +5,7 @@ go 1.15
 require (
 	github.com/BurntSushi/toml v0.3.1
 	github.com/Masterminds/sprig/v3 v3.2.2
+	github.com/alessio/shellescape v1.4.1
 	github.com/fatih/color v1.9.0
 	github.com/flant/kube-client v0.0.6
 	github.com/flant/logboek v0.3.4
@@ -19,17 +20,17 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.11.0
 	github.com/prometheus/client_model v0.2.0
-	github.com/sirupsen/logrus v1.6.0
-	github.com/stretchr/testify v1.6.1
-	golang.org/x/crypto v0.0.0-20201002170205-7f63de1d35b0
+	github.com/sirupsen/logrus v1.8.1
+	github.com/stretchr/testify v1.7.0
+	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/satori/go.uuid.v1 v1.2.0
-	gopkg.in/yaml.v2 v2.3.0
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776
-	k8s.io/api v0.19.11
-	k8s.io/apiextensions-apiserver v0.19.11
-	k8s.io/apimachinery v0.19.11
-	k8s.io/client-go v0.19.11
+	gopkg.in/yaml.v2 v2.4.0
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
+	k8s.io/api v0.23.5
+	k8s.io/apiextensions-apiserver v0.23.5
+	k8s.io/apimachinery v0.23.5
+	k8s.io/client-go v0.23.5
 	k8s.io/klog v1.0.0
 	sigs.k8s.io/yaml v1.2.0
 )
