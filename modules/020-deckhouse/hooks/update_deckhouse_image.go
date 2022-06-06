@@ -233,9 +233,14 @@ func filterDeckhouseRelease(unstructured *unstructured.Unstructured) (go_hook.Fi
 		}
 	}
 
+	version, err := semver.NewVersion(release.Spec.Version)
+	if err != nil {
+		return nil, err
+	}
+
 	return deckhouseRelease{
 		Name:                 release.Name,
-		Version:              semver.MustParse(release.Spec.Version),
+		Version:              version,
 		ApplyAfter:           release.Spec.ApplyAfter,
 		Requirements:         release.Spec.Requirements,
 		Phase:                release.Status.Phase,
