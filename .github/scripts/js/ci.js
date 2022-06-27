@@ -548,6 +548,7 @@ module.exports.checkE2ELabels = async ({ github, context, core, provider }) => {
  * - run_<validation_type> - A boolean to start or skip a job.
  * - label_<validation_type> - A label name to use in failure message.
  * - diff_url - An URL to fetch full diff for PR.
+ * - is_private_repo - Is it private repository? "yes"|"no".
  * - pr_title - A title of PR.
  * - pr_description - A description of PR.
  *
@@ -564,18 +565,36 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
   core.setOutput('run_copyright', 'true');
   core.setOutput('run_markdown', 'true');
 
-  // This method runs on pull_request_target, so pull_request context is available.
+  // This method runs on pull_request_target, so pull_request context
+  // with pull request number should be available.
+  if (!context.payload.pull_request || !context.payload.pull_request.number) {
+    core.notice(`No pull request number in context.payload. event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
+    return
+  }
+
+  const is_private_repo = context.payload.repository.private ? "yes" : "no";
+  if (is_private_repo === "yes") {
+    core.info(`Private repo: payload dump: ${JSON.stringify(context.payload)}`);
+  }
 
   // Fetch fresh pull request state using sha.
   // Why? Workflow rerun of 'opened' pull request contains outdated labels.
-  const owner = context.payload.pull_request.head.repo.owner.login
-  const repo = context.payload.pull_request.head.repo.name
-  const commit_sha = context.payload.pull_request.head.sha
-  core.info(`List pull request inputs: ${JSON.stringify({ owner, repo, commit_sha })}`);
-  const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha });
+  const owner = context.repo.owner
+  const repo = context.repo.repo
+  const pull_number = context.payload.pull_request.number
+  const response = await github.rest.pulls.get({owner, repo, pull_number});
   if (response.status != 200) {
-    return core.setFailed(`Cannot list PRs for commit ${commit_sha}: ${JSON.stringify(response)}`);
+    return core.setFailed(`Cannot get PR ${pull_number}: ${JSON.stringify(response)}`);
   }
+
+  // const owner = context.payload.pull_request.head.repo.owner.login
+  // const repo = context.payload.pull_request.head.repo.name
+  // const commit_sha = context.payload.pull_request.head.sha
+  // core.info(`List pull request inputs: ${JSON.stringify({ owner, repo, commit_sha })}`);
+  // const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha });
+  // if (response.status != 200) {
+  //   return core.setFailed(`Cannot list PRs for commit ${commit_sha}: ${JSON.stringify(response)}`);
+  // }
 
   // No PR found, do not run validations.
   if (!response.data || response.data.length === 0) {
@@ -616,6 +635,9 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
 
   core.setOutput('diff_url', pr.diff_url);
   core.info(`diff_url='${pr.diff_url}'`);
+
+  core.setOutput('is_private_repo', is_private_repo);
+  core.info(`is_private_repo='${pr.diff_url}'`);
 };
 
 /**

@@ -36,7 +36,18 @@ function download_diff() {
   CURL_RESPONSE=$TMPDIR/resp
   curlHeaders=$TMPDIR/headers
   curlError=$TMPDIR/error
-  CURL_STATUS=$(curl -sS -w %{http_code} \
+  privateHeaders=()
+  if [[ $IS_PRIVATE_REPO == "yes" ]] ; then
+    echo "Private repo detected"
+    privateHeaders+=(--header "Accept: application/vnd.github.diff" --header "Authorization: token $GITHUB_TOKEN")
+
+    # curl
+    # -H "Accept: application/vnd.github.diff"
+    # -H "Authorization: token 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"
+    # https://api.github.com/repos/deckhouse/deckhouse-test-1/pulls/1
+  fi
+  CURL_STATUS=$(curl -v -sS -w %{http_code} \
+    "${privateHeaders[@]}" \
     -o $CURL_RESPONSE \
     -D $curlHeaders \
     --request GET \
