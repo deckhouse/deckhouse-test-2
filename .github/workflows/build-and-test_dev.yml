@@ -165,9 +165,10 @@ jobs:
               }
             }
 
+            var defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
             const isEE = response.data[0].labels.some((l) => l.name === 'edition/ee');
             const isCE = response.data[0].labels.some((l) => l.name === 'edition/ce');
-            const edition = isCE ? 'CE' : (isEE ? 'EE' : process.env.WERF_ENV);
+            const edition = isCE ? 'CE' : (isEE ? 'EE' : defaultEdition);
             core.info(`PR has 'edition/*'?   ${isCE || isEE} (${edition})`);
             core.notice(`Enable '${edition}' edition.`);
             core.setOutput('edition', edition);

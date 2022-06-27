@@ -620,6 +620,10 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
       validationName = 'copyright';
       core.info(`Skip 'copyright'`);
     }
+    if (/markdown/.test(skipLabel)) {
+      validationName = 'markdown';
+      core.info(`Skip 'markdown'`);
+    }
 
     if (prHasSkipLabel) {
       core.setOutput(`run_${validationName}`, 'false');
