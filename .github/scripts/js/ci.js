@@ -1044,13 +1044,15 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
 const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
   // Retrieve the latest workflow run for head commit SHA.
   let lastRun = null;
-  core.startGroup(`Retry workflow ${workflow_id} run ${lastRunID} ...`)
+  const branch = context.payload.pull_request.head.ref
+  const headSHA = context.payload.pull_request.head.sha
+  core.startGroup(`List workflow runs ${workflow_id} for branch ${branch} and SHA ${headSHA} in PR#${context.payload.pull_request.number} ...`)
   try {
     const response = await github.rest.actions.listWorkflowRuns({
       owner: context.repo.owner,
       repo: context.repo.repo,
       workflow_id: workflow_id,
-      branch: context.payload.pull_request.head.ref
+      branch
     });
 
     if (!response.data.workflow_runs || response.data.workflow_runs.length === 0) {
@@ -1058,20 +1060,16 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
       return core.setFailed(`No runs found for workflow '${workflow_id}'. Just return.`);
     }
 
-    for (const wr of response.data.workflow_runs) {
-      if (wr.head_sha === context.payload.pull_request.head.sha) {
-        lastRun = wr;
-        break;
-      }
+    lastRun = response.data.workflow_runs.find((wr) => wr.head_sha === headSHA)
+    if (lastRun) {
+      core.info(`Found last workflow run of '${workflow_id}'. ID ${lastRun.id}, run number ${lastRun.run_number}, started at ${lastRun.run_started_at}, status ${lastRun.status}`);
     }
-
-    if (!lastRun) {
-      return core.setFailed(`Workflow run of '${workflow_id}' not found for PR#${context.payload.pull_request.number} and SHA=${context.payload.pull_request.head.sha}.`);
-    }
-
-    core.info(`Found last workflow run of '${workflow_id}'. ID ${lastRun.id}, run number ${lastRun.run_number}, started at ${lastRun.run_started_at}, status ${lastRun.status}`);
   } finally {
     core.endGroup()
+  }
+
+  if (!lastRun) {
+    return core.setFailed(`Not found workflow runs ${workflow_id} for branch ${branch} and SHA ${headSHA} in PR#${context.payload.pull_request.number} ...`)
   }
 
   // Run cancel as Github ignores cancel-in-progress: true in concurrency settings
