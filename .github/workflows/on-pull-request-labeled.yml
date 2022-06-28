@@ -44,7 +44,6 @@ jobs:
             }
 
             const pr = context.payload.pull_request
-            const repo = context.payload.repository
 
             const head_owner = pr.head.repo.owner.login
             const head_repo = pr.head.repo.name
@@ -52,7 +51,7 @@ jobs:
             const head_label = pr.head.label
             const head_ref = pr.head.ref
             const pr_repo = pr.head.repo.full_name
-            const target_repo = repo.full_name
+            const target_repo = context.payload.repository.full_name
             const owner = context.repo.owner
             const repo = context.repo.repo
             core.startGroup(`Pull request context`)
