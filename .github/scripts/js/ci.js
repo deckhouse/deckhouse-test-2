@@ -641,7 +641,7 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
   core.info(`diff_url='${pr.diff_url}'`);
 
   core.setOutput('is_private_repo', is_private_repo);
-  core.info(`is_private_repo='${pr.diff_url}'`);
+  core.info(`is_private_repo='${is_private_repo}'`);
 };
 
 /**
