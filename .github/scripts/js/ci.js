@@ -1042,47 +1042,72 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
 };
 
 const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
-  // Retrieve latest workflow run and rerun it.
-  let response = await github.rest.actions.listWorkflowRuns({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    workflow_id: workflow_id,
-    branch: context.payload.pull_request.head.ref
-  });
+  // Retrieve the latest workflow run for head commit SHA.
+  let lastRun = null;
+  core.startGroup(`Retry workflow ${workflow_id} run ${lastRunID} ...`)
+  try {
+    const response = await github.rest.actions.listWorkflowRuns({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      workflow_id: workflow_id,
+      branch: context.payload.pull_request.head.ref
+    });
 
-  if (!response.data.workflow_runs || response.data.workflow_runs.length === 0) {
-    console.log(`ListWorkflowRuns response: ${JSON.stringify(response)}`);
-    return core.setFailed(`No runs found for workflow '${workflow_id}'. Just return.`);
+    if (!response.data.workflow_runs || response.data.workflow_runs.length === 0) {
+      core.info(`ListWorkflowRuns response: ${JSON.stringify(response)}`);
+      return core.setFailed(`No runs found for workflow '${workflow_id}'. Just return.`);
+    }
+
+    for (const wr of response.data.workflow_runs) {
+      if (wr.head_sha === context.payload.pull_request.head.sha) {
+        lastRun = wr;
+        break;
+      }
+    }
+
+    if (!lastRun) {
+      return core.setFailed(`Workflow run of '${workflow_id}' not found for PR#${context.payload.pull_request.number} and SHA=${context.payload.pull_request.head.sha}.`);
+    }
+
+    core.info(`Found last workflow run of '${workflow_id}'. ID ${lastRun.id}, run number ${lastRun.run_number}, started at ${lastRun.run_started_at}, status ${lastRun.status}`);
+  } finally {
+    core.endGroup()
   }
 
-  let lastRun = null;
-  for (const wr of response.data.workflow_runs) {
-    if (wr.head_sha === context.payload.pull_request.head.sha) {
-      lastRun = wr;
-      break;
+  // Run cancel as Github ignores cancel-in-progress: true in concurrency settings
+  // for rerun/retry API calls.
+  if (lastRun.status !== 'completed') {
+    core.startGroup(`Cancel workflow ${workflow_id} run ${lastRun.id} in status ${lastRun.status} ...`)
+    try {
+      const response = await github.rest.actions.cancelWorkflowRun({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        run_id: lastRun.id
+      });
+      core.info(`cancelWorkflowRun response: ${JSON.stringify(response)}`)
+    } catch (error) {
+      core.info(`Ignore error from cancelWorkflowRun: ${dumpError(error)}`);
+    } finally {
+      core.endGroup()
     }
   }
 
-  if (!lastRun) {
-    return core.setFailed(`Workflow run of '${workflow_id}' not found for PR#${context.payload.pull_request.number} and SHA=${context.payload.pull_request.head.sha}.`);
-  }
-
-  console.log(`Found last workflow run of '${workflow_id}'. ID ${lastRun.id}, run number ${lastRun.run_number}, started at ${lastRun.run_started_at}`);
-
+  core.startGroup(`Retry workflow ${workflow_id} run ${lastRun.id} ...`)
   try {
     const response = await github.rest.actions.retryWorkflow({
       owner: context.repo.owner,
       repo: context.repo.repo,
       run_id: lastRun.id
     });
-
     if (response.status > 200 && response.status < 300) {
-      console.log('RetryWorkflow called successfully');
+      core.info('RetryWorkflow called successfully');
     } else {
-      console.log(`Error calling RetryWorkflow. Response: ${JSON.stringify(response)}`);
+      core.info(`Error calling RetryWorkflow. Response: ${JSON.stringify(response)}`);
     }
   } catch (error) {
-    console.log(`Ignore error: ${dumpError(error)}`);
+    core.info(`Ignore error from retryWorkflow: ${dumpError(error)}`);
+  } finally {
+    core.endGroup()
   }
 }
 
