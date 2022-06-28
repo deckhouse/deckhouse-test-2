@@ -168,7 +168,7 @@ pull_request_info:
           }
 
 
-          const isInternal = pr_repo === target_epo;
+          const isInternal = pr_repo === target_repo;
           const isDependabot = (context.actor === 'dependabot[bot]');
           const isChangelog = head_ref.startsWith('changelog/v');
           const okToTest = prLabels.some((l) => l.name === 'status/ok-to-test');
