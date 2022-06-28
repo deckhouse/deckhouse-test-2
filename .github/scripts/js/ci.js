@@ -597,11 +597,11 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
   // }
 
   // No PR found, do not run validations.
-  if (!response.data || response.data.length === 0) {
+  if (!response.data) {
     return core.setFailed(`No pull_request found. event_name=${context.eventName} action=${context.action}`);
   }
 
-  const pr = response.data[0];
+  const pr = response.data;
 
   // Check labels and disable corresponding validations.
   for (const skipLabel of knownLabels['skip-validation']) {
