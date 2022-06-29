@@ -2,6 +2,7 @@
 const {
   knownLabels,
   knownSlashCommands,
+  releaseIssueLabel,
   labelsSrv,
   knownProviders,
   knownChannels,
@@ -457,48 +458,46 @@ const setCRIAndVersionsFromInputs = ({ context, core }) => {
  * @param {object[]} inputs.labels - Array for labels on pull request.
  */
 const setCRIAndVersionsFromLabels = ({ core, labels }) => {
-  let useLabels = [];
-  if (labels) {
-    for (const label of labels) {
-      if (label.name.startsWith('e2e/use')) {
-        useLabels.push(label.name);
-      }
-    }
-  }
-  core.info(`e2e/use labels: ${JSON.stringify(useLabels)}`);
-
+  core.startGroup(`Detect e2e/use labels ...`)
+  core.info(`Input labels: ${JSON.stringify(labels, null, '  ')}`)
   let ver = [];
   let cri = [];
-  for (const label of useLabels) {
-    for (const criName of knownCRINames) {
-      if (label.includes(criName.toLowerCase())) {
-        cri.push(criName.toLowerCase());
-      }
+  for (const label of labels) {
+    const info = knownLabels[label.name]
+    if (!info || info.type !== 'e2e-run') {
+      continue
     }
-    for (const kubernetesVersion of knownKubernetesVersions) {
-      if (label.includes(kubernetesVersion)) {
-        ver.push(kubernetesVersion.replace(/\./g, '_'));
-      }
+    if (info.cri) {
+      core.info(`Detect '${label.name}': use CRI '${info.cri.toLowerCase()}'`)
+      cri.push(info.cri.toLowerCase())
+    }
+    if (info.ver) {
+      core.info(`Detect '${label.name}': use Kubernetes version '${info.ver}'`)
+      ver.push(info.ver.replace(/\./g, '_'))
     }
   }
 
-  const defaultCRI = e2eDefaults.criName.toLowerCase();
-  const defaultVersion = e2eDefaults.kubernetesVersion.replace(/\./g, '_');
   if (ver.length === 0) {
-    core.info(`No additional 'e2e/use/k8s' labels found. Will run e2e with default version=${defaultVersion}.`)
+    const defaultVersion = e2eDefaults.kubernetesVersion.replace(/\./g, '_');
+    core.info(`No 'e2e/use/k8s' labels found. Will run e2e with default version=${defaultVersion}.`)
     ver = [defaultVersion];
   }
   if (cri.length === 0) {
-    core.info(`No additional 'e2e/use/cri' labels found. Will run e2e with default cri=${defaultCRI}.`);
+    const defaultCRI = e2eDefaults.criName.toLowerCase();
+    core.info(`No 'e2e/use/cri' labels found. Will run e2e with default cri=${defaultCRI}.`);
     cri = [defaultCRI];
   }
+  core.endGroup()
 
+  core.startGroup(`Set outputs`)
+  core.setCommandEcho(true)
   for (const out_cri of cri) {
     for (const out_ver of ver) {
-      core.info(`run_${out_cri}_${out_ver}: true`);
       core.setOutput(`run_${out_cri}_${out_ver}`, 'true');
     }
   }
+  core.setCommandEcho(false)
+  core.endGroup()
 };
 
 /**
@@ -559,12 +558,6 @@ module.exports.checkE2ELabels = async ({ github, context, core, provider }) => {
  * @returns {Promise<void|*>}
  */
 module.exports.checkValidationLabels = async ({ github, context, core }) => {
-  // Run all validations by default.
-  core.setOutput('run_no_cyrillic', 'true');
-  core.setOutput('run_doc_changes', 'true');
-  core.setOutput('run_copyright', 'true');
-  core.setOutput('run_markdown', 'true');
-
   // This method runs on pull_request_target, so pull_request context
   // with pull request number should be available.
   if (!context.payload.pull_request || !context.payload.pull_request.number) {
@@ -577,7 +570,7 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
     core.info(`Private repo: payload dump: ${JSON.stringify(context.payload)}`);
   }
 
-  // Fetch fresh pull request state using sha.
+  // Fetch fresh pull request state using its number.
   // Why? Workflow rerun of 'opened' pull request contains outdated labels.
   const owner = context.repo.owner
   const repo = context.repo.repo
@@ -603,45 +596,34 @@ module.exports.checkValidationLabels = async ({ github, context, core }) => {
 
   const pr = response.data;
 
-  // Check labels and disable corresponding validations.
-  for (const skipLabel of knownLabels['skip-validation']) {
-    let prHasSkipLabel = pr.labels.some((l) => l.name === skipLabel);
+  core.startGroup(`Set outputs`)
+  core.setCommandEcho(true)
 
-    let validationName = '';
-    if (/no-cyrillic/.test(skipLabel)) {
-      validationName = 'no_cyrillic';
-      core.info(`Skip 'no-cyrillic'`);
+  // Disable validation if its 'skip-validation' label is set on PR.
+  for (const label in knownLabels) {
+    if (!knownLabels.hasOwnProperty(label)) {
+      continue
     }
-    if (/documentation/.test(skipLabel)) {
-      validationName = 'doc_changes';
-      core.info(`Skip 'doc-changes'`);
+    const info = knownLabels[label]
+    if (info.type !== 'skip-validation') {
+      continue
     }
-    if (/copyright/.test(skipLabel)) {
-      validationName = 'copyright';
-      core.info(`Skip 'copyright'`);
+    const shouldSkip = pr.labels.some((l) => l.name === label);
+    const name = info.validation_name
+    if (shouldSkip) {
+      core.info(`Skip '${name}'`)
+      core.setOutput(`run_${name}`, 'false');
+    } else {
+      core.setOutput(`run_${name}`, 'true');
     }
-    if (/markdown/.test(skipLabel)) {
-      validationName = 'markdown';
-      core.info(`Skip 'markdown'`);
-    }
-
-    if (prHasSkipLabel) {
-      core.setOutput(`run_${validationName}`, 'false');
-    }
-    core.setOutput(`label_${validationName}`, skipLabel);
+    core.setOutput(`label_${name}`, label.name);
   }
-
   core.setOutput('pr_title', pr.title);
-  core.info(`pr_title='${pr.title}'`);
-
   core.setOutput('pr_description', pr.body);
-  core.info(`pr_description='${pr.body}'`);
-
   core.setOutput('diff_url', pr.diff_url);
-  core.info(`diff_url='${pr.diff_url}'`);
-
   core.setOutput('is_private_repo', is_private_repo);
-  core.info(`is_private_repo='${is_private_repo}'`);
+  core.setCommandEcho(false)
+  core.endGroup()
 };
 
 /**
@@ -908,136 +890,152 @@ module.exports.runSlashCommandForReleaseIssue = async ({ github, context, core }
  * @returns {Promise<void>}
  */
 module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }) => {
-  const event = context.payload;
-  const label = event.label.name;
-  let command = {action: 'run_workflow_dispatch', workflows:[]};
+  const event = context.payload
+  const label = event.label.name
+  const prNumber = context.payload.pull_request.number
+  const prLabels = context.payload.pull_request.labels
 
-  core.info(`Event label name: '${label}'`);
+  core.startGroup(`Dump context`)
+  core.info(`Git ref for workflows: ${ref}`);
+  core.info(`PR number: ${prNumber}`)
+  core.info(`PR action: ${event.action}`)
+  core.info(`PR action label: '${label}'`);
+  core.info(`Current labels: ${JSON.stringify(prLabels, null, '  ')}`);
   core.info(`Known labels: ${JSON.stringify(knownLabels, null, '  ')}`);
-  core.info(`Current labels: ${JSON.stringify(event.pull_request.labels)}`);
-  core.info(`Git ref: '${ref}'`);
+  core.endGroup()
 
-  if (knownLabels.e2e.includes(label) && event.action === 'labeled') {
-    for (const provider of knownProviders) {
-      if (label.includes(provider)) {
-        command.workflows = [`e2e-${provider}.yml`];
-        break;
+  let command = {
+    reRunWorkflow: false,
+    triggerWorkflowDispatch: false,
+    workflows:[]
+  };
+  core.startGroup(`PR#${prNumber} was ${event.action} with '${label}'. Detect command ...`)
+  try {
+    const labelInfo = knownLabels[label]
+    const labelType = labelInfo ? labelInfo.type : ''
+    if (labelType === 'e2e-run' && event.action === 'labeled') {
+      // Workflow will remove label from PR, ignore 'unlabeled' action.
+      command.workflows = [`e2e-${labelInfo.provider}.yml`]
+      command.triggerWorkflowDispatch = true
+    }
+    if (labelType === 'deploy-web' && event.action === 'labeled') {
+      // Workflow will remove label from PR, ignore 'unlabeled' action.
+      command.workflows = [`deploy-web-${labelInfo.env}.yml`]
+      command.triggerWorkflowDispatch = true
+    }
+    if (labelType === 'skip-validation') {
+      command.workflows = ['validation.yml']
+      command.reRunWorkflow = true
+    }
+    if (labelType === 'ok-to-test') {
+      command.workflows = ['build-and-test_dev.yml', 'validation.yml'];
+      command.reRunWorkflow = true
+    }
+    // Rerun build workflow if edition label is added or all edition labels are removed.
+    if (labelType === 'edition') {
+      // Gather other edition labels on PR.
+      let removeEditions = []
+      prLabels.map((l) => {
+        const info = knownLabels[l.name]
+        if (info && info.type === 'edition' && l.name !== label) {
+          removeEditions.push(l.name)
+        }
+      })
+
+      if (event.action === 'labeled' && removeEditions.length > 0) {
+        // If edition/ce label is set, edition/ee label should be removed and vice versa.
+        for (const edition of removeEditions) {
+          core.notice(`Remove label '${edition}' from PR#${prNumber}`)
+          await removeLabel({github, context, core, issue_number, label: edition});
+        }
+      }
+
+      // Re-run workflow if labeled with edition label or no edition labels left on PR.
+      if (event.action === 'labeled' || (event.action === 'unlabeled' && removeEditions.length === 0)) {
+        command.workflows = ['build-and-test_dev.yml'];
+        command.reRunWorkflow = true
       }
     }
-  }
-
-  if (knownLabels['deploy-web'].includes(label) && event.action === 'labeled') {
-    // prod env is not available for pull request.
-    for (const webEnv of ['test', 'stage']) {
-      if (label.includes(webEnv)) {
-        command.workflows = [`deploy-web-${webEnv}.yml`];
-        break;
-      }
-    }
-  }
-
-  if (knownLabels['skip-validation'].includes(label)) {
-    command.workflows = ['validation.yml'];
-    command.action = 'rerun_workflow';
-  }
-
-  if (knownLabels['ok-to-test'] === label) {
-    command.workflows = ['build-and-test_dev.yml', 'validation.yml'];
-    command.action = 'rerun_workflow';
-  }
-
-  // Rerun build workflow if edition label is added or all edition labels are removed.
-  if (knownLabels['edition'].includes(label)) {
-    const issue_number = context.issue.number;
-    const labels = event.pull_request.labels;
-
-    let hasEditionLabel = false;
-    for (const edition of knownLabels['edition']) {
-      if (labels.some((l) => l.name === edition)) {
-        hasEditionLabel = true;
-        break
-      }
-    }
-
-    if (event.action === 'labeled' || !hasEditionLabel) {
-      command.workflows = ['build-and-test_dev.yml'];
-      command.action = 'rerun_workflow';
-    }
-
-    // If edition/ce label is set, edition/ee label should be removed and vice versa.
-    if (event.action === 'labeled') {
-      const removeEditions = knownLabels['edition'].filter(l => l !== label);
-      for (const edition of removeEditions) {
-        await removeLabel({github, context, core, issue_number, label: edition});
-      }
-    }
+  } finally {
+    core.endGroup()
   }
 
   if (command.workflows.length === 0) {
-    return console.log(`Workflow for label '${event.label.name}' and action '${event.action}' not found. Ignore it.`);
+    const msg = `Ignore '${event.action}' event for label '${label}': no workflow to rerun.`
+    core.notice(msg)
+    return core.info(msg)
   }
 
-  if (command.action === 'rerun_workflow') {
-    core.info(
-      `Label '${label}' was set on PR#${context.payload.pull_request.number}. Will retry workflows: '${JSON.stringify(
-        command.workflows
-      )}'.`
+  if (command.reRunWorkflow) {
+    core.startGroup(
+      `Retry workflows '${JSON.stringify(command.workflows)}' via Github API ...`
     );
-    for (const workflow_id of command.workflows) {
-      await findAndRerunWorkflow({ github, context, core, workflow_id });
-    }
-  }
-
-  if (command.action === 'run_workflow_dispatch') {
-    const workflow_id = command.workflows[0];
-    core.info(
-      `Label '${label}' was set on PR#${context.payload.pull_request.number}. Will start workflow '${workflow_id} via workflow_dispatch event'.`
-    );
-
-    // workflow_dispatch requires a ref. In PRs from forks, we assign images with `prXXX` tags to
-    // avoid clashes with inner branches.
-    const prNumber = context.payload.pull_request.number;
-
-    // Add a comment to pull request.
-    core.info(`Add comment to pull request ${prNumber}.`);
-    let response = await github.rest.issues.createComment({
-      owner: context.repo.owner,
-      repo: context.repo.repo,
-      issue_number: prNumber,
-      body: commentLabelRecognition(context.payload.sender.login, label)
-    });
-
-    if (response.status < 200 || response.status >= 300) {
-      return core.setFailed(`Cannot start workflow: ${JSON.stringify(response)}`);
-    }
-
-    const commentInfo = {
-      issue_id: '' + context.payload.pull_request.id,
-      issue_number: '' + prNumber,
-      comment_id: '' + response.data.id
-    };
-
-    const targetRepo = context.payload.repository.full_name;
-    const prRepo = context.payload.pull_request.head.repo.full_name;
-    const prRef = context.payload.pull_request.head.ref;
-    const prInfo = {
-      ci_commit_ref_name: prRepo === targetRepo ? prRef : `pr${prNumber}`,
-      pull_request_ref: ref,
-      pull_request_sha: context.payload.pull_request.head.sha,
-      pull_request_head_label: context.payload.pull_request.head.label
-    };
-
-    return await startWorkflow({
-      github,
-      context,
-      core,
-      workflow_id,
-      ref: 'refs/heads/main',
-      inputs: {
-        ...commentInfo,
-        ...prInfo
+    try {
+      for (const workflow_id of command.workflows) {
+        await findAndRerunWorkflow({github, context, core, workflow_id});
       }
-    });
+    } finally {
+      core.endGroup()
+    }
+  }
+
+  if (command.triggerWorkflowDispatch) {
+    // Can trigger only single workflow because of commenting on PR.
+    const workflow_id = command.workflows[0];
+    core.startGroup(
+      `Trigger workflow_dispatch event for workflow '${workflow_id}' ...`
+    );
+    let response = null
+    try {
+      // Add a comment to pull request. https://docs.github.com/en/rest/issues/comments#create-an-issue-comment
+      core.info(`Commenting on PR#${prNumber} ...`);
+      response = await github.rest.issues.createComment({
+        owner: context.repo.owner,
+        repo: context.repo.repo,
+        issue_number: prNumber,
+        body: commentLabelRecognition(context.payload.sender.login, label)
+      });
+
+      if (response.status !== 201) {
+        return core.setFailed(`Error commenting PR#${prNumber}: ${JSON.stringify(response)}`);
+      }
+
+      const commentInfo = {
+        issue_id: '' + context.payload.pull_request.id,
+        issue_number: '' + prNumber,
+        comment_id: '' + response.data.id
+      };
+
+      // Triggering workflow_dispatch requires a ref to checkout workflows.
+      // We use refs/heads/main for workflows and pass refs/pulls/head/NUM in
+      // pull_request_ref field to checkout PR content.
+      const targetRepo = context.payload.repository.full_name;
+      const prRepo = context.payload.pull_request.head.repo.full_name;
+      const prRef = context.payload.pull_request.head.ref;
+      const prInfo = {
+        ci_commit_ref_name: prRepo === targetRepo ? prRef : `pr${prNumber}`,
+        pull_request_ref: ref,
+        pull_request_sha: context.payload.pull_request.head.sha,
+        pull_request_head_label: context.payload.pull_request.head.label
+      };
+
+      response = await startWorkflow({
+        github,
+        context,
+        core,
+        workflow_id,
+        ref: 'refs/heads/main',
+        inputs: {
+          ...commentInfo,
+          ...prInfo
+        }
+      });
+    } catch (error) {
+      core.info(`Github API call error: ${dumpError(error)}`)
+    } finally {
+      core.info(`Github API call response: ${JSON.stringify(response)}`)
+      core.endGroup()
+    }
   }
 };
 
@@ -1046,6 +1044,7 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
   let lastRun = null;
   const branch = context.payload.pull_request.head.ref
   const headSHA = context.payload.pull_request.head.sha
+  let failMsg = ''
   core.startGroup(`List workflow runs ${workflow_id} for branch ${branch} and SHA ${headSHA} in PR#${context.payload.pull_request.number} ...`)
   try {
     const response = await github.rest.actions.listWorkflowRuns({
@@ -1054,26 +1053,32 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
       workflow_id: workflow_id,
       branch
     });
-
-    if (!response.data.workflow_runs || response.data.workflow_runs.length === 0) {
-      core.info(`ListWorkflowRuns response: ${JSON.stringify(response)}`);
-      return core.setFailed(`No runs found for workflow '${workflow_id}'. Just return.`);
+    if (response.status !== 200 || !response.data || !response.data.workflow_runs) {
+      failMsg = `Bad response for listWorkflowRuns: ${JSON.stringify(response)}.`
+    } else {
+      lastRun = response.data.workflow_runs.find((wr) => wr.head_sha === headSHA)
+      if (lastRun) {
+        core.info(`Found latest workflow '${workflow_id}' run for commit ${headSHA}:`)
+        core.info(`  ID ${lastRun.id}, run number ${lastRun.run_number}`)
+        core.info(`  Status: ${lastRun.status}`)
+        core.info(`  Started at: ${lastRun.run_started_at}`)
+        core.info(`  URL: ${lastRun.html_url}`)
+      } else {
+        failMsg = `No workflow '${workflow_id}' runs for commit ${headSHA}: ${JSON.stringify(response)}.`
+      }
     }
-
-    lastRun = response.data.workflow_runs.find((wr) => wr.head_sha === headSHA)
-    if (lastRun) {
-      core.info(`Found last workflow run of '${workflow_id}'. ID ${lastRun.id}, run number ${lastRun.run_number}, started at ${lastRun.run_started_at}, status ${lastRun.status}`);
-    }
+  } catch(error) {
+    failMsg = `Error listing workflow '${workflow_id}' runs: ${dumpError(error)}`
   } finally {
     core.endGroup()
   }
 
   if (!lastRun) {
-    return core.setFailed(`Not found workflow runs ${workflow_id} for branch ${branch} and SHA ${headSHA} in PR#${context.payload.pull_request.number} ...`)
+    return core.setFailed(failMsg)
   }
 
-  // Run cancel as Github ignores cancel-in-progress: true in concurrency settings
-  // for rerun/retry API calls.
+  // Call cancel as Github ignores 'cancel-in-progress: true' in concurrency
+  // settings for rerun/retry API calls.
   if (lastRun.status !== 'completed') {
     core.startGroup(`Cancel workflow ${workflow_id} run ${lastRun.id} in status ${lastRun.status} ...`)
     try {
@@ -1082,7 +1087,11 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
         repo: context.repo.repo,
         run_id: lastRun.id
       });
-      core.info(`cancelWorkflowRun response: ${JSON.stringify(response)}`)
+      if (response.status === 202) {
+        core.info('cancelWorkflowRun called successfully.');
+      } else {
+        core.info(`Bad status code from cancelWorkflowRun: ${JSON.stringify(response)}`);
+      }
     } catch (error) {
       core.info(`Ignore error from cancelWorkflowRun: ${dumpError(error)}`);
     } finally {
@@ -1097,10 +1106,10 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
       repo: context.repo.repo,
       run_id: lastRun.id
     });
-    if (response.status > 200 && response.status < 300) {
-      core.info('RetryWorkflow called successfully');
+    if (response.status === 201) {
+      core.info('retryWorkflow called successfully.');
     } else {
-      core.info(`Error calling RetryWorkflow. Response: ${JSON.stringify(response)}`);
+      core.info(`Bad status code from retryWorkflow: ${JSON.stringify(response)}`);
     }
   } catch (error) {
     core.info(`Ignore error from retryWorkflow: ${dumpError(error)}`);
@@ -1126,6 +1135,7 @@ module.exports.createReleaseIssueForMilestone = async ({ github, context, core }
     return core.setFailed(`Milestone '${milestone.title}' not dedicated to release version in form of vX.Y.Z. Ignore creating release issue.'`);
   }
   const milestoneVersion = matches[0];
+  const majorMinor = matches[1];
 
   const availableChannels = knownChannels.map(ch => ch.toLowerCase()).join(' | ');
   const availableEditions = knownEditions.map(e => e.toLowerCase()).join(' | ');
@@ -1142,7 +1152,7 @@ module.exports.createReleaseIssueForMilestone = async ({ github, context, core }
 <summary>Release issue commands and options</summary>
 <br />
 
-You can trigger release actions by commenting on this issue:
+You can trigger release related actions by commenting on this issue:
 
 - \`/deploy/<channel>[/<editions>]\` will publish built images into the release channel.
   - \`channel\` is one of \`${availableChannels}\`
@@ -1157,7 +1167,7 @@ You can trigger release actions by commenting on this issue:
 - \`/e2e/use/k8s/<version>\` specifies which Kubernetes version to use for e2e test.
   - \`version\` is one of \`${availableKubernetesVersions}\`
 - \`/build git_ref\` will run build for release related refs.
-  - \`git_ref\` is a tag or branch: \`vX.Y.Z | test-vX.Y.Z* | main | release-X.Y\`
+  - \`git_ref\` is a tag \`${milestoneVersion} | test-${milestoneVersion}*\` or branch \`main | release-${majorMinor}\`
 
 
 **Note 1:**
@@ -1177,6 +1187,13 @@ and with Kubernetes version 1.19 and 1.21.
 
 **Note 2:**
 'deploy', 'suspend' and 'e2e' commands should run after 'build FE' job is finished.
+
+**Note 3:**
+No autobuild for release branch. Run this command after cherry-picking:
+\`\`\`
+/build release-${majorMinor}
+\`\`\`
+
 
 </details>`;
 
@@ -1277,7 +1294,7 @@ const findReleaseIssueForMilestone = async ({ github, context, core, milestone }
     repo: context.repo.repo,
     milestone: milestone.number,
     state: 'open',
-    labels: [knownLabels['issue-release']]
+    labels: [releaseIssueLabel]
   });
   if (response.status !== 200 || response.data.length < 1) {
     return {notFoundMsg: `List milestone issues failed: ${JSON.stringify(response)}`};
@@ -1335,19 +1352,24 @@ const addReleaseIssueComment = async ({ github, context, core, issue, gitRefInfo
 const startWorkflow = async ({ github, context, core, workflow_id, ref, inputs }) => {
   core.info(`Start workflow '${workflow_id}' using ref '${ref}' and inputs ${JSON.stringify(inputs)}.`);
 
-  const response = await github.rest.actions.createWorkflowDispatch({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    workflow_id,
-    ref,
-    inputs: inputs || {},
-  });
+  let response = null
+  try {
+    response = await github.rest.actions.createWorkflowDispatch({
+      owner: context.repo.owner,
+      repo: context.repo.repo,
+      workflow_id,
+      ref,
+      inputs: inputs || {},
+    });
+  } catch(error) {
+    return core.setFailed(`Error triggering workflow_dispatch event: ${dumpError(error)}`)
+  }
 
   core.debug(`status: ${response.status}`);
   core.debug(`workflow dispatch response: ${JSON.stringify(response)}`);
 
   if (response.status !== 204) {
-    return core.setFailed(`Error starting workflow '${workflow_id}'. createWorkflowDispatch response: ${JSON.stringify(response)}`);
+    return core.setFailed(`Error triggering workflow_dispatch event for '${workflow_id}'. createWorkflowDispatch response: ${JSON.stringify(response)}`);
   }
   return core.info(`Workflow '${workflow_id}' started successfully`);
 };
