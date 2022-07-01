@@ -62,6 +62,11 @@ jobs:
       ref: ${{ steps.check_pr.outputs.ref }}
       ref_slug: ${{ steps.check_pr.outputs.ref_slug }}
       edition: ${{ steps.check_pr.outputs.edition }}
+      pr_title: ${{ steps.check_pr.outputs.pr_title }}
+      pr_description: ${{ steps.check_pr.outputs.pr_description }}
+      diff_url: ${{ steps.check_pr.outputs.diff_url }}
+      labels: ${{ steps.check_pr.outputs.labels }}
+
     # Skip pull_request and pull_request_target triggers for PRs authored by deckhouse-BOaTswain, e.g. changelog PRs.
     if: ${{ ! (startsWith(github.event_name, 'pull_request') && github.event.pull_request.user.login == 'deckhouse-BOaTswain') }}
     steps:
@@ -87,9 +92,13 @@ jobs:
               const pr = response.data[0];
               // Reduce size to fit output limits.
               pr = {
-                number: pr.number,
-                labels: pr.labels,
-                head: pr.head
+                url:      pr.url,
+                diff_url: pr.diff_url,
+                number:   pr.number,
+                labels:   pr.labels,
+                head:     pr.head,
+                title:    pr.title,
+                body:     pr.body,
               }
               core.notice(`Found PR#{pr.number} for ${head_label}`);
               core.setOutput('pr_response', JSON.stringify(pr));
@@ -209,11 +218,22 @@ jobs:
             core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
             core.notice(`Use ref: '${ref}'`)
 
+            // pr.diff_url works only for public repositories.
+            let diff_url = pr.diff_url;
+            if (!!context.payload.repository.private) {
+              core.notice(`Detect private repo. Use Github API to get PR diff.`);
+              diff_url = pr.url;
+            }
+
             core.setCommandEcho(true)
             core.setOutput('should_check', shouldCheckFiles);
             core.setOutput('ref', ref);
             core.setOutput('ref_slug', `pr${pr.number}`);
             core.setOutput('edition', edition);
+            core.setOutput('pr_title', pr.title);
+            core.setOutput('pr_description', pr.body);
+            core.setOutput('diff_url', diff_url);
+            core.setOutput('labels', JSON.stringify(pr.labels));
             core.setCommandEcho(false);
 
       # Checkhout the head commit of the PR branch.
@@ -258,18 +278,14 @@ jobs:
       - pull_request_info
     runs-on: ubuntu-latest
     outputs:
-      run_no_cyrillic: ${{ steps.on_push.outputs.run_no_cyrillic }}
-      label_no_cyrillic: ${{ steps.on_push.outputs.label_no_cyrillic }}
-      run_doc_changes: ${{ steps.on_push.outputs.run_doc_changes }}
-      label_doc_changes: ${{ steps.on_push.outputs.label_doc_changes }}
-      run_copyright: ${{ steps.on_push.outputs.run_copyright }}
-      label_copyright: ${{ steps.on_push.outputs.label_copyright }}
-      run_markdown: ${{ steps.on_push.outputs.run_markdown }}
-      label_markdown: ${{ steps.on_push.outputs.label_markdown }}
-      pr_title: ${{ steps.on_push.outputs.pr_title }}
-      pr_description: ${{ steps.on_push.outputs.pr_description }}
-      diff_url: ${{ steps.on_push.outputs.diff_url }}
-
+      run_no_cyrillic: ${{ steps.check_labels.outputs.run_no_cyrillic }}
+      label_no_cyrillic: ${{ steps.check_labels.outputs.label_no_cyrillic }}
+      run_doc_changes: ${{ steps.check_labels.outputs.run_doc_changes }}
+      label_doc_changes: ${{ steps.check_labels.outputs.label_doc_changes }}
+      run_copyright: ${{ steps.check_labels.outputs.run_copyright }}
+      label_copyright: ${{ steps.check_labels.outputs.label_copyright }}
+      run_markdown: ${{ steps.check_labels.outputs.run_markdown }}
+      label_markdown: ${{ steps.check_labels.outputs.label_markdown }}
     steps:
 
       # <template: checkout_step>
@@ -278,19 +294,22 @@ jobs:
         with:
           ref: ${{ needs.pull_request_info.outputs.ref }}
       # </template: checkout_step>
-      - id: on_push
+      - id: check_labels
         name: Check labels on push
         uses: actions/github-script@v5.0.0
+        env:
+          PR_LABELS: ${{ needs.pull_request_info.outputs.labels }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
+            const labels = JSON.parse(process.env.PR_LABELS)
+
             const ci = require('./.github/scripts/js/ci');
-            return await ci.checkValidationLabels({ github, context, core });
+            return ci.checkValidationLabels({ core, labels });
 
       - name: Download diff for pull request
         env:
-          IS_PRIVATE_REPO: ${{ steps.on_push.outputs.is_private_repo }}
-          DIFF_URL: ${{ steps.on_push.outputs.diff_url }}
+          DIFF_URL: ${{ needs.pull_request_info.outputs.diff_url }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./.github/scripts/validation_run.sh --download-only ./pr.diff
@@ -305,8 +324,8 @@ jobs:
   no_cyrillic_validation:
     name: No Cyrillic Validation
     env:
-      VALIDATE_TITLE: ${{ needs.discover.outputs.pr_title }}
-      VALIDATE_DESCRIPTION: ${{ needs.discover.outputs.pr_description }}
+      VALIDATE_TITLE: ${{ needs.pull_request_info.outputs.pr_title }}
+      VALIDATE_DESCRIPTION: ${{ needs.pull_request_info.outputs.pr_description }}
 
     needs:
       - discover
