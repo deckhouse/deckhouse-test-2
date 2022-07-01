@@ -418,9 +418,7 @@ const setCRIAndVersionsFromInputs = ({ context, core }) => {
     ver = requested_ver.split(',');
   }
 
-  core.info(
-    `workflow_dispatch is release related. e2e inputs: cri='${context.payload.inputs.cri}' and version='${context.payload.inputs.ver}'.`
-  );
+  core.info(`workflow_dispatch is release related. e2e inputs: cri='${context.payload.inputs.cri}' and version='${context.payload.inputs.ver}'.`);
 
   for (const out_cri of cri) {
     for (const out_ver of ver) {
@@ -439,15 +437,10 @@ const setCRIAndVersionsFromInputs = ({ context, core }) => {
  */
 const setCRIAndVersionsFromLabels = ({ core, labels }) => {
   core.startGroup(`Detect e2e/use labels ...`);
-  core.info(
-    `Input labels: ${JSON.stringify(
-      labels.map((l) => l.name),
-      null,
-      '  '
-    )}`
-  );
+  core.info(`Input labels: ${JSON.stringify(labels.map((l) => l.name), null, '  ')}`);
   let ver = [];
   let cri = [];
+
   for (const label of labels) {
     const info = knownLabels[label.name];
     if (!info || info.type !== 'e2e-use') {
@@ -532,10 +525,6 @@ module.exports.checkE2ELabels = async ({ github, context, core, provider }) => {
  * Outputs:
  * - run_<validation_type> - A boolean to start or skip a job.
  * - label_<validation_type> - A label name to use in failure message.
- * - diff_url - An URL to fetch full diff for PR.
- * - is_private_repo - Is it private repository? "yes"|"no".
- * - pr_title - A title of PR.
- * - pr_description - A description of PR.
  *
  * @param {object} inputs
  * @param {object} inputs.core - A reference to the '@actions/core' package.
@@ -543,52 +532,11 @@ module.exports.checkE2ELabels = async ({ github, context, core, provider }) => {
  * @returns {Promise<void|*>}
  */
 module.exports.checkValidationLabels = ({ core, labels }) => {
-  // // This method runs on pull_request_target, so pull_request context
-  // // with pull request number should be available.
-  // if (!context.payload.pull_request || !context.payload.pull_request.number) {
-  //   core.notice(
-  //     `No pull request number in context.payload. event_name=${context.eventName} action=${context.action} ref=${context.ref}`
-  //   );
-  //   return;
-  // }
-  //
-  // const is_private_repo = context.payload.repository.private ? 'yes' : 'no';
-  // if (is_private_repo === 'yes') {
-  //   core.info(`Private repo: payload dump: ${JSON.stringify(context.payload)}`);
-  // }
-  //
-  // // Fetch fresh pull request state using its number.
-  // // Why? Workflow rerun of 'opened' pull request contains outdated labels.
-  // const owner = context.repo.owner;
-  // const repo = context.repo.repo;
-  // const pull_number = context.payload.pull_request.number;
-  // const response = await github.rest.pulls.get({ owner, repo, pull_number });
-  // if (response.status != 200) {
-  //   return core.setFailed(`Cannot get PR ${pull_number}: ${JSON.stringify(response)}`);
-  // }
-  //
-  // // const owner = context.payload.pull_request.head.repo.owner.login
-  // // const repo = context.payload.pull_request.head.repo.name
-  // // const commit_sha = context.payload.pull_request.head.sha
-  // // core.info(`List pull request inputs: ${JSON.stringify({ owner, repo, commit_sha })}`);
-  // // const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({ owner, repo, commit_sha });
-  // // if (response.status != 200) {
-  // //   return core.setFailed(`Cannot list PRs for commit ${commit_sha}: ${JSON.stringify(response)}`);
-  // // }
-  //
-  // // No PR found, do not run validations.
-  // if (!response.data) {
-  //   return core.setFailed(`No pull_request found. event_name=${context.eventName} action=${context.action}`);
-  // }
-  //
-  // const pr = response.data;
-
   core.startGroup(`Detect skipped validations from labels`)
-  core.setCommandEcho(true)
-
   core.info(`Labels: ${labels ? JSON.stringify(labels.map((l) => l.name)) : 'no labels'}`)
 
-  // Disable validation if its 'skip-validation' label is set on PR.
+  // Disable validation if related 'skip-validation' label is set on PR.
+  core.setCommandEcho(true)
   for (const label in knownLabels) {
     if (!knownLabels.hasOwnProperty(label)) {
       continue
@@ -607,10 +555,6 @@ module.exports.checkValidationLabels = ({ core, labels }) => {
     }
     core.setOutput(`label_${name}`, label.name);
   }
-  // core.setOutput('pr_title', pr.title);
-  // core.setOutput('pr_description', pr.body);
-  // core.setOutput('diff_url', pr.diff_url);
-  // core.setOutput('is_private_repo', is_private_repo);
   core.setCommandEcho(false);
   core.endGroup();
 };
