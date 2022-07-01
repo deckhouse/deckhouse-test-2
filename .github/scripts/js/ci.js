@@ -537,24 +537,21 @@ module.exports.checkValidationLabels = ({ core, labels }) => {
 
   // Disable validation if related 'skip-validation' label is set on PR.
   core.setCommandEcho(true)
-  for (const label in knownLabels) {
-    if (!knownLabels.hasOwnProperty(label)) {
-      continue
-    }
-    const info = knownLabels[label]
-    if (info.type !== 'skip-validation') {
-      continue
-    }
-    const shouldSkip = labels ? labels.some((l) => l.name === label) : false;
-    const name = info.validation_name
-    if (shouldSkip) {
-      core.notice(`Skip '${name}'`)
-      core.setOutput(`run_${name}`, 'false');
-    } else {
-      core.setOutput(`run_${name}`, 'true');
-    }
-    core.setOutput(`label_${name}`, label.name);
-  }
+  Object.entries(knownLabels)
+    .map(([name, info]) => {
+      if (info.type !== 'skip-validation') {
+        return
+      }
+      const shouldSkip = labels ? labels.some((l) => l.name === name) : false;
+      const { validation_name } = info;
+      if (shouldSkip) {
+        core.notice(`Skip '${validation_name}'`)
+        core.setOutput(`run_${validation_name}`, 'false');
+      } else {
+        core.setOutput(`run_${validation_name}`, 'true');
+      }
+      core.setOutput(`label_${validation_name}`, name);
+    });
   core.setCommandEcho(false);
   core.endGroup();
 };

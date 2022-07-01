@@ -4,7 +4,7 @@
 const labels = {
   // Skip validations.
   'skip/no-cyrillic-validation': { type: 'skip-validation', validation_name: 'no_cyrillic' },
-  'skip/documentation-validation': { type: 'skip-validation', validation_name: 'documentation' },
+  'skip/documentation-validation': { type: 'skip-validation', validation_name: 'doc_changes' },
   'skip/copyright-validation': { type: 'skip-validation', validation_name: 'copyright' },
   'skip/markdown-validation': { type: 'skip-validation', validation_name: 'markdown' },
   'skip/actionlint': { type: 'skip-validation', validation_name: 'actionlint' },
