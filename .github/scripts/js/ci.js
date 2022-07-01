@@ -954,26 +954,21 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
   }
 
   if (command.workflows.length === 0) {
-    const msg = `Ignore '${event.action}' event for label '${label}': no workflow to rerun.`;
-    core.notice(msg);
-    return core.info(msg);
+    return core.notice(`Ignore '${event.action}' event for label '${label}': no workflow to rerun.`);
   }
 
   if (command.reRunWorkflow) {
-    core.startGroup(`Retry workflows '${JSON.stringify(command.workflows)}' via Github API ...`);
-    try {
-      for (const workflow_id of command.workflows) {
-        await findAndRerunWorkflow({ github, context, core, workflow_id });
-      }
-    } finally {
-      core.endGroup();
+    core.notice(`Retry workflows '${JSON.stringify(command.workflows)}' for label '${label}'`);
+    for (const workflow_id of command.workflows) {
+      await findAndRerunWorkflow({ github, context, core, workflow_id });
     }
   }
 
   if (command.triggerWorkflowDispatch) {
     // Can trigger only single workflow because of commenting on PR.
     const workflow_id = command.workflows[0];
-    core.startGroup(`Trigger workflow_dispatch event for workflow '${workflow_id}' ...`);
+    core.notice(`Run workflow '${JSON.stringify(command.workflows)}' for label '${label}'`);
+    core.startGroup(`Trigger workflow_dispatch event ...`);
     try {
       // Add a comment to pull request. https://docs.github.com/en/rest/issues/comments#create-an-issue-comment
       core.info(`Commenting on PR#${prNumber} ...`);
