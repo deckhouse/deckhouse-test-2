@@ -19,8 +19,8 @@ const labels = {
   'e2e/run/static': {type: 'e2e-run', provider: 'static'},
 
   // E2E: use CRI
-  'e2e/use/cri/docker': {type: 'e2e-use', cri: 'docker'},
-  'e2e/use/cri/containerd': {type: 'e2e-use', cri: 'containerd'},
+  'e2e/use/cri/docker': {type: 'e2e-use', cri: 'Docker'},
+  'e2e/use/cri/containerd': {type: 'e2e-use', cri: 'Containerd'},
 
   // E2E: use Kubernetes version
   'e2e/use/k8s/1.19': {type: 'e2e-use', ver: '1.19'},
@@ -28,7 +28,6 @@ const labels = {
   'e2e/use/k8s/1.21': {type: 'e2e-use', ver: '1.21'},
   'e2e/use/k8s/1.22': {type: 'e2e-use', ver: '1.22'},
   'e2e/use/k8s/1.23': {type: 'e2e-use', ver: '1.23'},
-  'e2e/use/k8s/1.24': {type: 'e2e-use', ver: '1.24'},
 
   // Allow running workflows for external PRs.
   'status/ok-to-test': {type: 'ok-to-test'},
@@ -68,7 +67,9 @@ module.exports.knownSlashCommands = slashCommands;
 
 module.exports.labelsSrv = {
   /**
-   * Search for known label name using label type as prefix and subject as suffix.
+   * Search for known label name using its type and property:
+   * - search by provider property for e2e-run labels
+   * - search by env property for deploy-web labels
    *
    * @param {object} inputs
    * @param {string} inputs.labelType
@@ -76,28 +77,26 @@ module.exports.labelsSrv = {
    * @returns {string}
    */
   findLabel: ({ labelType, labelSubject }) => {
-    const suffix = '/' + labelSubject.toLowerCase();
-    for (const label of labels[labelType]) {
-      if (label.endsWith(suffix)) {
-        return label;
-      }
-    }
-    return '';
+    return (Object.entries(labels)
+      .find(([name, info]) => {
+        if (info.type === labelType) {
+          if (labelType === 'e2e-run') {
+            return info.provider === labelSubject
+          }
+          if (labelType === 'deploy-web') {
+            return info.env === labelSubject
+          }
+        }
+        return false
+      }) || [''])[0]
   }
 };
 
 // Providers for e2e tests.
-const providers = [
-  //
-  'aws',
-  'gcp',
-  'azure',
-  'openstack',
-  'yandex-cloud',
-  'vsphere',
-  'static'
-];
-
+const providers = Object.entries(labels)
+  .filter(([name, info]) => info.type === 'e2e-run')
+  .map(([name, info]) => info.provider)
+  .sort();
 module.exports.knownProviders = providers;
 
 // Channels available for deploy.
@@ -112,19 +111,15 @@ const channels = [
 
 module.exports.knownChannels = channels;
 
-const criNames = [
-  'Containerd',
-  'Docker',
-];
+const criNames = Object.entries(labels)
+  .filter(([name, info]) => info.type === 'e2e-use' && !!info.cri)
+  .map(([name, info]) => info.cri);
 module.exports.knownCRINames = criNames;
 
-const kubernetesVersions = [
-  '1.19',
-  '1.20',
-  '1.21',
-  '1.22',
-  '1.23',
-];
+const kubernetesVersions = Object.entries(labels)
+  .filter(([name, info]) => info.type === 'e2e-use' && !!info.ver)
+  .map(([name, info]) => info.ver)
+  .sort();
 module.exports.knownKubernetesVersions = kubernetesVersions;
 
 module.exports.e2eDefaults = {

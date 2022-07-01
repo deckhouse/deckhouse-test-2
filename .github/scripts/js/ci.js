@@ -283,6 +283,8 @@ module.exports.updateCommentOnFinish = async ({
  * Check if label is present on PR or "release" issue and set 'shouldRun'
  * output to run or skip next jobs. Also, removes the label.
  *
+ * Used for e2e and deploy-web workflows.
+ *
  * Outputs:
  * - shouldRun - 'true'/'false' indicates label presence.
  * - labels - an array of labels on issue or PR.
@@ -291,8 +293,8 @@ module.exports.updateCommentOnFinish = async ({
  * @param {object} inputs.github - A pre-authenticated octokit/rest.js client with pagination plugins.
  * @param {object} inputs.context - An object containing the context of the workflow run.
  * @param {object} inputs.core - A reference to the '@actions/core' package.
- * @param {string} inputs.labelType - A label prefix: 'e2e' or 'deploy-web'.
- * @param {string} inputs.labelSubject - A last part of the label.
+ * @param {string} inputs.labelType - A label type: 'e2e-run' or 'deploy-web'.
+ * @param {string} inputs.labelSubject - Provider for 'e2e-run' or env for 'deploy-web'.
  * @param {function} inputs.onSuccess - A callback function to run on success.
  * @returns {Promise<void|*>}
  */
@@ -302,8 +304,8 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
     return console.log(`workflow_dispatch without issue number. Allow to proceed.`);
   }
 
-  const shouldRunLabel = labelsSrv.findLabel({ labelType, labelSubject });
-  if (shouldRunLabel === '') {
+  const expectedLabel = labelsSrv.findLabel({ labelType, labelSubject });
+  if (expectedLabel === '') {
     core.setOutput('should_run', 'false');
     return console.log(`Ignore unknown label for type='${labelType}' subject='${labelSubject}'. Skip next jobs.`);
   }
@@ -320,14 +322,14 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
       repo: context.repo.repo,
       issue_number: issue_number
     });
-    if (response.status != 200) {
+    if (response.status !== 200) {
       return core.setFailed(`Cannot get issue by number ${issue_number}: ${JSON.stringify(response)}`);
     }
 
     labels = response.data.labels;
   }
 
-  // Workflow started via workflow_dispatch, search pull_request and get labels.
+  // Workflow started via push, search pull_request and get labels.
   if (context.eventName === 'push') {
     isPR = true;
     const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({
@@ -364,12 +366,7 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
     );
   }
 
-  let hasLabel = false;
-  for (const label of labels) {
-    if (label.name === shouldRunLabel) {
-      hasLabel = true;
-    }
-  }
+  const hasLabel = labels.some((l) => l.name === expectedLabel)
 
   core.setOutput('should_run', hasLabel.toString());
 
@@ -378,16 +375,15 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
   }
 
   if (!hasLabel) {
-    console.log(`${isPR ? 'PR' : 'Issue'} #${issue_number} has no label '${shouldRunLabel}'. Skip next jobs.`);
-    return;
+    return core.info(`${isPR ? 'PR' : 'Issue'} #${issue_number} has no label '${expectedLabel}'. Skip next jobs.`);
   }
 
   // Remove label
-  console.log(`Requested label '${shouldRunLabel}' is present.`);
+  core.info(`Requested label '${expectedLabel}' is present.`);
 
-  await removeLabel({ github, context, core, issue_number, label: shouldRunLabel });
+  await removeLabel({ github, context, core, issue_number, label: expectedLabel });
 
-  console.log(`Now proceed to next jobs.`);
+  core.info(`Now proceed to next jobs.`);
 };
 module.exports.checkLabel = checkLabel;
 
@@ -459,12 +455,12 @@ const setCRIAndVersionsFromInputs = ({ context, core }) => {
  */
 const setCRIAndVersionsFromLabels = ({ core, labels }) => {
   core.startGroup(`Detect e2e/use labels ...`)
-  core.info(`Input labels: ${JSON.stringify(labels, null, '  ')}`)
+  core.info(`Input labels: ${JSON.stringify(labels.map((l) => l.name), null, '  ')}`)
   let ver = [];
   let cri = [];
   for (const label of labels) {
     const info = knownLabels[label.name]
-    if (!info || info.type !== 'e2e-run') {
+    if (!info || info.type !== 'e2e-use') {
       continue
     }
     if (info.cri) {
@@ -525,7 +521,7 @@ module.exports.checkE2ELabels = async ({ github, context, core, provider }) => {
     github,
     context,
     core,
-    labelType: 'e2e',
+    labelType: 'e2e-run',
     labelSubject: provider,
     onSuccess: ({ labels, hasLabel }) => {
       issueLabels = labels;
@@ -900,9 +896,11 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
   core.info(`PR number: ${prNumber}`)
   core.info(`PR action: ${event.action}`)
   core.info(`PR action label: '${label}'`);
-  core.info(`Current labels: ${JSON.stringify(prLabels, null, '  ')}`);
+  core.info(`Current labels: ${JSON.stringify(prLabels.map((l) => l.name), null, '  ')}`);
   core.info(`Known labels: ${JSON.stringify(knownLabels, null, '  ')}`);
   core.endGroup()
+
+  // Note: no more auto rerun for validation.yml.
 
   let command = {
     reRunWorkflow: false,
@@ -922,10 +920,6 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
       // Workflow will remove label from PR, ignore 'unlabeled' action.
       command.workflows = [`deploy-web-${labelInfo.env}.yml`]
       command.triggerWorkflowDispatch = true
-    }
-    if (labelType === 'skip-validation') {
-      command.workflows = ['validation.yml']
-      command.reRunWorkflow = true
     }
     if (labelType === 'ok-to-test') {
       command.workflows = ['build-and-test_dev.yml', 'validation.yml'];
@@ -985,11 +979,10 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
     core.startGroup(
       `Trigger workflow_dispatch event for workflow '${workflow_id}' ...`
     );
-    let response = null
     try {
       // Add a comment to pull request. https://docs.github.com/en/rest/issues/comments#create-an-issue-comment
       core.info(`Commenting on PR#${prNumber} ...`);
-      response = await github.rest.issues.createComment({
+      const response = await github.rest.issues.createComment({
         owner: context.repo.owner,
         repo: context.repo.repo,
         issue_number: prNumber,
@@ -1019,7 +1012,7 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
         pull_request_head_label: context.payload.pull_request.head.label
       };
 
-      response = await startWorkflow({
+      await startWorkflow({
         github,
         context,
         core,
@@ -1033,7 +1026,6 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
     } catch (error) {
       core.info(`Github API call error: ${dumpError(error)}`)
     } finally {
-      core.info(`Github API call response: ${JSON.stringify(response)}`)
       core.endGroup()
     }
   }
@@ -1075,28 +1067,6 @@ const findAndRerunWorkflow = async ({ github, context, core, workflow_id }) => {
 
   if (!lastRun) {
     return core.setFailed(failMsg)
-  }
-
-  // Call cancel as Github ignores 'cancel-in-progress: true' in concurrency
-  // settings for rerun/retry API calls.
-  if (lastRun.status !== 'completed') {
-    core.startGroup(`Cancel workflow ${workflow_id} run ${lastRun.id} in status ${lastRun.status} ...`)
-    try {
-      const response = await github.rest.actions.cancelWorkflowRun({
-        owner: context.repo.owner,
-        repo: context.repo.repo,
-        run_id: lastRun.id
-      });
-      if (response.status === 202) {
-        core.info('cancelWorkflowRun called successfully.');
-      } else {
-        core.info(`Bad status code from cancelWorkflowRun: ${JSON.stringify(response)}`);
-      }
-    } catch (error) {
-      core.info(`Ignore error from cancelWorkflowRun: ${dumpError(error)}`);
-    } finally {
-      core.endGroup()
-    }
   }
 
   core.startGroup(`Retry workflow ${workflow_id} run ${lastRun.id} ...`)
