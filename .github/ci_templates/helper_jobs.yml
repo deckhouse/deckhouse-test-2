@@ -86,18 +86,20 @@ git_info:
 {!{- end -}!}
 
 
-# Only useful with pull_request_target.
-#
-# Checkout the head commit, checks if changes are safe and returns the ref.
-# Job fails if changes seem dangerous.
+# Check pull request state on push or pull_request_target events:
+# - find PR info on push event
+# - detect edition from PR labels
+# - calculate ref to use in further checkout jobs
+# - detect if PR is 'external': checkout the head commit and fail if changes are not safe
 {!{ define "pull_request_info_job" }!}
 # <template: pull_request_info>
 pull_request_info:
   name: Get pull request reference
   runs-on: ubuntu-latest
   outputs:
-    ref: ${{ steps.ref.outputs.ref }}
-    edition: ${{ steps.check_pr.outputs.edition || steps.check_push.outputs.edition }}
+    ref: ${{ steps.check_pr.outputs.ref }}
+    ref_slug: ${{ steps.check_pr.outputs.ref_slug }}
+    edition: ${{ steps.check_pr.outputs.edition }}
   # Skip pull_request and pull_request_target triggers for PRs authored by deckhouse-BOaTswain, e.g. changelog PRs.
   if: ${{ ! (startsWith(github.event_name, 'pull_request') && github.event.pull_request.user.login == 'deckhouse-BOaTswain') }}
   steps:
@@ -107,22 +109,80 @@ pull_request_info:
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
         script: |
-          // Support 'push' trigger: use FE edition by default.
-          const edition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
-          core.notice(`Enable default '${edition}' edition for 'push' trigger.`);
-          return core.setOutput('edition', edition);
-
-    - name: Check if allow to run tests
-      id: check_pr
-      if: ${{ startsWith(github.event_name, 'pull_request') }}
-      uses: {!{ index (ds "actions") "actions/github-script" }!}
-      with:
-        script: |
-          if (!context.payload.pull_request) {
-            return core.setFailed(`Unknown event, no pull request context. event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
+          // Support for 'push' trigger: find PR by commit SHA and pass response to check_pr step.
+          const { GITHUB_REF_NAME } = process.env
+          core.startGroup(`Fetching PR info for commit ${context.sha} in ${context.repo.name}:${GITHUB_REF_NAME} ...`)
+          try {
+            const response = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha
+            });
+            if (response.status !== 200 || !response.data || response.data.length === 0) {
+              return core.setFailed(`Bad response on listing PRs for commit ${context.sha}: ${JSON.stringify(response)}`);
+            }
+            // Get first associated pr.
+            const pr = response.data[0];
+            // Reduce size to fit output limits.
+            pr = {
+              number: pr.number,
+              labels: pr.labels,
+              head: pr.head
+            }
+            core.notice(`Found PR#{pr.number} for ${head_label}`);
+            core.setOutput('pr_response', JSON.stringify(pr));
+          } catch (error) {
+            return core.setFailed(`Error listing pull requests for ${head_label}: ${error}`)
+          } finally {
+            core.endGroup()
           }
 
-          const pr = context.payload.pull_request
+#          //let ref = '';
+#          //let prLabels = null;
+#            //ref = `refs/pull/${pr.number}/head`;
+#          const edition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
+#          core.notice(`Enable default '${edition}' edition for 'push' trigger.`);
+#
+#          // Set edition from current labels.
+#          var defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
+#          const isEE = prLabels.some((l) => l.name === 'edition/ee');
+#          core.info(`PR has 'edition/ee'?  ${isEE}`);
+#          const isCE = prLabels.some((l) => l.name === 'edition/ce');
+#          core.info(`PR has 'edition/ce'?  ${isCE}`);
+#          const edition = isCE ? 'CE' : (isEE ? 'EE' : defaultEdition);
+#
+#          core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
+#          core.notice(`Use ref: '${ref}'`)
+#
+#          core.setCommandEcho(true)
+#          core.setOutput('ref', ref)
+#          core.setOutput('edition', edition);
+#          core.setCommandEcho(false)
+
+    - name: Check pull request
+      id: check_pr
+      #if: ${{ startsWith(github.event_name, 'pull_request') }}
+      uses: {!{ index (ds "actions") "actions/github-script" }!}
+      env:
+        PR_FOR_PUSH: ${{ steps.check_push.outputs.pr_response}}
+      with:
+        script: |
+          let pr = null
+          let isPullRequest = false
+
+          // Restore pull request info from env.
+          if (context.eventName === 'push') {
+            pr = JSON.parse(process.env.PR_FOR_PUSH);
+            isPush = true
+          }
+          if (context.eventName.startsWith('pull_request')) {
+            pr = context.payload.pull_request
+            isPullRequestEvent = true
+          }
+
+          if (!pr) {
+            return core.setFailed(`No pull request context: event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
+          }
 
           const head_owner = pr.head.repo.owner.login
           const head_repo = pr.head.repo.name
@@ -145,28 +205,32 @@ pull_request_info:
           core.info(`Target repo full_name   ${target_repo}`)
           core.endGroup()
 
-          // Fetch fresh pull request state using sha.
-          // Why? Workflow rerun of 'opened' pull request contains outdated labels.
-          core.startGroup(`Fetching labels for PR#${pr.number} from Github API`)
-          let prLabels = []
-          try {
-            const response = await github.rest.pulls.get({owner, repo, pull_number: pr.number})
-            if (response.status != 200) {
-              return core.setFailed(`Fetch PR#${pr.number} problem: ${JSON.stringify(response)}`);
+          let prLabels = null
+          if (isPullRequestEvent) {
+            // Fetch fresh pull request state using sha.
+            // Why? Workflow rerun of 'opened' pull request contains outdated labels.
+            core.startGroup(`Fetching labels for PR#${pr.number} from Github API`)
+            try {
+              const response = await github.rest.pulls.get({owner, repo, pull_number: pr.number})
+              if (response.status != 200) {
+                return core.setFailed(`Fetch PR#${pr.number} problem: ${JSON.stringify(response)}`);
+              }
+              if (!response.data) {
+                return core.setFailed(`Empty response data for PR#${pr.number}: ${JSON.stringify(response)}. event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
+              }
+              // Only labels are needed.
+              prLabels = response.data.labels
+              core.info(`Labels from context: ${JSON.stringify(pr.labels)}`);
+              core.info(`Current labels: ${JSON.stringify(prLabels)}`);
+            } catch (error) {
+              return core.setFailed(`Fetch PR#${pr.number} error: ${error}`)
+            } finally {
+              core.endGroup()
             }
-            if (!response.data) {
-              return core.setFailed(`Empty response data for PR#${pr.number}: ${JSON.stringify(response)}. event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
-            }
-            // Only labels are needed.
-            prLabels = response.data.labels
-            core.info(`Labels from context: ${JSON.stringify(pr.labels)}`);
+          } else {
+            prLabels = pr.labels
             core.info(`Current labels: ${JSON.stringify(prLabels)}`);
-          } catch (error) {
-            return core.setFailed(`Fetch PR#${pr.number} error: ${error}`)
-          } finally {
-            core.endGroup()
           }
-
 
           const isInternal = pr_repo === target_repo;
           const isDependabot = (context.actor === 'dependabot[bot]');
@@ -200,19 +264,25 @@ pull_request_info:
           const isCE = prLabels.some((l) => l.name === 'edition/ce');
           core.info(`PR has 'edition/ce'?  ${isCE}`);
           const edition = isCE ? 'CE' : (isEE ? 'EE' : defaultEdition);
-          core.notice(`Enable '${edition}' edition.`);
+
+          const ref = `refs/pull/${ pr.number }/head`;
+
+          core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
+          core.notice(`Use ref: '${ref}'`)
 
           core.setCommandEcho(true)
           core.setOutput('should_check', shouldCheckFiles);
+          core.setOutput('ref', ref);
+          core.setOutput('refSlug', `pr${pr.number}`);
           core.setOutput('edition', edition);
-          core.setCommandEcho(false)
+          core.setCommandEcho(false);
 
     # Checkhout the head commit of the PR branch.
     - name: Checkout PR head commit
-      if: ${{ startsWith(github.event_name, 'pull_request') }}
+      if: steps.check_pr.outputs.should_check == 'true'
       uses: {!{ index (ds "actions") "actions/checkout" }!}
       with:
-        ref: "refs/pull/${{ github.event.number }}/head"
+        ref: ${{ steps.check_pr.outputs.ref }}
 
     # Detect dangerous changes in external PR.
     - name: Check for dangerous changes
@@ -239,53 +309,5 @@ pull_request_info:
         script: |
           core.setFailed('External PR contains dangerous changes.')
 
-    # Set output.
-    - name: Return PR head commit ref
-      id: ref
-      uses: {!{ index (ds "actions") "actions/github-script" }!}
-      with:
-        script: |
-          // context.ref is set for 'push' and 'workflow_dispatch' triggers.
-          let ref = context.ref;
-          if (context.eventName.startsWith('pull_request')) {
-            ref = `refs/pull/${ context.issue.number }/head`
-          }
-          if (context.eventName === 'workflow_dispatch' && context.payload.inputs && context.payload.inputs.pull_request_ref) {
-            ref = context.payload.inputs.pull_request_ref;
-          }
-          if (context.eventName === 'push') {
-            // Find PR number for branch or fail.
-            const { GITHUB_REF_NAME } = process.env
-            // Head label has form organization:branch_name.
-            const head_label = `${context.repo.name}:${GITHUB_REF_NAME}`
-            core.startGroup(`Fetching PR info for ${head_label} from Github API`)
-            let prNumber = ''
-            try {
-              const response = await github.rest.pulls.list({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                state: 'all',
-                head: head_label
-              });
-              if (response.status != 200) {
-                return core.setFailed(`Fetch pull requests for ${head_label} problem: ${JSON.stringify(response)}`);
-              }
-              if (!response.data) {
-                return core.setFailed(`Empty response data for ${head_label}: ${JSON.stringify(response)}. event_name=${context.eventName} action=${context.action} ref=${context.ref}`);
-              }
-              // Get first pull request.
-              prNumber = response.data[0].number
-              core.info(`Got PR#{prNumber} for ${head_label}`);
-              ref = `refs/pull/${ prNumber }/head`;
-            } catch (error) {
-              return core.setFailed(`Fetch pull requests for ${head_label} error: ${error}`)
-            } finally {
-              core.endGroup()
-            }
-          }
-          core.notice(`Use ref: '${ref}'`)
-          core.setCommandEcho(true)
-          core.setOutput('ref', ref)
-          core.setCommandEcho(false)
 # </template: pull_request_info>
 {!{- end -}!}
