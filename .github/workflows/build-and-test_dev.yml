@@ -75,31 +75,8 @@ jobs:
               core.endGroup()
             }
 
-  #          //let ref = '';
-  #          //let prLabels = null;
-  #            //ref = `refs/pull/${pr.number}/head`;
-  #          const edition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
-  #          core.notice(`Enable default '${edition}' edition for 'push' trigger.`);
-  #
-  #          // Set edition from current labels.
-  #          var defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
-  #          const isEE = prLabels.some((l) => l.name === 'edition/ee');
-  #          core.info(`PR has 'edition/ee'?  ${isEE}`);
-  #          const isCE = prLabels.some((l) => l.name === 'edition/ce');
-  #          core.info(`PR has 'edition/ce'?  ${isCE}`);
-  #          const edition = isCE ? 'CE' : (isEE ? 'EE' : defaultEdition);
-  #
-  #          core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
-  #          core.notice(`Use ref: '${ref}'`)
-  #
-  #          core.setCommandEcho(true)
-  #          core.setOutput('ref', ref)
-  #          core.setOutput('edition', edition);
-  #          core.setCommandEcho(false)
-
       - name: Check pull request
         id: check_pr
-        #if: ${{ startsWith(github.event_name, 'pull_request') }}
         uses: actions/github-script@v5.0.0
         env:
           PR_FOR_PUSH: ${{ steps.check_push.outputs.pr_response}}
@@ -211,7 +188,7 @@ jobs:
             core.setCommandEcho(true)
             core.setOutput('should_check', shouldCheckFiles);
             core.setOutput('ref', ref);
-            core.setOutput('refSlug', `pr${pr.number}`);
+            core.setOutput('ref_slug', `pr${pr.number}`);
             core.setOutput('edition', edition);
             core.setCommandEcho(false);
 
