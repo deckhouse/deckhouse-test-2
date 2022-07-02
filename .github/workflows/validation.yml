@@ -198,12 +198,11 @@ jobs:
             }
 
             // Set edition from current labels.
-            var defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
-            const isEE = prLabels.some((l) => l.name === 'edition/ee');
-            core.info(`PR has 'edition/ee'?  ${isEE}`);
-            const isCE = prLabels.some((l) => l.name === 'edition/ce');
-            core.info(`PR has 'edition/ce'?  ${isCE}`);
-            const edition = isCE ? 'CE' : (isEE ? 'EE' : defaultEdition);
+            const defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
+            const hasEE = pr.labels.some((l) => l.name === 'edition/ee');
+            const hasCE = pr.labels.some((l) => l.name === 'edition/ce');
+            const edition = hasCE ? 'CE' : (hasEE ? 'EE' : defaultEdition);
+            core.info(`Edition labels: 'edition/ce':${hasCE}, 'edition/ee':${hasEE}`);
             core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
 
             // Construct head commit ref using pr number.
