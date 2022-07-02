@@ -190,7 +190,7 @@ pull_request_info:
       id: check_pr
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       env:
-        PR_INFO: ${{ steps.check_push.outputs.pr_response || steps.check_pull_request.outputs.pr_response }}
+        PR_INFO: ${{ steps.check_push.outputs.pr_info || steps.check_pull_request.outputs.pr_info }}
       with:
         script: |
           if (process.env.PR_INFO == '') {
