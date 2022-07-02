@@ -89,7 +89,7 @@ jobs:
                 return core.setFailed(`Bad response on listing PRs for commit ${context.sha}: ${JSON.stringify(response)}`);
               }
               // Get first associated pr.
-              const pr = response.data[0];
+              let pr = response.data[0];
               core.info(`Current labels: ${JSON.stringify(pr.labels)}`);
               // Reduce size to fit output limits.
               pr = {
@@ -128,7 +128,7 @@ jobs:
                 return core.setFailed(`Bad response on getting PR#${prNumber} : ${JSON.stringify(response)}`);
               }
               // Only labels are needed.
-              const pr = response.data;
+              let pr = response.data;
               core.info(`Labels from context: ${JSON.stringify(context.payload.pull_request.labels)}`);
               core.info(`Current labels: ${JSON.stringify(pr.labels)}`);
               // Reduce size to fit output limits.
@@ -143,7 +143,7 @@ jobs:
               }
               core.setOutput('pr_info', JSON.stringify(pr));
             } catch (error) {
-              return core.setFailed(`Fetch PR#${pr.number} error: ${error}`)
+              return core.setFailed(`Fetch PR#${prNumber} error: ${error}`)
             } finally {
               core.endGroup()
             }
