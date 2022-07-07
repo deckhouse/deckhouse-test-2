@@ -18,11 +18,9 @@ on:
       - opened
       - synchronize
 
-# Analog of Gitlab's "interruptible: true" behaviour.
-# Note: Concurrency is currently in beta and subject to change.
-# https://docs.github.com/en/actions/reference/workflow-syntax-for-github-actions#concurrency
+# Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
 concurrency:
-  group: ${{ github.event.number }}-validation
+  group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
@@ -71,6 +69,7 @@ jobs:
       run_copyright: ${{ steps.on_push.outputs.run_copyright }}
       label_copyright: ${{ steps.on_push.outputs.label_copyright }}
       run_markdown: ${{ steps.on_push.outputs.run_markdown }}
+      label_markdown: ${{ steps.on_push.outputs.label_markdown }}
       pr_title: ${{ steps.on_push.outputs.pr_title }}
       pr_description: ${{ steps.on_push.outputs.pr_description }}
       diff_url: ${{ steps.on_push.outputs.diff_url }}
@@ -88,7 +87,9 @@ jobs:
 
       - name: Download diff for pull request
         env:
+          IS_PRIVATE_REPO: ${{ steps.on_push.outputs.is_private_repo }}
           DIFF_URL: ${{ steps.on_push.outputs.diff_url }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ./.github/scripts/validation_run.sh --download-only ./pr.diff
 

@@ -36,7 +36,13 @@ function download_diff() {
   CURL_RESPONSE=$TMPDIR/resp
   curlHeaders=$TMPDIR/headers
   curlError=$TMPDIR/error
-  CURL_STATUS=$(curl -sS -w %{http_code} \
+  privateHeaders=()
+  if [[ $IS_PRIVATE_REPO == "yes" ]] ; then
+    echo "Private repo detected"
+    privateHeaders+=(--header "Accept: application/vnd.github.diff" --header "Authorization: token $GITHUB_TOKEN")
+  fi
+  CURL_STATUS=$(curl -v -sS -w %{http_code} \
+    "${privateHeaders[@]}" \
     -o $CURL_RESPONSE \
     -D $curlHeaders \
     --request GET \
