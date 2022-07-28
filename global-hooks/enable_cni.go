@@ -16,6 +16,7 @@ package hooks
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -56,7 +57,7 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 			ApiVersion: "v1",
 			Kind:       "ConfigMap",
 			NameSelector: &types.NameSelector{
-				MatchNames: []string{"deckhouse"},
+				MatchNames: []string{os.Getenv("ADDON_OPERATOR_CONFIG_MAP")},
 			},
 			NamespaceSelector: &types.NamespaceSelector{
 				NameSelector: &types.NameSelector{

@@ -9,7 +9,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"github.com/flant/shell-operator/pkg/kube_events_manager/types"
 	"io/ioutil"
+	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"strings"
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
@@ -18,24 +20,60 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+const (
+	revokedCMName      = "madison-revoked-project"
+	revokedCMNamespace = "d8-monitoring"
+	revokedCMBinding   = revokedCMName
+
+	globalRegistryPath     = "global.modulesImages.registry"
+	dockerConfigPath       = "/etc/registrysecret/.dockerconfigjson"
+	internalLicenseKeyPath = "flantIntegration.internal.licenseKey"
+	licenseKeyPath         = "flantIntegration.licenseKey"
+)
+
 var _ = sdk.RegisterFunc(&go_hook.HookConfig{
+	Kubernetes: []go_hook.KubernetesConfig{
+		{
+			Name:       revokedCMBinding,
+			ApiVersion: "v1",
+			Kind:       "ConfigMap",
+			NameSelector: &types.NameSelector{
+				MatchNames: []string{revokedCMName},
+			},
+			NamespaceSelector: &types.NamespaceSelector{
+				NameSelector: &types.NameSelector{
+					MatchNames: []string{revokedCMNamespace},
+				},
+			},
+			// Synchronization is redundant because of OnBeforeHelm.
+			ExecuteHookOnSynchronization: go_hook.Bool(false),
+			FilterFunc:                   filterRevokedConfigMap,
+		},
+	},
 	OnBeforeHelm: &go_hook.OrderedConfig{Order: 1},
 }, handle)
 
+func filterRevokedConfigMap(obj *unstructured.Unstructured) (go_hook.FilterResult, error) {
+	return obj.GetName(), nil
+}
+
 // This hook discovers license key from values or docker config, and puts it into internal values to use elsewhere.
 func handle(input *go_hook.HookInput) error {
-	const internalLicenseKeyPath = "flantIntegration.internal.licenseKey"
+	// Remove license from internal values if 'revoked' ConfigMap is present.
+	if len(input.Snapshots[revokedCMBinding]) > 0 {
+		input.Values.Remove(internalLicenseKeyPath)
+		return nil
+	}
 
-	// From config values
+	// Get license key from configuration.
 	configLicenseKey := input.ConfigValues.Get("flantIntegration.licenseKey").String()
 	if configLicenseKey != "" {
 		input.Values.Set(internalLicenseKeyPath, configLicenseKey)
 		return nil
 	}
 
-	// From docker registry config, where license key is the password to access container registry
-	registry := input.Values.Get("global.modulesImages.registry").String()
-	const dockerConfigPath = "/etc/registrysecret/.dockerconfigjson"
+	// Get license key from docker registry config. License key is the password to access container registry.
+	registry := input.Values.Get(globalRegistryPath).String()
 	licenseKey, err := getLicenseKeyFromDockerConfig(registry, dockerConfigPath)
 	if err != nil {
 		return err
@@ -51,7 +89,7 @@ func getLicenseKeyFromDockerConfig(registryValue, dockerConfigPath string) (stri
 		return "", fmt.Errorf("empty registry: %v", err)
 	}
 
-	cfg, err := ioutil.ReadFile(dockerConfigPath)
+	cfg, err := readFile(dockerConfigPath)
 	if err != nil {
 		log.Warnf("cannot open %q: %v", dockerConfigPath, err)
 		return "", fmt.Errorf(`cannot find license key in docker config file; set "flantIntegration.licenseKey" in deckhouse configmap`)
@@ -116,4 +154,8 @@ func parseLicenseKeyFromDockerCredentials(dockerConfig []byte, registry string) 
 */
 type dockerFileConfig struct {
 	Auths map[string]authn.AuthConfig `json:"auths"`
+}
+
+var readFile = func(path string) ([]byte, error) {
+	return ioutil.ReadFile(path)
 }

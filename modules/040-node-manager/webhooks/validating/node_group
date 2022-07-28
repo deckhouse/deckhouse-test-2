@@ -16,7 +16,10 @@
 
 source /shell_lib.sh
 
+DECKHOUSE_CONFIG_MAP_NAME=${DECKHOUSE_CONFIG_MAP_NAME:-deckhouse}
+
 function __config__(){
+
   cat <<EOF
 configVersion: v1
 kubernetes:
@@ -62,7 +65,7 @@ kubernetes:
       nameSelector:
         matchNames: ["d8-system"]
     nameSelector:
-      matchNames: ["deckhouse"]
+      matchNames: ["${DECKHOUSE_CONFIG_MAP_NAME}"]
     jqFilter: '.data.global // ""'
 kubernetesValidating:
 - name: nodegroup-policy.deckhouse.io

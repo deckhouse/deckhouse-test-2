@@ -17,6 +17,7 @@ limitations under the License.
 package hooks
 
 import (
+	"github.com/deckhouse/deckhouse/go_lib/set"
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
 	"github.com/flant/addon-operator/sdk"
 )
@@ -25,18 +26,34 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	OnBeforeHelm: &go_hook.OrderedConfig{Order: 10},
 }, setPushToClientRoutes)
 
+const (
+	globalPodSubnetPath            = "global.discovery.podSubnet"
+	globalServiceSubnetPath        = "global.discovery.serviceSubnet"
+	clientRoutesValuesPath         = "openvpn.pushToClientRoutes"
+	clientRoutesInternalValuesPath = "openvpn.internal.pushToClientRoutes"
+)
+
 func setPushToClientRoutes(input *go_hook.HookInput) error {
-	var routeList []string
+	var routes = set.New()
+
+	userDefinedSubnets, ok := input.ConfigValues.GetOk(clientRoutesValuesPath)
+	if ok {
+		for _, subnet := range userDefinedSubnets.Array() {
+			routes.Add(subnet.String())
+		}
+	}
 
 	podSubnet := input.Values.Get("global.discovery.podSubnet").String()
-	serviceSubnet := input.Values.Get("global.discovery.serviceSubnet").String()
-
-	routeList = append(routeList, podSubnet)
-	routeList = append(routeList, serviceSubnet)
-
-	if !input.ConfigValues.Exists("openvpn.pushToClientRoutes") {
-		input.ConfigValues.Set("openvpn.pushToClientRoutes", routeList)
+	if podSubnet != "" {
+		routes.Add(podSubnet)
 	}
+
+	serviceSubnet := input.Values.Get("global.discovery.serviceSubnet").String()
+	if serviceSubnet != "" {
+		routes.Add(serviceSubnet)
+	}
+
+	input.Values.Set(clientRoutesInternalValuesPath, routes.Slice())
 
 	return nil
 }
