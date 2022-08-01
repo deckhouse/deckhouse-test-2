@@ -17,37 +17,95 @@ limitations under the License.
 package hooks
 
 import (
-	"encoding/json"
-
-	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
-	"github.com/flant/addon-operator/sdk"
-
-	"github.com/deckhouse/deckhouse/go_lib/pwgen"
+	"github.com/deckhouse/deckhouse/go_lib/hooks/generate_password"
 )
 
-var _ = sdk.RegisterFunc(&go_hook.HookConfig{
-	OnBeforeHelm: &go_hook.OrderedConfig{Order: 10},
-}, generatePassword)
+const (
+	moduleValuesKey = "ciliumHubble"
+	authSecretNS    = "d8-cni-cilium"
+	authSecretName  = "hubble-basic-auth"
+)
 
-func generatePassword(input *go_hook.HookInput) error {
-	if input.Values.Exists("ciliumHubble.auth.externalAuthentication") {
-		input.ConfigValues.Remove("ciliumHubble.auth.password")
-		if input.ConfigValues.Exists("ciliumHubble.auth") && len(input.ConfigValues.Get("ciliumHubble.auth").Map()) == 0 {
-			input.ConfigValues.Remove("ciliumHubble.auth")
-		}
+var hook = generate_password.NewBasicAuthPlainHook(moduleValuesKey, authSecretNS, authSecretName)
+var _ = generate_password.RegisterHook(hook)
 
-		return nil
-	}
-
-	if input.Values.Exists("ciliumHubble.auth.password") {
-		return nil
-	}
-
-	if !input.ConfigValues.Exists("ciliumHubble.auth") {
-		input.ConfigValues.Set("ciliumHubble.auth", json.RawMessage("{}"))
-	}
-
-	input.ConfigValues.Set("ciliumHubble.auth.password", pwgen.AlphaNum(20))
-
-	return nil
-}
+//var _ = sdk.RegisterFunc(&go_hook.HookConfig{
+//	Kubernetes: []go_hook.KubernetesConfig{
+//		{
+//			Name:       authSecretBinding,
+//			ApiVersion: "v1",
+//			Kind:       "Secret",
+//			NameSelector: &types.NameSelector{
+//				MatchNames: []string{authSecretName},
+//			},
+//			NamespaceSelector: &types.NamespaceSelector{
+//				NameSelector: &types.NameSelector{
+//					MatchNames: []string{authSecretNS},
+//				},
+//			},
+//			// Synchronization is redundant because of OnBeforeHelm.
+//			ExecuteHookOnSynchronization: go_hook.Bool(false),
+//			ExecuteHookOnEvents:          go_hook.Bool(false),
+//			FilterFunc:                   filterAuthSecret,
+//		},
+//	},
+//	OnBeforeHelm: &go_hook.OrderedConfig{Order: 10},
+//}, generatePassword)
+//
+//const (
+//	authSecretNS      = "d8-cni-cilium"
+//	authSecretName    = "hubble-basic-auth"
+//	authSecretField   = "auth"
+//	authSecretBinding = authSecretName
+//
+//	passwordValuesPath         = "ciliumHubble.auth.password"
+//	passwordInternalValuesPath = "ciliumHubble.internal.auth.password"
+//	externalAuthValuesPath     = "ciliumHubble.auth.externalAuthentication"
+//)
+//
+//func filterAuthSecret(obj *unstructured.Unstructured) (go_hook.FilterResult, error) {
+//	secret := &v1.Secret{}
+//	err := sdk.FromUnstructured(obj, secret)
+//	if err != nil {
+//		return nil, fmt.Errorf("cannot convert secret to struct: %v", err)
+//	}
+//
+//	auth := string(secret.Data[authSecretField])
+//	if auth != "" {
+//		auth = strings.TrimPrefix(auth, "auth:{PLAIN}")
+//	}
+//
+//	return string(secret.Data[authSecretField]), nil
+//}
+//
+//func generatePassword(input *go_hook.HookInput) error {
+//	// Clear password from internal values if an external authentication is enabled.
+//	if input.Values.Exists(externalAuthValuesPath) {
+//		input.Values.Remove(passwordInternalValuesPath)
+//		return nil
+//	}
+//
+//	// Check config values.
+//	password, ok := input.ConfigValues.GetOk(passwordValuesPath)
+//	if ok {
+//		input.Values.Set(passwordInternalValuesPath, password.String())
+//		return nil
+//	}
+//
+//	if len(input.Snapshots[authSecretBinding]) > 0 {
+//		storedAuthKey := input.Snapshots[authSecretBinding][0].(string)
+//		input.Values.Set(passwordInternalValuesPath, storedAuthKey)
+//		return nil
+//	}
+//
+//	// Return if auth key is already in values.
+//	_, ok = input.Values.GetOk(passwordInternalValuesPath)
+//	if ok {
+//		return nil
+//	}
+//
+//	// No password found, generate new one.
+//	newPasswd := pwgen.AlphaNum(20)
+//	input.Values.Set(passwordInternalValuesPath, newPasswd)
+//	return nil
+//}

@@ -18,6 +18,7 @@ package hooks
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
 	"github.com/flant/addon-operator/sdk"
@@ -108,7 +109,7 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 			},
 			NameSelector: &types.NameSelector{
 				MatchNames: []string{
-					"deckhouse",
+					os.Getenv("ADDON_OPERATOR_CONFIG_MAP"),
 				},
 			},
 			FilterFunc: applyReleaseChannelFilter,
