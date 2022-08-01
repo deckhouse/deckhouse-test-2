@@ -14,7 +14,7 @@ import (
 	. "github.com/deckhouse/deckhouse/testing/hooks"
 )
 
-var _ = FDescribe("Modules :: basic-auth :: hooks :: generate_password", func() {
+var _ = Describe("Modules :: basic-auth :: hooks :: generate_password", func() {
 
 	const (
 		locationsKey         = "basicAuth.locations"
