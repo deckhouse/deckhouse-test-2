@@ -1,6 +1,6 @@
 # Security
 
-7777777
+99999
 
 Thank you for your concern regarding the security issues in Deckhouse project.
 
