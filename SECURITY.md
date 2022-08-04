@@ -1,7 +1,6 @@
 # Security
 
-888888
-9
+44444
 
 Thank you for your concern regarding the security issues in Deckhouse project.
 
