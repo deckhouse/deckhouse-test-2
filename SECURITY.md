@@ -1,4 +1,3 @@
-1111 # Security
 222
 Thank you for your concern regarding the security issues in Deckhouse project.
 
