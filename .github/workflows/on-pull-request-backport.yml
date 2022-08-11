@@ -58,7 +58,7 @@ jobs:
           releaseBranch="release-$(echo ${COMMENT_BODY} | awk '{print $2}' | sed 's/v//')"
           echo "::set-output name=branch::${releaseBranch}"
       - name: Get PR info
-        id: : pr-info
+        id: pr-info
         uses: actions/github-script@v6
         with:
           script: |
