@@ -14,7 +14,7 @@ on:
 jobs:
   detect-pr-by-label:
     concurrency: source_pr
-    if: ${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.pull_request.merged == true && github.event.pull_request.milestone != null && contains(github.event.pull_request.labels.*.name, 'status/backport')  }}
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.milestone != null && contains(github.event.pull_request.labels.*.name, 'status/backport')  }}
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.from-milestone.outputs.branch }}
@@ -138,7 +138,7 @@ jobs:
         if: ${{ failure() && (steps.cherry-pick-pr.conclusion == 'failure' || steps.check_target_branch.conclusion == 'failure') }}
         uses: peter-evans/create-or-update-comment@v2
         env:
-          body: ${{ steps.cherry-pick-pr.outputs.error-message || 'Backport failed. See [Job](${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}) for details.' }}
+          body: ${{ steps.cherry-pick-pr.outputs.error-message || 'Backport failed. See [Job](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for details.' }}
         with:
           token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
           issue-number: ${{ steps.prepare.outputs.pr-number }}
