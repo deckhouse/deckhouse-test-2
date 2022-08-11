@@ -46,7 +46,7 @@ jobs:
           regex: '^/backport\sv?(\d+\.\d+)$' # /backport 1.34 or /backport v1.34
       - name: Get comment info
         id: comment-info
-        if: ${{ steps.regexp-match.outputs.match != '' }}
+        if: ${{ steps.regexp-match.outputs.match != null }}
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
