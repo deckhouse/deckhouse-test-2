@@ -65,16 +65,7 @@ jobs:
             })
             core.setOutput('commit', response.data.merge_commit_sha)
 
-
-  #    local branch=${1}
-  #    local existed_in_remote=$(git ls-remote --heads origin ${branch})
-  #
-  #    if [[ -z ${existed_in_remote} ]]; then
-  #        echo 0
-  #    else
-  #        echo 1
-  #    fi
-  another-job:
+  backport-to-release-branch:
     runs-on: ubuntu-latest
     needs: [backport-label-with-milestone, backport-on-comment]
     if: always() && (needs.backport-label-with-milestone.outputs.release-branch || needs.backport-on-comment.outputs.release-branch)
@@ -102,16 +93,46 @@ jobs:
               repo: context.repo.repo,
               ref: 'heads/' + process.env.RELEASE_BRANCH
             })
-            if (response.status == 404) {
-              core.setFailed('branch does not exists')
-            }
-      - name: FOO
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Cherry-pick
+        id: cherry-pick-pr
+        uses: deckhouse/backport-action@v1.0.0
         env:
           RELEASE_BRANCH: ${{ steps.prepare.outputs.release-branch }}
-          LAST_COMMIT_SHA: ${{ steps.prepare.outputs.commit }}
-        run: |
-          echo $RELEASE_BRANCH
-          echo $LAST_COMMIT_SHA
+          GITHUB_SHA: ${{ steps.prepare.outputs.commit }}
+        with:
+          token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          committer: "deckhouse-BOaTswain <89150800+deckhouse-boatswain@users.noreply.github.com>"
+          branch: ${{ env.RELEASE_BRANCH }}
+          labels: auto,backported
+          automerge: true
+          mergeMethod: squash
+      - name: Add successful comment
+        if: steps.cherry-pick-pr.conclusion == 'success'
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          reactions: hooray
+          body: "Cherry pick PR [${{ steps.cherry-pick-pr.outputs.cherry-pr-number }}](${{ steps.cherry-pick-pr.outputs.cherry-pr-url }}) to the branch [${{ env.release_branch }}](https://github.com/${{github.repository}}/tree/${{ env.release_branch }}) successful!"
+      - name: Remove backport label
+        if: steps.cherry-pick-pr.conclusion == 'success'
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          labels: "status/backport"
+      - name: Add error comment
+        if: ${{ failure() && (steps.cherry-pick-pr.conclusion == 'failure' || steps.check_target_branch.conclusion == 'failure') }}
+        uses: peter-evans/create-or-update-comment@v2
+        with:
+          token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          reactions: 'confused'
+          body: ${{ steps.cherry-pick-pr.outputs.error-message }}
+
 #  backport-to-release-branch:
 #    if: ${{ github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'status/backport') && github.event.pull_request.milestone != null }}
 #    runs-on: ubuntu-latest
