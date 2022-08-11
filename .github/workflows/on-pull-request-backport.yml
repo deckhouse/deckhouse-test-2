@@ -54,6 +54,7 @@ jobs:
           echo "::set-output name=branch::${releaseBranch}"
       - name: Get PR info
         id: pr-info
+        if: ${{ steps.regexp-match.outputs.match != null }}
         uses: actions/github-script@v6
         with:
           script: |
@@ -96,7 +97,7 @@ jobs:
           RELEASE_BRANCH: ${{ steps.prepare.outputs.release-branch }}
         with:
           script: |
-            const response = await github.rest.git.gitRef({
+            const response = await github.rest.git.getRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: 'heads/' + process.env.RELEASE_BRANCH
