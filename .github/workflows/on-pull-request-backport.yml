@@ -138,7 +138,7 @@ jobs:
         if: ${{ failure() && (steps.cherry-pick-pr.conclusion == 'failure' || steps.check_target_branch.conclusion == 'failure') }}
         uses: peter-evans/create-or-update-comment@v2
         env:
-          body: ${{ steps.cherry-pick-pr.outputs.error-message || 'Backport failed. See [Job](${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}) for details.' }}
+          body: ${{ steps.cherry-pick-pr.outputs.error-message || format('Backport failed. See [Job]({1}/{2}/actions/runs/{3}) for details.', github.server_url, github.repository, github.run_id) }}
         with:
           token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
           issue-number: ${{ steps.prepare.outputs.pr-number }}
