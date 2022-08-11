@@ -7,6 +7,9 @@ on:
       - labeled
     branches:
       - main
+  issue_comment:
+    types:
+      - created
 
 env:
   RELEASE_BRANCH: ""
@@ -15,30 +18,87 @@ env:
 
 jobs:
   backport-label-with-milestone:
-    concurrency: get_source
+    concurrency: source_pr
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.pull_request.merged == true && github.event.pull_request.milestone != null && contains(github.event.pull_request.labels.*.name, 'status/backport')  }}
     runs-on: ubuntu-latest
+    outputs:
+      release-branch: ${{ steps.from-milestone.outputs.branch }}
+      commit: ${{ steps.from-milestone.outputs.commit }}
     steps:
-      - name: Get PR info
+      - name: Get Release branch from milestone
+        id: from-milestone
         env:
           MILESTONE: ${{ github.event.pull_request.milestone.title }}
           HEAD_PR_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          echo "LAST_COMMIT_SHA=${GITHUB_SHA}" >> $GITHUB_ENV
           releaseBranch="release-$(echo ${MILESTONE} | sed -nre 's/v([0-9]+\.[0-9]+)\.[0-9]+/\1/p')"
-          echo "RELEASE_BRANCH=${releaseBranch}" >> $GITHUB_ENV
-          echo "SOURCE_PR=${PR_NUMBER}" >> $GITHUB_ENV
+          echo "::set-output name=branch::${releaseBranch}"
+          echo "::set-output name=commit::${GITHUB_SHA}"
 
+  backport-on-comment:
+    concurrency: source_pr
+    if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' }}
+    runs-on: ubuntu-latest
+    outputs:
+      release-branch: ${{ steps.comment-info.outputs.branch }}
+      commit: ${{ steps.pr-info.outputs.commit }}
+    steps:
+      - uses: actions-ecosystem/action-regex-match@v2
+        id: regexp-match
+        with:
+          text: ${{ github.event.comment.body }}
+          regex: '^\/backport\sv?(\d+\.\d+)$' # /backport 1.34 or /backport v1.34
+      - name: Get comment info
+        id: comment-info
+        env:
+          FOO: ${{ github.event.issue.state }}
+          COMMENT_BODY: ${{ github.event.comment.body }}
+        run: |
+          releaseBranch="release-$(echo ${COMMENT_BODY} | awk '{print $2}' | sed 's/v//')"
+          echo "::set-output name=branch::${releaseBranch}"
+      - name: Get PR info
+        id: : pr-info
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: ${{ github.event.issue.number }}
+            })
+            core.setOutput('name', pr.merge_commit_sha)
+
+
+  #    local branch=${1}
+  #    local existed_in_remote=$(git ls-remote --heads origin ${branch})
+  #
+  #    if [[ -z ${existed_in_remote} ]]; then
+  #        echo 0
+  #    else
+  #        echo 1
+  #    fi
   another-job:
     runs-on: ubuntu-latest
-    needs: [backport-label-with-milestone]
+    needs: [backport-label-with-milestone, backport-on-comment]
     steps:
-      - name: FOO
+      - name: is_branch_exists
+        id: prepare
         run: |
-          echo "GOOGOGO"
+          releaseBranch=${{needs.backport-label-with-milestone.outputs.release-branch}}
+          commit=${{needs.backport-label-with-milestone.outputs.commit}}
+          if [ -z $releaseBranch ]; then
+            releaseBranch=${{needs.backport-on-comment.outputs.release-branch}}
+            commit=${{needs.backport-on-comment.outputs.commit}}
+          fi
+          echo "::set-output name=release-branch::${releaseBranch}"
+          echo "::set-output name=commit::${commit}"
+      - name: FOO
+        env:
+          RELEASE_BRANCH: ${{ steps.prepare.outputs.release-branch }}
+          LAST_COMMIT_SHA: ${{ steps.prepare.outputs.commit }}
+        run: |
           echo $RELEASE_BRANCH
-          echo $SOURCE_PR
           echo $LAST_COMMIT_SHA
 #  backport-to-release-branch:
 #    if: ${{ github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'status/backport') && github.event.pull_request.milestone != null }}
