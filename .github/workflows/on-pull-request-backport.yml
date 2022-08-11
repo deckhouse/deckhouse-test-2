@@ -138,12 +138,13 @@ jobs:
         if: ${{ failure() && (steps.cherry-pick-pr.conclusion == 'failure' || steps.check_target_branch.conclusion == 'failure') }}
         uses: peter-evans/create-or-update-comment@v2
         env:
-          body: ${{ steps.cherry-pick-pr.outputs.error-message || format('Backport failed. See [Job]({1}/{2}/actions/runs/{3}) for details.', github.server_url, github.repository, github.run_id) }}
+          error-message: ${{ steps.cherry-pick-pr.outputs.error-message }}
+          common-error: ${{ format('Backport failed. See [Job]({1}/{2}/actions/runs/{3}) for details.', github.server_url, github.repository, github.run_id) }}
         with:
           token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
           issue-number: ${{ steps.prepare.outputs.pr-number }}
           reactions: 'confused'
-          body: ${{ env.body }}
+          body: ${{ env.error-message || env.common-error }}
 
 #  backport-to-release-branch:
 #    if: ${{ github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'status/backport') && github.event.pull_request.milestone != null }}
