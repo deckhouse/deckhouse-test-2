@@ -33,7 +33,7 @@ jobs:
 
   backport-on-comment:
     concurrency: source_pr
-    if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' }}
+    if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.state == 'closed' }}
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.comment-info.outputs.branch }}
@@ -47,7 +47,6 @@ jobs:
       - name: Get comment info
         id: comment-info
         env:
-          FOO: ${{ github.event.issue.state }}
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
           releaseBranch="release-$(echo ${COMMENT_BODY} | awk '{print $2}' | sed 's/v//')"
@@ -57,14 +56,14 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            const pr = await github.rest.pulls.get({
+            const response = await github.rest.pulls.get({
               owner: context.repo.owner,
               repo: context.repo.repo,
               pull_number: ${{ github.event.issue.number }}
             })
-            console.log(pr)
-            console.log(pr.merge_commit_sha)
-            core.setOutput('commit', pr.merge_commit_sha)
+            console.log(response)
+            console.log(response.data.merge_commit_sha)
+            core.setOutput('commit', response.data.merge_commit_sha)
 
 
   #    local branch=${1}
