@@ -12,7 +12,7 @@ on:
       - created
 
 jobs:
-  backport-label-with-milestone:
+  detect-pr-by-label:
     concurrency: source_pr
     if: ${{ github.event_name == 'pull_request' && github.event.action == 'labeled' && github.event.pull_request.merged == true && github.event.pull_request.milestone != null && contains(github.event.pull_request.labels.*.name, 'status/backport')  }}
     runs-on: ubuntu-latest
@@ -32,9 +32,9 @@ jobs:
           echo "::set-output name=branch::${releaseBranch}"
           echo "::set-output name=commit::${GITHUB_SHA}"
 
-  backport-on-comment:
+  detect-pr-by-comment:
     concurrency: source_pr
-    if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.state == 'closed' && !contains(github.event.issue.labels.*.name, 'issue/release') }}
+    if: ${{ github.event_name == 'issue_comment' && github.event.action == 'created' && github.event.issue.state == 'closed' && github.event.pull_request.user.login != 'deckhouse-BOaTswain' && !contains(github.event.issue.labels.*.name, 'issue/release') }}
     runs-on: ubuntu-latest
     outputs:
       release-branch: ${{ steps.comment-info.outputs.branch }}
@@ -69,19 +69,19 @@ jobs:
 
   backport-to-release-branch:
     runs-on: ubuntu-latest
-    needs: [backport-label-with-milestone, backport-on-comment]
-    if: always() && (needs.backport-label-with-milestone.outputs.release-branch || needs.backport-on-comment.outputs.release-branch)
+    needs: [detect-pr-by-label, detect-pr-by-comment]
+    if: always() && (needs.detect-pr-by-label.outputs.release-branch || needs.detect-pr-by-comment.outputs.release-branch)
     steps:
       - name: Detect source
         id: prepare
         run: |
-          releaseBranch=${{needs.backport-label-with-milestone.outputs.release-branch}}
-          commit=${{needs.backport-label-with-milestone.outputs.commit}}
-          prNumber=${{needs.backport-label-with-milestone.outputs.pr-number}}
+          releaseBranch=${{needs.detect-pr-by-label.outputs.release-branch}}
+          commit=${{needs.detect-pr-by-label.outputs.commit}}
+          prNumber=${{needs.detect-pr-by-label.outputs.pr-number}}
           if [ -z $releaseBranch ]; then
-            releaseBranch=${{needs.backport-on-comment.outputs.release-branch}}
-            commit=${{needs.backport-on-comment.outputs.commit}}
-            prNumber=${{needs.backport-on-comment.outputs.pr-number}}
+            releaseBranch=${{needs.detect-pr-by-comment.outputs.release-branch}}
+            commit=${{needs.detect-pr-by-comment.outputs.commit}}
+            prNumber=${{needs.detect-pr-by-comment.outputs.pr-number}}
           fi
           echo "::set-output name=release-branch::${releaseBranch}"
           echo "::set-output name=commit::${commit}"
@@ -137,11 +137,13 @@ jobs:
       - name: Add error comment
         if: ${{ failure() && (steps.cherry-pick-pr.conclusion == 'failure' || steps.check_target_branch.conclusion == 'failure') }}
         uses: peter-evans/create-or-update-comment@v2
+        env:
+          body: ${{ steps.cherry-pick-pr.outputs.error-message || 'Backport failed. See [Job](${github.context.serverUrl}/${github.context.repo.owner}/${github.context.repo.repo}/actions/runs/${github.context.runId}) for details.' }}
         with:
           token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
           issue-number: ${{ steps.prepare.outputs.pr-number }}
           reactions: 'confused'
-          body: ${{ steps.cherry-pick-pr.outputs.error-message }}
+          body: ${{ env.body }}
 
 #  backport-to-release-branch:
 #    if: ${{ github.event.pull_request.merged == true && contains(github.event.pull_request.labels.*.name, 'status/backport') && github.event.pull_request.milestone != null }}
