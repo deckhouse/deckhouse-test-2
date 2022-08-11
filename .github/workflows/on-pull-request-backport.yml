@@ -46,6 +46,7 @@ jobs:
           regex: '^/backport\sv?(\d+\.\d+)$' # /backport 1.34 or /backport v1.34
       - name: Get comment info
         id: comment-info
+        if: ${{ steps.regexp-match.outputs.match != '' }}
         env:
           COMMENT_BODY: ${{ github.event.comment.body }}
         run: |
@@ -98,7 +99,7 @@ jobs:
             const response = await github.rest.git.gitRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
-              ref: 'heads/" + process.env.RELEASE_BRANCH
+              ref: 'heads/' + process.env.RELEASE_BRANCH
             })
             console.log(response)
       - name: FOO
