@@ -368,6 +368,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Docker/1.20"
+        id: run-e2e-vSphere-Docker-1.20
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -417,11 +418,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -471,8 +497,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_docker_1_20
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -715,6 +759,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Docker/1.21"
+        id: run-e2e-vSphere-Docker-1.21
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -764,11 +809,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -818,8 +888,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_docker_1_21
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -1062,6 +1150,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Docker/1.22"
+        id: run-e2e-vSphere-Docker-1.22
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1111,11 +1200,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1165,8 +1279,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_docker_1_22
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -1409,6 +1541,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Docker/1.23"
+        id: run-e2e-vSphere-Docker-1.23
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1458,11 +1591,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1512,8 +1670,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_docker_1_23
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -1756,6 +1932,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Docker/1.24"
+        id: run-e2e-vSphere-Docker-1.24
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1805,11 +1982,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Docker
@@ -1859,8 +2061,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_docker_1_24
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -2103,6 +2323,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.20"
+        id: run-e2e-vSphere-Containerd-1.20
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2152,11 +2373,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2206,8 +2452,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_containerd_1_20
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -2450,6 +2714,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.21"
+        id: run-e2e-vSphere-Containerd-1.21
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2499,11 +2764,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2553,8 +2843,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_containerd_1_21
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -2797,6 +3105,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.22"
+        id: run-e2e-vSphere-Containerd-1.22
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2846,11 +3155,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2900,8 +3234,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_containerd_1_22
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -3144,6 +3496,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.23"
+        id: run-e2e-vSphere-Containerd-1.23
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -3193,11 +3546,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -3247,8 +3625,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_containerd_1_23
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
@@ -3491,6 +3887,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.24"
+        id: run-e2e-vSphere-Containerd-1.24
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -3540,11 +3937,36 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failed() }}
+        id: check_stay_failed_cluster
+        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        with:
+          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -3594,8 +4016,26 @@ jobs:
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          exit_code=$?
 
+          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+            ssh_string="$(cat $ssh_string_file)"
+            echo '::echo::on'
+            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+            echo '::echo::off'
+          fi
+
+          exit "$exit_code"
         # </template: e2e_run_template>
+
+      - name: Save dhctl state
+        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_statevsphere_containerd_1_24
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
       - name: Save test results
         if: always()
