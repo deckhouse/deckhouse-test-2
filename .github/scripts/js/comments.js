@@ -83,7 +83,7 @@ module.exports.renderJobStatusSeparate = (status, name, started_at) => {
   return `\n${statusComment}.${jobResultMarker(name)}\n`;
 };
 
-module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, started_at) => {
+module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, started_at, additional_info) => {
   const time_elapsed = getTimeElapsedForStatus(started_at);
   let statusComment = `:green_circle:\u00a0\`${name}\` for \`${ref}\` [succeeded](${build_url})${time_elapsed}.`;
   if (status === 'failure') {
@@ -96,8 +96,31 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
     statusComment = `:white_circle:\u00a0\`${name}\` for \`${ref}\` [skipped](${build_url}).`;
   }
 
-  return statusComment;
+  const info = additional_info ? `\n\n${additional_info}` : '';
+  return `${statusComment}${info}`;
 };
+
+/**
+ * Build additional info about failed e2e test
+ * Contains information about
+ *
+ * @param {string} status - job status
+ * @param {object} stepsContext - GitHub needs context
+ * @returns {Promise<*>}
+ */
+// module.exports.buildFailedE2eTestAdditionalInfo = function ({ status, stepsContext }){
+//   if (status !== "failure") {
+//     return ''
+//   }
+//
+//   Object.keys(stepsContext).filter((k) => k.startsWith('run-e2e-'))
+//
+//   if (!needsContext[''])
+//
+//     let stayCluster = false;
+//
+//
+// }
 
 /**
  * Return a human-readable duration.

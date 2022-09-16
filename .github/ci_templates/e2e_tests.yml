@@ -126,7 +126,17 @@ run: |
     -w /deckhouse \
   ${INSTALL_IMAGE_NAME} \
   bash /deckhouse/testing/cloud_layouts/{!{ $script }!} {!{ $script_arg }!}
+  exit_code=$?
 
+  ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+  if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
+    ssh_string="$(cat $ssh_string_file)"
+    echo '::echo::on'
+    echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+    echo '::echo::off'
+  fi
+
+  exit "$exit_code"
 # </template: e2e_run_template>
 {!{- end -}!}
 
@@ -298,6 +308,7 @@ check_e2e_labels:
         echo '::echo::off'
 
     - name: "Run e2e test: {!{ $ctx.providerName }!}/{!{ $ctx.criName }!}/{!{ $ctx.kubernetesVersion }!}"
+      id: run-e2e-{!{ $ctx.providerName }!}-{!{ $ctx.criName }!}-{!{ $ctx.kubernetesVersion }!}
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
@@ -312,8 +323,23 @@ check_e2e_labels:
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test") | strings.Indent 6 }!}
 
+    - name: Check stay failed cluster
+      if: ${{ failed() }}
+      id: check_stay_failed_cluster
+      uses: { !{ index (ds "actions") "actions/github-script" }! }
+      with:
+        # it sets `should_run` output var if e2e/stay-failed-cluster label
+        script: |
+          const ci = require('./.github/scripts/js/ci');
+          return await ci.checkLabel({
+            github,
+            context,
+            core,
+            labelType: 'e2e-stay-failed',
+          })
+
     - name: Cleanup bootstrapped cluster
-      if: always()
+      if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
@@ -327,6 +353,14 @@ check_e2e_labels:
         DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
+
+    - name: Save dhctl state
+      if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+      uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
+      with:
+        name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
+        path: |
+          ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
 
     - name: Save test results
       if: always()

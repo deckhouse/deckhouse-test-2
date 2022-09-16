@@ -324,6 +324,10 @@ function run-test() {
   fi
 }
 
+function log_master_ssh() {
+  echo "$1" > "$cwd/ssh-master-connection-string"
+}
+
 function bootstrap_static() {
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
@@ -344,6 +348,8 @@ function bootstrap_static() {
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
   --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee "$cwd/bootstrap.log" || return $?
+
+  log_master_ssh "$ssh_user@$master_ip"
 
   >&2 echo "==============================================================
 
@@ -412,6 +418,8 @@ function bootstrap() {
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
   fi
+
+  log_master_ssh "$ssh_user@$master_ip"
 
   >&2 echo "==============================================================
 
