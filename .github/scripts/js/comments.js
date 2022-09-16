@@ -2,6 +2,8 @@
  * Bot related functions.
  */
 
+const {abortFailedE2eCommand} = require('./constants');
+
 const WORKFLOW_START_MARKER = '<!-- workflow_start -->'
 module.exports.WORKFLOW_START_MARKER = WORKFLOW_START_MARKER;
 
@@ -83,7 +85,7 @@ module.exports.renderJobStatusSeparate = (status, name, started_at) => {
   return `\n${statusComment}.${jobResultMarker(name)}\n`;
 };
 
-module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, started_at) => {
+module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, started_at, additional_info) => {
   const time_elapsed = getTimeElapsedForStatus(started_at);
   let statusComment = `:green_circle:\u00a0\`${name}\` for \`${ref}\` [succeeded](${build_url})${time_elapsed}.`;
   if (status === 'failure') {
@@ -96,8 +98,59 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
     statusComment = `:white_circle:\u00a0\`${name}\` for \`${ref}\` [skipped](${build_url}).`;
   }
 
-  return statusComment;
+  const info = additional_info ? `\n\n${additional_info}` : '';
+  return `${statusComment}${info}`;
 };
+
+/**
+ * Build additional info about failed e2e test
+ * Contains information about
+ *
+ * @param {object} jobs - GitHub needsContext context
+ * @returns {string}
+ */
+module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core }){
+  const connectStrings = Object.getOwnPropertyNames(needsContext).
+  filter((k) => k.startsWith('run_')).
+  map((key, _i, _a) => {
+    const result = needsContext[key].result;
+    if (result === 'failure' || result === 'cancelled') {
+      if (needsContext[key].outputs){
+        const outputs = needsContext[key].outputs;
+
+        if(!outputs['failed_cluster_stayed']){
+          return null;
+        }
+
+        const connectStr = outputs['ssh_master_connection_string'] || '';
+        const ranFor = outputs['ran_for'] || '';
+        const runId = outputs['ran_id'] || '';
+        const artifactName = outputs['state_artifact_name'] || '';
+        const stateDir = needsContext[key].outputs['state_dir'] || '';
+        const fullRef = needsContext[key].outputs['ref_full'] || '';
+
+        if (!fullRef || !stateDir || !ranFor || !connectStr || !artifactName) {
+          core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
+        }
+
+        const splitRunFor = ranFor.replace(',', ' ');
+
+        return `E2e for ${splitRunFor} was failed. Use:
+  \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
+  \`${abortFailedE2eCommand} ${fullRef} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
+`
+      }
+    }
+
+    return null;
+  }).filter((v) => !!v)
+
+  if (connectStrings.length === 0) {
+    return "";
+  }
+
+  return "\r\n" + "#failed_clusters_start\r\n" + connectStrings.join("\r\n") + "\r\n#failed_clusters_end";
+}
 
 /**
  * Return a human-readable duration.

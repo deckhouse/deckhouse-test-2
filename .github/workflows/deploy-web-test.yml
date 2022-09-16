@@ -300,6 +300,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -309,7 +310,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }

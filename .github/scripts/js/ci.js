@@ -10,7 +10,7 @@ const {
   knownKubernetesVersions,
   knownEditions,
   e2eDefaults,
-  skipE2eLabel
+  skipE2eLabel,
 } = require('./constants');
 
 const e2eStatus = require('./e2e-commit-status');
@@ -36,7 +36,9 @@ const {
   hasJobResult,
   renderJobStatusOneLine,
   renderJobStatusSeparate,
-  renderWorkflowStatusFinal, releaseIssueHeader
+  renderWorkflowStatusFinal,
+  releaseIssueHeader,
+  buildFailedE2eTestAdditionalInfo,
 } = require("./comments");
 
 /**
@@ -131,7 +133,7 @@ module.exports.updateCommentOnFinish = async ({
   needsContext,
   jobContext,
   stepsContext,
-  jobNames
+  jobNames,
 }) => {
   const repo_url = context.payload.repository.html_url;
   const run_id = context.runId;
@@ -179,7 +181,9 @@ module.exports.updateCommentOnFinish = async ({
     } else if (statusConfig.includes(',separate')) {
       statusReport = renderJobStatusSeparate(status, name, startedAt);
     } else if (statusConfig.includes(',final')) {
-      statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt);
+      const addInfo = buildFailedE2eTestAdditionalInfo({needsContext});
+      core.debug(`Additional info: ${addInfo}`);
+      statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);
     }
   }
 
@@ -238,7 +242,10 @@ module.exports.updateCommentOnFinish = async ({
 
     core.info(`Status for workflow report is ${status}`);
 
-    statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt);
+    const addInfo = buildFailedE2eTestAdditionalInfo({needsContext});
+    core.debug(`Additional info: ${addInfo}`);
+
+    statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);
   }
 
   if (statusConfig.includes(',final')) {
@@ -361,8 +368,10 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
     return core.notice(`Skip next jobs: ${isPR ? 'PR' : 'issue'} #${issue_number} has no label '${expectedLabel}'.`);
   }
 
-  // Remove label
-  await removeLabel({ github, context, core, issue_number, label: expectedLabel });
+  if(!knownLabels[expectedLabel].shouldStayAfterCheck) {
+    // Remove label
+    await removeLabel({ github, context, core, issue_number, label: expectedLabel });
+  }
 };
 module.exports.checkLabel = checkLabel;
 
@@ -586,27 +595,16 @@ const parseCommandArgumentAsRef = (cmdArg) => {
 };
 
 /**
- * Detect slash command in the comment.
- * Commands are similar to labels:
- *   /build release-1.30
- *   /e2e/run/aws v1.31.0-alpha.0
- *   /e2e/use/k8s/1.22
- *   /e2e/use/cri/docker
- *   /e2e/use/cri/containerd
- *   /deploy/web/stage v1.3.2
- *   /deploy/alpha - to deploy all editions
- *   /deploy/alpha/ce,ee,fe
- *   /suspend/alpha
+ * Extract argv slash command array from comment.
  *
- * @param {object} inputs
- * @param {object} inputs.comment - A comment body.
+ * @param {string} comment - A comment body.
  * @returns {object}
  */
-const detectSlashCommand = ({ comment }) => {
+const extractCommandFromComment = (comment) => {
   // Split comment to lines.
   const lines = comment.split(/\r\n|\n|\r/).filter(l => l.startsWith('/'));
   if (lines.length < 1) {
-    return {notFoundMsg: 'first line is not a slash command'}
+    return {'err': 'first line is not a slash command'}
   }
 
   // Search for user command in the first line of the comment.
@@ -614,9 +612,38 @@ const detectSlashCommand = ({ comment }) => {
   const parts = lines[0].split(/\s+/);
 
   if ( ! /^\/[a-z\d_\-\/.,]+$/.test(parts[0])) {
-    return {notFoundMsg: 'not a slash command in the first line'};
+    return {'err': 'not a slash command in the first line'};
   }
 
+  return {'argv': parts}
+};
+
+
+/**
+ * Detect slash command in the comment.
+ * Commands are similar to labels:
+ *   /build release-1.30
+ *   /e2e/run/aws v1.31.0-alpha.0
+ *   /e2e/use/k8s/1.22
+ *   /e2e/use/cri/docker
+ *   /e2e/use/cri/containerd
+ *   /e2e/failed/abort
+ *   /deploy/web/stage v1.3.2
+ *   /deploy/alpha - to deploy all editions
+ *   /deploy/alpha/ce,ee,fe
+ *   /suspend/alpha
+ *
+ * @param {object} inputs
+ * @param {string} inputs.comment - A comment body.
+ * @returns {object}
+ */
+const detectSlashCommand = ({ comment }) => {
+  const arg = extractCommandFromComment(comment);
+  if(arg.err) {
+    return {notFoundMsg: arg.err}
+  }
+
+  const parts = arg.argv;
   const command = parts[0];
 
   // Initial ref for e2e/run with 2 args.
@@ -803,6 +830,8 @@ module.exports.runSlashCommandForReleaseIssue = async ({ github, context, core }
     } else {
       failedMsg = `Command '${slashCommand.command}' requires issue to relate to milestone with version in title. Got milestone '${event.issue.milestone.title}'.`
     }
+  } else if(slashCommand.isDestroyFailedE2e) {
+    workflow_ref = slashCommand.targetRef;
   }
 
   // Git ref is malformed.

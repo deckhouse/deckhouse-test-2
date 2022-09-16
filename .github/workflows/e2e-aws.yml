@@ -185,6 +185,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_20 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_docker_1_20
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,docker,1.20"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -272,7 +281,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -360,6 +369,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -367,7 +377,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Docker/1.20"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -383,6 +396,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -396,6 +414,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -405,6 +439,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -420,8 +455,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -437,6 +502,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -450,6 +520,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -459,6 +534,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -474,13 +550,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_docker_1_20
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_docker_1_20
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -510,7 +598,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -532,6 +620,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_21 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_docker_1_21
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,docker,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -619,7 +716,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -707,6 +804,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -714,7 +812,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Docker/1.21"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -730,6 +831,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -743,6 +849,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -752,6 +874,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -767,8 +890,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -784,6 +937,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -797,6 +955,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -806,6 +969,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -821,13 +985,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_docker_1_21
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_docker_1_21
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -857,7 +1033,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -879,6 +1055,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_22 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_docker_1_22
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,docker,1.22"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -966,7 +1151,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1054,6 +1239,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1061,7 +1247,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Docker/1.22"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1077,6 +1266,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1090,6 +1284,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1099,6 +1309,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1114,8 +1325,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1131,6 +1372,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1144,6 +1390,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1153,6 +1404,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1168,13 +1420,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_docker_1_22
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_docker_1_22
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1204,7 +1468,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1226,6 +1490,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_23 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_docker_1_23
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,docker,1.23"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -1313,7 +1586,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1401,6 +1674,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1408,7 +1682,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Docker/1.23"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1424,6 +1701,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1437,6 +1719,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1446,6 +1744,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1461,8 +1760,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1478,6 +1807,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1491,6 +1825,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1500,6 +1839,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1515,13 +1855,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_docker_1_23
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_docker_1_23
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1551,7 +1903,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1573,6 +1925,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_24 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_docker_1_24
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,docker,1.24"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -1660,7 +2021,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1748,6 +2109,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1755,7 +2117,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Docker/1.24"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1771,6 +2136,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1784,6 +2154,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1793,6 +2179,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1808,8 +2195,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Docker
@@ -1825,6 +2242,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1838,6 +2260,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1847,6 +2274,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1862,13 +2290,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_docker_1_24
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_docker_1_24
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1898,7 +2338,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1920,6 +2360,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_20 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_containerd_1_20
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,containerd,1.20"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -2007,7 +2456,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2095,6 +2544,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -2102,7 +2552,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.20"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2118,6 +2571,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2131,6 +2589,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2140,6 +2614,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2155,8 +2630,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2172,6 +2677,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2185,6 +2695,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2194,6 +2709,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2209,13 +2725,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_containerd_1_20
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_containerd_1_20
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2245,7 +2773,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2267,6 +2795,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_21 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_containerd_1_21
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -2354,7 +2891,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2442,6 +2979,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -2449,7 +2987,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.21"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2465,6 +3006,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2478,6 +3024,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2487,6 +3049,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2502,8 +3065,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2519,6 +3112,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2532,6 +3130,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2541,6 +3144,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2556,13 +3160,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_containerd_1_21
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_containerd_1_21
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2592,7 +3208,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2614,6 +3230,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_22 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_containerd_1_22
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,containerd,1.22"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -2701,7 +3326,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2789,6 +3414,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -2796,7 +3422,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.22"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2812,6 +3441,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2825,6 +3459,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2834,6 +3484,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2849,8 +3500,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -2866,6 +3547,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2879,6 +3565,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2888,6 +3579,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2903,13 +3595,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_containerd_1_22
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_containerd_1_22
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2939,7 +3643,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2961,6 +3665,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_23 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_containerd_1_23
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,containerd,1.23"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -3048,7 +3761,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -3136,6 +3849,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -3143,7 +3857,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.23"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -3159,6 +3876,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3172,6 +3894,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3181,6 +3919,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3196,8 +3935,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -3213,6 +3982,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3226,6 +4000,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3235,6 +4014,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3250,13 +4030,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_containerd_1_23
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_containerd_1_23
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3286,7 +4078,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -3308,6 +4100,15 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_24 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: failed_cluster_state_aws_containerd_1_24
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "aws,WithoutNAT,containerd,1.24"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -3395,7 +4196,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -3483,6 +4284,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -3490,7 +4292,10 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.24"
+        id: e2e_test_run
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -3506,6 +4311,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3519,6 +4329,22 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3528,6 +4354,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3543,8 +4370,38 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Check stay failed cluster
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        with:
+          # it sets `should_run` output var if e2e/failed/stay label
+          script: |
+            const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+            }
+
+            return await ci.checkLabel({
+              github,
+              context,
+              core,
+              labelType: 'e2e-stay-failed',
+            })
+
       - name: Cleanup bootstrapped cluster
-        if: always()
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        id: cleanup_cluster
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -3560,6 +4417,11 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3573,6 +4435,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3582,6 +4449,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3597,13 +4465,25 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Save dhctl state
+        id: save_failed_cluster_state
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        uses: actions/upload-artifact@v2
+        with:
+          name: failed_cluster_state_aws_containerd_1_24
+          path: |
+            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
+
       - name: Save test results
         if: always()
         uses: actions/upload-artifact@v2
         with:
           name: test_output_aws_containerd_1_24
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3633,7 +4513,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -3681,7 +4561,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null
+            let jobNames = null;
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
