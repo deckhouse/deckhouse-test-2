@@ -521,6 +521,7 @@ jobs:
           name: test_output_static_docker_1_20
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -908,6 +909,7 @@ jobs:
           name: test_output_static_docker_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1295,6 +1297,7 @@ jobs:
           name: test_output_static_docker_1_22
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1682,6 +1685,7 @@ jobs:
           name: test_output_static_docker_1_23
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2069,6 +2073,7 @@ jobs:
           name: test_output_static_docker_1_24
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2456,6 +2461,7 @@ jobs:
           name: test_output_static_containerd_1_20
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2843,6 +2849,7 @@ jobs:
           name: test_output_static_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3230,6 +3237,7 @@ jobs:
           name: test_output_static_containerd_1_22
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3617,6 +3625,7 @@ jobs:
           name: test_output_static_containerd_1_23
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -4004,6 +4013,7 @@ jobs:
           name: test_output_static_containerd_1_24
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
