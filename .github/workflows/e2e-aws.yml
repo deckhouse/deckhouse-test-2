@@ -432,7 +432,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -511,7 +511,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_docker_1_20
@@ -824,7 +824,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -903,7 +903,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_docker_1_21
@@ -1216,7 +1216,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -1295,7 +1295,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_docker_1_22
@@ -1608,7 +1608,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -1687,7 +1687,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_docker_1_23
@@ -2000,7 +2000,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -2079,7 +2079,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_docker_1_24
@@ -2392,7 +2392,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -2471,7 +2471,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_containerd_1_20
@@ -2784,7 +2784,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -2863,7 +2863,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_containerd_1_21
@@ -3176,7 +3176,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -3255,7 +3255,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_containerd_1_22
@@ -3568,7 +3568,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -3647,7 +3647,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_containerd_1_23
@@ -3960,7 +3960,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failed() }}
+        if: ${{ failure() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -4039,7 +4039,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
-        if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_stateaws_containerd_1_24
