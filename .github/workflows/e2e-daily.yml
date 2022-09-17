@@ -445,6 +445,7 @@ jobs:
           name: test_output_aws_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -855,6 +856,7 @@ jobs:
           name: test_output_azure_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1253,6 +1255,7 @@ jobs:
           name: test_output_gcp_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1659,6 +1662,7 @@ jobs:
           name: test_output_yandex-cloud_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2057,6 +2061,7 @@ jobs:
           name: test_output_openstack_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2459,6 +2464,7 @@ jobs:
           name: test_output_vsphere_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2857,6 +2863,7 @@ jobs:
           name: test_output_static_containerd_1_21
           path: |
             testing/cloud_layouts/
+            !testing/cloud_layouts/sshkey
 
       - name: Cleanup temp directory
         if: always()
