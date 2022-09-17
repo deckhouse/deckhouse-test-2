@@ -104,12 +104,15 @@ run: |
   bash /deckhouse/testing/cloud_layouts/{!{ $script }!} {!{ $script_arg }!}
   exit_code=$?
 
-  ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-  if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-    ssh_string="$(cat $ssh_string_file)"
-    echo '::echo::on'
-    echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-    echo '::echo::off'
+  if [[ "$scrip_arg" == "run-test" ]]; then
+    # save ssh connection script for show in comment
+    ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+    if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+      ssh_string="$(cat $ssh_string_file)"
+      echo '::echo::on'
+      echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+      echo '::echo::off'
+    fi
   fi
 
   exit "$exit_code"
@@ -284,7 +287,7 @@ check_e2e_labels:
         echo '::echo::off'
 
     - name: "Run e2e test: {!{ $ctx.providerName }!}/{!{ $ctx.criName }!}/{!{ $ctx.kubernetesVersion }!}"
-      id: e2e-{!{ $ctx.jobID }!}
+      id: e2e-test-{!{ $ctx.jobID }!}
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
@@ -316,6 +319,7 @@ check_e2e_labels:
 
     - name: Cleanup bootstrapped cluster
       if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+      id: cleanup-{!{ $ctx.jobID }!}
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
@@ -365,11 +369,17 @@ check_e2e_labels:
 
 {!{- if not (coll.Has $ctx "manualRun") }!}
 
+  # general error alter
   {!{- $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion -}!}
   {!{- $annotations := dict "summary" "Cloud Layout Test failed" "description" "Check Github workflow log for more information" -}!}
   {!{- $if := "github.ref == 'refs/heads/main' && (cancelled() || failure())" -}!}
   {!{- tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }!}
 
-{!{- end }!}
+  # alert about cluster was not cleaned correctly
+  { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+  { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+  { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome" - }! }
+  { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+  {!{- end }!}
 # </template: e2e_run_job_template>
 {!{ end -}!}
