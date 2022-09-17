@@ -432,7 +432,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -819,7 +819,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -1206,7 +1206,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -1593,7 +1593,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -1980,7 +1980,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -2367,7 +2367,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -2754,7 +2754,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -3141,7 +3141,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -3528,7 +3528,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
@@ -3915,7 +3915,7 @@ jobs:
       - name: Check stay failed cluster
         if: ${{ failed() }}
         id: check_stay_failed_cluster
-        uses: { !{ index (ds "actions") "actions/github-script" }! }
+        uses: actions/github-script@v5.0.0
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
