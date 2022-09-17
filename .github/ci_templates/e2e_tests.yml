@@ -369,6 +369,7 @@ check_e2e_labels:
         name: test_output_{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
         path: |
           testing/cloud_layouts/
+          !testing/cloud_layouts/sshkey
 
     - name: Cleanup temp directory
       if: always()
