@@ -422,9 +422,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -507,9 +509,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -825,9 +829,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -910,9 +916,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -1228,9 +1236,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -1313,9 +1323,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -1631,9 +1643,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -1716,9 +1730,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2034,9 +2050,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2119,9 +2137,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2437,9 +2457,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2522,9 +2544,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2840,9 +2864,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -2925,9 +2951,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -3243,9 +3271,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -3328,9 +3358,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -3646,9 +3678,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -3731,9 +3765,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -4049,9 +4085,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
@@ -4134,9 +4172,11 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
+          echo "DHCTL exit code: $exit_code"
           if [[ "$scrip_arg" == "run-test" ]]; then
             # save ssh connection script for show in comment
             ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            echo "ssh string content: $ssh_string_file"
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
