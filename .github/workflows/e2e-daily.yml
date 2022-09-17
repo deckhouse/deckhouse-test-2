@@ -288,7 +288,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: AWS/Containerd/1.21"
-        id: run-e2e-AWS-Containerd-1.21
+        id: e2e-run_aws_containerd_1_21
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -691,7 +691,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Azure/Containerd/1.21"
-        id: run-e2e-Azure-Containerd-1.21
+        id: e2e-run_azure_containerd_1_21
         env:
           PROVIDER: Azure
           CRI: Containerd
@@ -1102,7 +1102,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: GCP/Containerd/1.21"
-        id: run-e2e-GCP-Containerd-1.21
+        id: e2e-run_gcp_containerd_1_21
         env:
           PROVIDER: GCP
           CRI: Containerd
@@ -1501,7 +1501,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.21"
-        id: run-e2e-Yandex.Cloud-Containerd-1.21
+        id: e2e-run_yandex_cloud_containerd_1_21
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -1908,7 +1908,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.21"
-        id: run-e2e-OpenStack-Containerd-1.21
+        id: e2e-run_openstack_containerd_1_21
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -2307,7 +2307,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.21"
-        id: run-e2e-vSphere-Containerd-1.21
+        id: e2e-run_vsphere_containerd_1_21
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2710,7 +2710,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Static/Containerd/1.21"
-        id: run-e2e-Static-Containerd-1.21
+        id: e2e-run_static_containerd_1_21
         env:
           PROVIDER: Static
           CRI: Containerd

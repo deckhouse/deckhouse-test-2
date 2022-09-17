@@ -284,7 +284,7 @@ check_e2e_labels:
         echo '::echo::off'
 
     - name: "Run e2e test: {!{ $ctx.providerName }!}/{!{ $ctx.criName }!}/{!{ $ctx.kubernetesVersion }!}"
-      id: run-e2e-{!{ $ctx.providerName }!}-{!{ $ctx.criName }!}-{!{ $ctx.kubernetesVersion }!}
+      id: e2e-{!{ $ctx.jobID }!}
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
