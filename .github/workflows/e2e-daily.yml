@@ -288,7 +288,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: AWS/Containerd/1.21"
-        id: e2e-run_aws_containerd_1_21
+        id: e2e-test-run_aws_containerd_1_21
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -340,12 +340,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -368,6 +371,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_aws_containerd_1_21
         env:
           PROVIDER: AWS
           CRI: Containerd
@@ -419,12 +423,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -458,6 +465,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -514,6 +523,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_aws_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -691,7 +706,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Azure/Containerd/1.21"
-        id: e2e-run_azure_containerd_1_21
+        id: e2e-test-run_azure_containerd_1_21
         env:
           PROVIDER: Azure
           CRI: Containerd
@@ -747,12 +762,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -775,6 +793,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_azure_containerd_1_21
         env:
           PROVIDER: Azure
           CRI: Containerd
@@ -830,12 +849,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -869,6 +891,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -925,6 +949,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_azure_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -1102,7 +1132,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: GCP/Containerd/1.21"
-        id: e2e-run_gcp_containerd_1_21
+        id: e2e-test-run_gcp_containerd_1_21
         env:
           PROVIDER: GCP
           CRI: Containerd
@@ -1152,12 +1182,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -1180,6 +1213,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_gcp_containerd_1_21
         env:
           PROVIDER: GCP
           CRI: Containerd
@@ -1229,12 +1263,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -1268,6 +1305,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -1324,6 +1363,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_gcp_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -1501,7 +1546,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.21"
-        id: e2e-run_yandex_cloud_containerd_1_21
+        id: e2e-test-run_yandex_cloud_containerd_1_21
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -1555,12 +1600,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -1583,6 +1631,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_yandex_cloud_containerd_1_21
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -1636,12 +1685,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -1675,6 +1727,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -1731,6 +1785,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_yandex_cloud_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -1908,7 +1968,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.21"
-        id: e2e-run_openstack_containerd_1_21
+        id: e2e-test-run_openstack_containerd_1_21
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -1958,12 +2018,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -1986,6 +2049,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_openstack_containerd_1_21
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -2035,12 +2099,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -2074,6 +2141,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -2130,6 +2199,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_openstack_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -2307,7 +2382,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: vSphere/Containerd/1.21"
-        id: e2e-run_vsphere_containerd_1_21
+        id: e2e-test-run_vsphere_containerd_1_21
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2359,12 +2434,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -2387,6 +2465,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_vsphere_containerd_1_21
         env:
           PROVIDER: vSphere
           CRI: Containerd
@@ -2438,12 +2517,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -2477,6 +2559,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -2533,6 +2617,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_vsphere_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -2710,7 +2800,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Static/Containerd/1.21"
-        id: e2e-run_static_containerd_1_21
+        id: e2e-test-run_static_containerd_1_21
         env:
           PROVIDER: Static
           CRI: Containerd
@@ -2760,12 +2850,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -2788,6 +2881,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        id: cleanup-run_static_containerd_1_21
         env:
           PROVIDER: Static
           CRI: Containerd
@@ -2837,12 +2931,15 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh cleanup
           exit_code=$?
 
-          ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-          if [ "$exit_code" != 0 && -f "$ssh_string_file" ]; then
-            ssh_string="$(cat $ssh_string_file)"
-            echo '::echo::on'
-            echo "::set-output name=ssh-master-connection-string::${ssh_string}"
-            echo '::echo::off'
+          if [[ "$scrip_arg" == "run-test" ]]; then
+            # save ssh connection script for show in comment
+            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
+            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+              ssh_string="$(cat $ssh_string_file)"
+              echo '::echo::on'
+              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo '::echo::off'
+            fi
           fi
 
           exit "$exit_code"
@@ -2876,6 +2973,8 @@ jobs:
           else
             echo Not a directory.
           fi
+
+    # general error alter
 
 
       # <template: send_alert_template>
@@ -2932,6 +3031,12 @@ jobs:
           exit 1
         # </template: send_alert_template>
 
+
+    # alert about cluster was not cleaned correctly
+    { !{ - $labels := dict "trigger" "CloudLayoutTestFailed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
+    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
+    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_static_containerd_1_21.outcome" - }! }
+    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
   # </template: e2e_run_job_template>
 
 
