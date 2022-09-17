@@ -525,10 +525,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_aws_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "WithoutNAT",
+              "provider": "AWS",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -951,10 +1003,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_azure_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "Standard",
+              "provider": "Azure",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -1365,10 +1469,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_gcp_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "WithoutNAT",
+              "provider": "GCP",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -1787,10 +1943,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_yandex_cloud_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "WithoutNAT",
+              "provider": "Yandex.Cloud",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -2201,10 +2409,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_openstack_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "WithoutNAT",
+              "provider": "OpenStack",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -2619,10 +2879,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_vsphere_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "Standard",
+              "provider": "vSphere",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
   # <template: e2e_run_job_template>
@@ -3033,10 +3345,62 @@ jobs:
 
 
     # alert about cluster was not cleaned correctly
-    { !{ - $labels := dict "trigger" "CloudLayoutTestClusterNotDestroyed" "provider" $ctx.providerName "layout" $ctx.layout "cri" $ctx.criName "kube_version" $ctx.kubernetesVersion - }! }
-    { !{ - $annotations := dict "summary" "Cloud resources did not clean after e2e run" "description" "Check Github workflow log and remove cloud resources" - }! }
-    { !{ - $if := "github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-run_static_containerd_1_21.outcome" - }! }
-    { !{ - tmpl.Exec "e2e_send_alert_template" (slice (dict "labels" $labels "annotations" $annotations "if" $if )) | strings.Indent 4 }! }
+
+
+      # <template: send_alert_template>
+      - name: Check alerting credentials
+        id: check_alerting
+        if: always()
+        env:
+          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
+      - name: Send alert on fail
+        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
+        env:
+          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
+        run: |
+          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
+          echo $WORKFLOW_URL
+
+          alertData=$(cat <<EOF
+          {
+            "labels": {
+              "cri": "Containerd",
+              "kube_version": "1.21",
+              "layout": "Static",
+              "provider": "Static",
+              "trigger": "CloudLayoutTestClusterNotDestroyed",
+
+              "severity_level": 7
+            },
+            "annotations": {
+              "description": "Check Github workflow log and remove cloud resources",
+              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
+              "summary": "Cloud resources did not clean after e2e run",
+
+              "plk_link_url/job": "${WORKFLOW_URL}",
+              "plk_protocol_version": "1",
+              "plk_link_title_en/job": "Github job run"
+            }
+          }
+          EOF
+          )
+
+          for (( iter = 1; iter < 60; iter++ )); do
+            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
+              exit 0
+            fi
+
+            echo "Alert was not sent. Wait 5 seconds before next attempt"
+            sleep 5
+          done
+
+          echo "Alert was not sent. Timeout"
+          exit 1
+        # </template: send_alert_template>
+
   # </template: e2e_run_job_template>
 
 
