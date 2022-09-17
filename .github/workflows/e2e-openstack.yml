@@ -368,7 +368,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Docker/1.20"
-        id: run-e2e-OpenStack-Docker-1.20
+        id: e2e-run_docker_1_20
         env:
           PROVIDER: OpenStack
           CRI: Docker
@@ -756,7 +756,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Docker/1.21"
-        id: run-e2e-OpenStack-Docker-1.21
+        id: e2e-run_docker_1_21
         env:
           PROVIDER: OpenStack
           CRI: Docker
@@ -1144,7 +1144,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Docker/1.22"
-        id: run-e2e-OpenStack-Docker-1.22
+        id: e2e-run_docker_1_22
         env:
           PROVIDER: OpenStack
           CRI: Docker
@@ -1532,7 +1532,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Docker/1.23"
-        id: run-e2e-OpenStack-Docker-1.23
+        id: e2e-run_docker_1_23
         env:
           PROVIDER: OpenStack
           CRI: Docker
@@ -1920,7 +1920,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Docker/1.24"
-        id: run-e2e-OpenStack-Docker-1.24
+        id: e2e-run_docker_1_24
         env:
           PROVIDER: OpenStack
           CRI: Docker
@@ -2308,7 +2308,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.20"
-        id: run-e2e-OpenStack-Containerd-1.20
+        id: e2e-run_containerd_1_20
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -2696,7 +2696,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.21"
-        id: run-e2e-OpenStack-Containerd-1.21
+        id: e2e-run_containerd_1_21
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -3084,7 +3084,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.22"
-        id: run-e2e-OpenStack-Containerd-1.22
+        id: e2e-run_containerd_1_22
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -3472,7 +3472,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.23"
-        id: run-e2e-OpenStack-Containerd-1.23
+        id: e2e-run_containerd_1_23
         env:
           PROVIDER: OpenStack
           CRI: Containerd
@@ -3860,7 +3860,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: OpenStack/Containerd/1.24"
-        id: run-e2e-OpenStack-Containerd-1.24
+        id: e2e-run_containerd_1_24
         env:
           PROVIDER: OpenStack
           CRI: Containerd
