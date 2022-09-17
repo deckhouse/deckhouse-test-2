@@ -300,7 +300,7 @@ check_e2e_labels:
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test") | strings.Indent 6 }!}
 
     - name: Check stay failed cluster
-      if: ${{ failed() }}
+      if: ${{ failure() }}
       id: check_stay_failed_cluster
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
@@ -331,7 +331,7 @@ check_e2e_labels:
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
 
     - name: Save dhctl state
-      if: ${{ failed() && !steps.check_failed_cluster.should_run }}
+      if: ${{ failure() && !steps.check_failed_cluster.should_run }}
       uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
       with:
         name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
