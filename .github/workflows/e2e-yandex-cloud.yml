@@ -388,7 +388,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -421,23 +421,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -475,7 +460,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -508,23 +493,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -797,7 +767,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -830,23 +800,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -884,7 +839,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -917,23 +872,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -1206,7 +1146,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1239,23 +1179,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -1293,7 +1218,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1326,23 +1251,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -1615,7 +1525,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1648,23 +1558,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -1702,7 +1597,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1735,23 +1630,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -2024,7 +1904,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2057,23 +1937,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -2111,7 +1976,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2144,23 +2009,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -2433,7 +2283,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2466,23 +2316,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -2520,7 +2355,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2553,23 +2388,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -2842,7 +2662,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2875,23 +2695,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -2929,7 +2734,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2962,23 +2767,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -3251,7 +3041,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3284,23 +3074,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -3338,7 +3113,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3371,23 +3146,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -3660,7 +3420,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3693,23 +3453,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -3747,7 +3492,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3780,23 +3525,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
@@ -4069,7 +3799,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh run-test' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4102,23 +3832,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh run-test
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
@@ -4156,7 +3871,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4189,23 +3904,8 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
-          exit_code=$?
+          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
 
-          echo "DHCTL exit code: $exit_code"
-          if [[ "$scrip_arg" == "run-test" ]]; then
-            # save ssh connection script for show in comment
-            ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-            echo "ssh string content: $ssh_string_file"
-            if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
-              ssh_string="$(cat $ssh_string_file)"
-              echo '::echo::on'
-              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
-              echo '::echo::off'
-            fi
-          fi
-
-          exit "$exit_code"
         # </template: e2e_run_template>
 
       - name: Save dhctl state
