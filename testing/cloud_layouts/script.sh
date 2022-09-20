@@ -329,6 +329,7 @@ function log_master_ssh() {
 }
 
 function bootstrap_static() {
+  exit 1
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
   terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
