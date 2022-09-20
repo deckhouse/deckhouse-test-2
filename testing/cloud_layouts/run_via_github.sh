@@ -14,7 +14,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-bash ./script.sh $@
+pwdd="$(dirnam $0)"
+bash "$pwdd/script.sh" $@
 exit_code=$?
 
 echo "script exit code: $exit_code"
