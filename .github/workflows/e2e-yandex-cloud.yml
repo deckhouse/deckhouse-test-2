@@ -185,6 +185,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_20 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -368,7 +370,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Docker/1.20"
-        id: e2e-test-run_docker_1_20
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -430,7 +432,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -455,7 +457,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_docker_1_20
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -517,7 +519,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -592,6 +594,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_21 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -775,7 +779,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Docker/1.21"
-        id: e2e-test-run_docker_1_21
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -837,7 +841,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -862,7 +866,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_docker_1_21
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -924,7 +928,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -999,6 +1003,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_22 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1182,7 +1188,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Docker/1.22"
-        id: e2e-test-run_docker_1_22
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -1244,7 +1250,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -1269,7 +1275,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_docker_1_22
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -1331,7 +1337,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -1406,6 +1412,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_23 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1589,7 +1597,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Docker/1.23"
-        id: e2e-test-run_docker_1_23
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -1651,7 +1659,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -1676,7 +1684,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_docker_1_23
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -1738,7 +1746,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -1813,6 +1821,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_24 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1996,7 +2006,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Docker/1.24"
-        id: e2e-test-run_docker_1_24
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -2058,7 +2068,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -2083,7 +2093,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_docker_1_24
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Docker
@@ -2145,7 +2155,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -2220,6 +2230,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_20 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -2403,7 +2415,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.20"
-        id: e2e-test-run_containerd_1_20
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -2465,7 +2477,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -2490,7 +2502,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_containerd_1_20
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -2552,7 +2564,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -2627,6 +2639,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_21 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -2810,7 +2824,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.21"
-        id: e2e-test-run_containerd_1_21
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -2872,7 +2886,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -2897,7 +2911,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_containerd_1_21
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -2959,7 +2973,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -3034,6 +3048,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_22 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -3217,7 +3233,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.22"
-        id: e2e-test-run_containerd_1_22
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -3279,7 +3295,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -3304,7 +3320,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_containerd_1_22
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -3366,7 +3382,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -3441,6 +3457,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_23 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -3624,7 +3642,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.23"
-        id: e2e-test-run_containerd_1_23
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -3686,7 +3704,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -3711,7 +3729,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_containerd_1_23
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -3773,7 +3791,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -3848,6 +3866,8 @@ jobs:
       - check_e2e_labels
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_24 == 'true'
+    outputs:
+      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -4031,7 +4051,7 @@ jobs:
           echo '::echo::off'
 
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.24"
-        id: e2e-test-run_containerd_1_24
+        id: e2e_test_run
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -4093,7 +4113,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi
@@ -4118,7 +4138,7 @@ jobs:
 
       - name: Cleanup bootstrapped cluster
         if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-        id: cleanup-run_containerd_1_24
+        id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
           CRI: Containerd
@@ -4180,7 +4200,7 @@ jobs:
             if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
               ssh_string="$(cat $ssh_string_file)"
               echo '::echo::on'
-              echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+              echo "::set-output name=ssh_master_connection_string::${ssh_string}"
               echo '::echo::off'
             fi
           fi

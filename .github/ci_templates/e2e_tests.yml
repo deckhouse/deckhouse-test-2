@@ -136,7 +136,7 @@ run: |
     if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
       ssh_string="$(cat $ssh_string_file)"
       echo '::echo::on'
-      echo "::set-output name=ssh-master-connection-string::${ssh_string}"
+      echo "::set-output name=ssh_master_connection_string::${ssh_string}"
       echo '::echo::off'
     fi
   fi
@@ -199,6 +199,8 @@ check_e2e_labels:
 {!{- if coll.Has $ctx "manualRun" }!}
   if: needs.check_e2e_labels.outputs.run_{!{ $ctx.cri }!}_{!{ $ctx.kubernetesVersionSlug }!} == 'true'
 {!{- end }!}
+  outputs:
+    ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
     CRI: {!{ $ctx.criName }!}
@@ -313,7 +315,7 @@ check_e2e_labels:
         echo '::echo::off'
 
     - name: "Run e2e test: {!{ $ctx.providerName }!}/{!{ $ctx.criName }!}/{!{ $ctx.kubernetesVersion }!}"
-      id: e2e-test-{!{ $ctx.jobID }!}
+      id: e2e_test_run
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
@@ -345,7 +347,7 @@ check_e2e_labels:
 
     - name: Cleanup bootstrapped cluster
       if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
-      id: cleanup-{!{ $ctx.jobID }!}
+      id: cleanup_cluster
       env:
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
