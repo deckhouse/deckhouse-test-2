@@ -17,6 +17,7 @@
 echo "PWD: $(pwd)"
 echo "0: $0"
 echo "1: $1"
+ls -lh
 
 pwdd="$(dirnam $0)"
 bash "$pwdd/script.sh" $@
