@@ -311,7 +311,7 @@ function prepare_environment() {
     ;;
   esac
 
-  echo "master_user_name_for_ssh = $ssh_user"
+  echo -e "\nmaster_user_name_for_ssh = $ssh_user\n" >> "$bootstrap_log"
 
   >&2 echo "Use configuration in directory '$cwd':"
   >&2 ls -la $cwd
@@ -336,8 +336,6 @@ function bootstrap_static() {
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
 
-  echo "$ssh_user@$master_ip" > "$cwd/ssh-master-connection-string"
-
   terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
   terraform apply -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
   popd
@@ -351,12 +349,16 @@ function bootstrap_static() {
     return 1
   fi
 
+  echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
+
+  sleep 20
+
   exit 1
 
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
-  --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee "$bootstrap_log" || return $?
+  --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee -a "$bootstrap_log" || return $?
 
   >&2 echo "==============================================================
 
