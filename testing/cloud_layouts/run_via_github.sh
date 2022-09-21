@@ -24,6 +24,8 @@ if [[ "$1" == "run-test" ]]; then
   ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
   echo "ssh string content: $ssh_string_file"
   ssh_string=""
+  echo "ssh exit_code $exit_code "
+  echo "$(cat $ssh_string_file)"
   if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
     ssh_string="$(cat $ssh_string_file)"
   fi
