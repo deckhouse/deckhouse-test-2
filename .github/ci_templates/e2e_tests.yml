@@ -53,7 +53,7 @@
 # <template: e2e_run_template>
 {!{- $provider := index . 0 -}!}
 {!{- $script_arg := index . 1 -}!}
-{!{- $script := "run_via_github.sh" -}!}
+{!{- $script := "script.sh" -}!}
 {!{- if eq $provider "aws" }!}
   LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
   LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
@@ -99,9 +99,9 @@ run: |
   echo "DHCTL log file: $dhctl_log_file"
 
 {!{- if eq $script_arg "run-test" }!}
-    comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-    echo "Full comment url for updating ${comment_url}"
-    $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+  comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+  echo "Full comment url for updating ${comment_url}"
+  $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 {!{ end }!}
 
   docker run --rm \
