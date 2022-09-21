@@ -14,11 +14,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-echo "PWD: $(pwd)"
-echo "0: $0"
-echo "1: $1"
-ls -lh
-
 pwdd="$(dirname $0)"
 bash "$pwdd/script.sh" $@
 exit_code=$?

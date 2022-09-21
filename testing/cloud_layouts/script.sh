@@ -329,7 +329,6 @@ function log_master_ssh() {
 }
 
 function bootstrap_static() {
-  exit 1
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
   terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
@@ -344,6 +343,8 @@ function bootstrap_static() {
     >&2 echo "ERROR: can't parse system_ip from terraform.log"
     return 1
   fi
+
+  exit 1
 
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
