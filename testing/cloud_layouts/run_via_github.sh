@@ -14,20 +14,37 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+function parse_master_ip_from_log() {
+  log_file="$1"
+  >&2 echo "  Detect master_ip from bootstrap.log ..."
+  if ! master_ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$log_file")"; then
+    >&2 echo "    ERROR: can't parse master_ip from bootstrap.log"
+    return 1
+  fi
+  echo "${master_ip}"
+}
+
 pwdd="$(dirname $0)"
 bash "$pwdd/script.sh" $@
 exit_code=$?
 
 echo "script exit code: $exit_code"
 if [[ "$1" == "run-test" ]]; then
-  # save ssh connection script for show in comment
-  ssh_string_file="${TMP_DIR_PATH}/ssh-master-connection-string"
-  echo "ssh string content: $ssh_string_file"
   ssh_string=""
-  echo "ssh exit_code $exit_code "
-  echo "$(cat $ssh_string_file)"
-  if [[ "$exit_code" != 0 && -f "$ssh_string_file" ]]; then
+  # save ssh connection script for show in comment
+  ssh_string_file="/tmp/ssh-master-connection-string"
+  dhctl_log_file_path="/tmp/dhctl-log-file-path"
+
+  >&2 echo "ssh exit_code $exit_code"
+  >&2 echo "ssh string content: $(cat $ssh_string_file)"
+  >&2 echo "dhctl log file path: $(cat $dhctl_log_file_path)"
+  >&2 echo "$(cat $ssh_string_file)"
+
+  if [[ -f "$ssh_string_file" ]]; then
     ssh_string="$(cat $ssh_string_file)"
+  elif [ -f "$dhctl_log_file_path" ]; then
+    ssh_str_file="$(dhctl_log_file_path)"
+    ssh_string="$(parse_master_ip_from_log)"
   fi
 
   echo '::echo::on'
