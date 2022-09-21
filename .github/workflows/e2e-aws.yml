@@ -362,6 +362,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -386,7 +387,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -399,6 +406,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -408,6 +424,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -424,7 +441,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -456,7 +473,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -469,6 +492,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -478,6 +506,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -507,8 +536,9 @@ jobs:
         with:
           name: test_output_aws_docker_1_20
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -737,6 +767,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -761,7 +792,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -774,6 +811,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -783,6 +829,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -799,7 +846,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -831,7 +878,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -844,6 +897,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -853,6 +911,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -882,8 +941,9 @@ jobs:
         with:
           name: test_output_aws_docker_1_21
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1112,6 +1172,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1136,7 +1197,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1149,6 +1216,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1158,6 +1234,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1174,7 +1251,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -1206,7 +1283,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1219,6 +1302,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1228,6 +1316,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1257,8 +1346,9 @@ jobs:
         with:
           name: test_output_aws_docker_1_22
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1487,6 +1577,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1511,7 +1602,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1524,6 +1621,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1533,6 +1639,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1549,7 +1656,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -1581,7 +1688,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1594,6 +1707,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1603,6 +1721,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1632,8 +1751,9 @@ jobs:
         with:
           name: test_output_aws_docker_1_23
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -1862,6 +1982,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -1886,7 +2007,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1899,6 +2026,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1908,6 +2044,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -1924,7 +2061,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -1956,7 +2093,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1969,6 +2112,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -1978,6 +2126,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2007,8 +2156,9 @@ jobs:
         with:
           name: test_output_aws_docker_1_24
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2237,6 +2387,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -2261,7 +2412,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2274,6 +2431,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2283,6 +2449,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2299,7 +2466,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -2331,7 +2498,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2344,6 +2517,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2353,6 +2531,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2382,8 +2561,9 @@ jobs:
         with:
           name: test_output_aws_containerd_1_20
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2612,6 +2792,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -2636,7 +2817,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2649,6 +2836,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2658,6 +2854,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2674,7 +2871,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -2706,7 +2903,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2719,6 +2922,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -2728,6 +2936,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -2757,8 +2966,9 @@ jobs:
         with:
           name: test_output_aws_containerd_1_21
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -2987,6 +3197,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -3011,7 +3222,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3024,6 +3241,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3033,6 +3259,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3049,7 +3276,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -3081,7 +3308,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3094,6 +3327,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3103,6 +3341,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3132,8 +3371,9 @@ jobs:
         with:
           name: test_output_aws_containerd_1_22
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3362,6 +3602,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -3386,7 +3627,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3399,6 +3646,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3408,6 +3664,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3424,7 +3681,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -3456,7 +3713,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3469,6 +3732,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3478,6 +3746,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3507,8 +3776,9 @@ jobs:
         with:
           name: test_output_aws_containerd_1_23
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()
@@ -3737,6 +4007,7 @@ jobs:
 
           echo '::echo::on'
           echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+          echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
           echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
           echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
           echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -3761,7 +4032,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3774,6 +4051,15 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+            echo "Full comment url for updating ${comment_url}"
+            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3783,6 +4069,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3799,7 +4086,7 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Check stay failed cluster
-        if: ${{ failure() }}
+        if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
         with:
@@ -3831,7 +4118,13 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
+          COMMENT_ID: ${{ inputs.comment_id }}
+          GITHUB_API_SERVER: ${{ github.server_url }}
+          REPOSITORY: ${{ github.repository }}
+          DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
+          jq --version
+
           echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3844,6 +4137,11 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
           "
 
+          ls -lh $(pwd)/testing
+
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          echo "DHCTL log file: $dhctl_log_file"
+
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
             -e PREFIX=${PREFIX} \
@@ -3853,6 +4151,7 @@ jobs:
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
+            -e DHCTL_LOG_FILE=${dhctl_log_file} \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -3882,8 +4181,9 @@ jobs:
         with:
           name: test_output_aws_containerd_1_24
           path: |
+            ${{ steps.setup.outputs.dhctl-log-file}}*
             testing/cloud_layouts/
-            !testing/cloud_layouts/sshkey
+            !testing/cloud_layouts/**/sshkey
 
       - name: Cleanup temp directory
         if: always()

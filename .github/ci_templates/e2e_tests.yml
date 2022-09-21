@@ -74,7 +74,13 @@
   LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
   LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
 {!{- end }!}
+  COMMENT_ID: ${{ inputs.comment_id }}
+  GITHUB_API_SERVER: ${{ github.server_url }}
+  REPOSITORY: ${{ github.repository }}
+  DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
 run: |
+  jq --version
+
   echo "Execute '{!{ $script }!} {!{ $script_arg }!}' via 'docker run', using environment:
     INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
     DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -87,6 +93,17 @@ run: |
     TMP_DIR_PATH=${TMP_DIR_PATH}
   "
 
+  ls -lh $(pwd)/testing
+
+  dhctl_log_file="${DHCTL_LOG_FILE}-{!{ $script_arg }!}-${PROVIDER:-not_provided}"
+  echo "DHCTL log file: $dhctl_log_file"
+
+{!{- if eq $script_arg "run-test" }!}
+    comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+    echo "Full comment url for updating ${comment_url}"
+    $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+{!{ end }!}
+
   docker run --rm \
     -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
     -e PREFIX=${PREFIX} \
@@ -96,6 +113,7 @@ run: |
     -e CRI=${CRI} \
     -e PROVIDER=${PROVIDER:-not_provided} \
     -e LAYOUT=${LAYOUT:-not_provided} \
+    -e DHCTL_LOG_FILE=${dhctl_log_file} \
     -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
 {!{- if eq $provider "aws" }!}
     -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
@@ -292,6 +310,7 @@ check_e2e_labels:
 
         echo '::echo::on'
         echo "::set-output name=tmp-dir-path::${TMP_DIR_PATH}"
+        echo "::set-output name=dhctl-log-file::${TMP_DIR_PATH}/dhctl.log"
         echo "::set-output name=dhctl-prefix::${DHCTL_PREFIX}"
         echo "::set-output name=install-image-name::${INSTALL_IMAGE_NAME}"
         echo "::set-output name=deckhouse-image-tag::${IMAGE_TAG}"
@@ -316,7 +335,7 @@ check_e2e_labels:
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test") | strings.Indent 6 }!}
 
     - name: Check stay failed cluster
-      if: ${{ failure() }}
+      if: ${{ failure() || cancelled() }}
       id: check_stay_failed_cluster
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
@@ -361,8 +380,9 @@ check_e2e_labels:
       with:
         name: test_output_{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
         path: |
+          ${{ steps.setup.outputs.dhctl-log-file}}*
           testing/cloud_layouts/
-          !testing/cloud_layouts/sshkey
+          !testing/cloud_layouts/**/sshkey
 
     - name: Cleanup temp directory
       if: always()
