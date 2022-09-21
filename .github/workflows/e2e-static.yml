@@ -393,7 +393,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -409,9 +409,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -434,7 +434,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -477,7 +477,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -514,7 +514,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -794,7 +794,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -810,9 +810,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -835,7 +835,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -878,7 +878,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -915,7 +915,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1195,7 +1195,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1211,9 +1211,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -1236,7 +1236,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -1279,7 +1279,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1316,7 +1316,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1596,7 +1596,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1612,9 +1612,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -1637,7 +1637,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -1680,7 +1680,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1717,7 +1717,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1997,7 +1997,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2013,9 +2013,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -2038,7 +2038,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -2081,7 +2081,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2118,7 +2118,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2398,7 +2398,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2414,9 +2414,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -2439,7 +2439,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -2482,7 +2482,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2519,7 +2519,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2799,7 +2799,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2815,9 +2815,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -2840,7 +2840,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -2883,7 +2883,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2920,7 +2920,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -3200,7 +3200,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3216,9 +3216,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -3241,7 +3241,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -3284,7 +3284,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3321,7 +3321,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -3601,7 +3601,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3617,9 +3617,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -3642,7 +3642,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -3685,7 +3685,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -3722,7 +3722,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -4002,7 +4002,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh run-test' via 'docker run', using environment:
+          echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4018,9 +4018,9 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
           echo "DHCTL log file: $dhctl_log_file"
-            comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-            echo "Full comment url for updating ${comment_url}"
-            $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" &
+          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
+          echo "Full comment url for updating ${comment_url}"
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
 
 
           docker run --rm \
@@ -4043,7 +4043,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh run-test
+          bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
 
@@ -4086,7 +4086,7 @@ jobs:
         run: |
           jq --version
 
-          echo "Execute 'run_via_github.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -4123,7 +4123,7 @@ jobs:
             -v /etc/shadow:/etc/shadow:ro \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/run_via_github.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
 
         # </template: e2e_run_template>
 
