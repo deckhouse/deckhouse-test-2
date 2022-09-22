@@ -91,8 +91,9 @@ fi
 
 # update comment
 for (( i=1; i<=5; i++ )); do
+  response_file=$(mktemp)
   http_code="$(curl \
-    --output /dev/null \
+    --output "$response_file" \
     --write-out "%{http_code}" \
     -X PATCH \
     -H "Accept: application/vnd.github+json" \
@@ -101,6 +102,10 @@ for (( i=1; i<=5; i++ )); do
     "$comment_url"
   )"
   exit_code="$?"
+
+  cat "$response_file"
+  rm -f "$response_file"
+
   if [ "$exit_code" == 0 ]; then
     if [ "$http_code" == "200" ]; then
         exit 0
