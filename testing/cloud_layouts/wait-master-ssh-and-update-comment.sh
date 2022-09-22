@@ -1,7 +1,5 @@
 #!/bin/bash
 
-GITHUB_TOKEN="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"
-
 log_file="$1"
 comment_url="$2"
 
