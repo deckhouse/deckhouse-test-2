@@ -75,7 +75,7 @@
   LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
 {!{- end }!}
   COMMENT_ID: ${{ inputs.comment_id }}
-  GITHUB_API_SERVER: ${{ github.server_url }}
+  GITHUB_API_SERVER: ${{ github.api_url }}
   REPOSITORY: ${{ github.repository }}
   DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
 run: |

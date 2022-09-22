@@ -387,7 +387,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -472,7 +472,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -790,7 +790,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -875,7 +875,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1193,7 +1193,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1278,7 +1278,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1596,7 +1596,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1681,7 +1681,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1999,7 +1999,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2084,7 +2084,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2402,7 +2402,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2487,7 +2487,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2805,7 +2805,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2890,7 +2890,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3208,7 +3208,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3293,7 +3293,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3611,7 +3611,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3696,7 +3696,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4014,7 +4014,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4099,7 +4099,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |

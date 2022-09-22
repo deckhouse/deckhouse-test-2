@@ -308,7 +308,7 @@ jobs:
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -395,7 +395,7 @@ jobs:
           LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
           LAYOUT_AWS_SECRET_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_SECRET_ACCESS_KEY }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -788,7 +788,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -879,7 +879,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1271,7 +1271,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1356,7 +1356,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON: ${{ secrets.LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1747,7 +1747,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1836,7 +1836,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2227,7 +2227,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_OS_PASSWORD: ${{ secrets.LAYOUT_OS_PASSWORD }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2312,7 +2312,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_OS_PASSWORD: ${{ secrets.LAYOUT_OS_PASSWORD }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2702,7 +2702,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2789,7 +2789,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3179,7 +3179,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_OS_PASSWORD: ${{ secrets.LAYOUT_OS_PASSWORD }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3264,7 +3264,7 @@ jobs:
         # <template: e2e_run_template>
           LAYOUT_OS_PASSWORD: ${{ secrets.LAYOUT_OS_PASSWORD }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |

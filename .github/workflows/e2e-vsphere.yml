@@ -388,7 +388,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -475,7 +475,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -795,7 +795,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -882,7 +882,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1202,7 +1202,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1289,7 +1289,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1609,7 +1609,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1696,7 +1696,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2016,7 +2016,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2103,7 +2103,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2423,7 +2423,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2510,7 +2510,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2830,7 +2830,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2917,7 +2917,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3237,7 +3237,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3324,7 +3324,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3644,7 +3644,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3731,7 +3731,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4051,7 +4051,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4138,7 +4138,7 @@ jobs:
           LAYOUT_VSPHERE_PASSWORD: ${{ secrets.LAYOUT_VSPHERE_PASSWORD }}
           LAYOUT_VSPHERE_BASE_DOMAIN: ${{ secrets.LAYOUT_VSPHERE_BASE_DOMAIN }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |

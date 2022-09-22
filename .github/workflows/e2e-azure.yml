@@ -390,7 +390,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -481,7 +481,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -805,7 +805,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -896,7 +896,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1220,7 +1220,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1311,7 +1311,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1635,7 +1635,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1726,7 +1726,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2050,7 +2050,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2141,7 +2141,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2465,7 +2465,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2556,7 +2556,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2880,7 +2880,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2971,7 +2971,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3295,7 +3295,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3386,7 +3386,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3710,7 +3710,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3801,7 +3801,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4125,7 +4125,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4216,7 +4216,7 @@ jobs:
           LAYOUT_AZURE_CLIENT_SECRET: ${{ secrets.LAYOUT_AZURE_CLIENT_SECRET }}
           LAYOUT_AZURE_TENANT_ID: ${{ secrets.LAYOUT_AZURE_TENANT_ID }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |

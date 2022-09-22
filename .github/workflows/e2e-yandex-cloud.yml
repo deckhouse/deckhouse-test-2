@@ -389,7 +389,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -478,7 +478,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -800,7 +800,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -889,7 +889,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1211,7 +1211,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1300,7 +1300,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1622,7 +1622,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -1711,7 +1711,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2033,7 +2033,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2122,7 +2122,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2444,7 +2444,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2533,7 +2533,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2855,7 +2855,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -2944,7 +2944,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3266,7 +3266,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3355,7 +3355,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3677,7 +3677,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -3766,7 +3766,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4088,7 +4088,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
@@ -4177,7 +4177,7 @@ jobs:
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
           LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON: ${{ secrets.LAYOUT_YANDEX_SERVICE_ACCOUNT_KEY_JSON }}
           COMMENT_ID: ${{ inputs.comment_id }}
-          GITHUB_API_SERVER: ${{ github.server_url }}
+          GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
         run: |
