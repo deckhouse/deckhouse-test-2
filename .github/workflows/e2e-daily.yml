@@ -342,9 +342,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -424,9 +425,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AWS_ACCESS_KEY=${LAYOUT_AWS_ACCESS_KEY:-not_provided} \
             -e LAYOUT_AWS_SECRET_ACCESS_KEY=${LAYOUT_AWS_SECRET_ACCESS_KEY:-not_provided} \
@@ -820,9 +822,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
             -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
@@ -906,9 +909,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_AZURE_SUBSCRIPTION_ID=${LAYOUT_AZURE_SUBSCRIPTION_ID:-not_provided} \
             -e LAYOUT_AZURE_CLIENT_ID=${LAYOUT_AZURE_CLIENT_ID:-not_provided} \
@@ -1301,9 +1305,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON=${LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
@@ -1381,9 +1386,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON=${LAYOUT_GCP_SERVICE_ACCOUT_KEY_JSON:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
@@ -1775,9 +1781,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_YANDEX_CLOUD_ID=${LAYOUT_YANDEX_CLOUD_ID:-not_provided} \
             -e LAYOUT_YANDEX_FOLDER_ID=${LAYOUT_YANDEX_FOLDER_ID:-not_provided} \
@@ -1859,9 +1866,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_YANDEX_CLOUD_ID=${LAYOUT_YANDEX_CLOUD_ID:-not_provided} \
             -e LAYOUT_YANDEX_FOLDER_ID=${LAYOUT_YANDEX_FOLDER_ID:-not_provided} \
@@ -2253,9 +2261,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_OS_PASSWORD=${LAYOUT_OS_PASSWORD:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
@@ -2333,9 +2342,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_OS_PASSWORD=${LAYOUT_OS_PASSWORD:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
@@ -2726,9 +2736,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_VSPHERE_PASSWORD=${LAYOUT_VSPHERE_PASSWORD:-not_provided} \
             -e LAYOUT_VSPHERE_BASE_DOMAIN=${LAYOUT_VSPHERE_BASE_DOMAIN:-not_provided} \
@@ -2808,9 +2819,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_VSPHERE_PASSWORD=${LAYOUT_VSPHERE_PASSWORD:-not_provided} \
             -e LAYOUT_VSPHERE_BASE_DOMAIN=${LAYOUT_VSPHERE_BASE_DOMAIN:-not_provided} \
@@ -3201,9 +3213,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_OS_PASSWORD=${LAYOUT_OS_PASSWORD:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
@@ -3281,9 +3294,10 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
+            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
-            -e DHCTL_LOG_FILE=${dhctl_log_file} \
+            -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
             -e LAYOUT_OS_PASSWORD=${LAYOUT_OS_PASSWORD:-not_provided} \
             -v $(pwd)/testing:/deckhouse/testing \
