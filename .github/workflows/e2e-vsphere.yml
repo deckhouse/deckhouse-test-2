@@ -391,6 +391,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -422,7 +423,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -478,6 +479,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -505,7 +507,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -798,6 +800,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -829,7 +832,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -885,6 +888,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -912,7 +916,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -1205,6 +1209,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1236,7 +1241,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -1292,6 +1297,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1319,7 +1325,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -1612,6 +1618,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1643,7 +1650,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -1699,6 +1706,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1726,7 +1734,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2019,6 +2027,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2050,7 +2059,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2106,6 +2115,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2133,7 +2143,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2426,6 +2436,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2457,7 +2468,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2513,6 +2524,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2540,7 +2552,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2833,6 +2845,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2864,7 +2877,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -2920,6 +2933,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2947,7 +2961,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -3240,6 +3254,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3271,7 +3286,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -3327,6 +3342,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3354,7 +3370,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -3647,6 +3663,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3678,7 +3695,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -3734,6 +3751,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3761,7 +3779,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -4054,6 +4072,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -4085,7 +4104,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
@@ -4141,6 +4160,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
+          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -4168,7 +4188,7 @@ jobs:
             -e INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG} \
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
-            -e GITHUB_TOKEN=${GITHUB_TOKEN} \
+            -e GITHUB_TOKEN=${TOKEN_GITHUB} \
             -e PROVIDER=${PROVIDER:-not_provided} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
