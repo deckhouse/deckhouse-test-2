@@ -15,43 +15,121 @@ fi
 
 master_ip=""
 master_user=""
+result_body=""
 
-# wait master ip and user. 10 minutes 60 cycles wit 10 second sleep
-for (( i=1; i<=60; i++ )); do
-  # yep sleep before
-  sleep 10
+function get_comment(){
+  local response_file="$1"
+  local exit_code
+  local http_code
+  http_code="$(curl \
+    --output "$response_file" \
+    --write-out "%{http_code}" \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    "$comment_url"
+  )"
+  exit_code="$?"
 
-  ip=""
+  echo "Getting response (code: $http_code):"
+  cat "$response_file"
+
+  if [[ "$exit_code" != 0 ]]; then
+    echo "Incorrect response code $exit_code"
+    return 1
+  fi
+
+  if [[ "$http_code" != "200" ]]; then
+    echo "Incorrect response code $http_code"
+    return 1
+  fi
+
+  local bbody
+  if ! bbody="$(cat "$response_file" | jq -r '.body')"; then
+    return 1
+  fi
+
+  bbody="${bbody//$'\n'/\\n}"
+  result_body="${bbody}\n\nMaster ssh connection string: \`ssh ${master_user}@${master_ip}\n\`"
+}
+
+function update_comment(){
+  local body="$1"
+  local response_file=$(mktemp)
+  local exit_code
+  local http_code
+  http_body=$(printf 'aaaaa %s' "$body")
+  echo "$http_body" > /tmp/aaa-bbb
+  http_code="$(curl \
+    -v --output "$response_file" \
+    --write-out "%{http_code}" \
+    -X PATCH \
+    -H "Accept: application/vnd.github+json" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -d "$http_body" \
+    "$comment_url"
+  )"
+  exit_code="$?"
+
+  echo "Response update output:"
+  cat "$response_file"
+  rm -f "$response_file"
+
+  if [ "$exit_code" == 0 ]; then
+    if [ "$http_code" == "200" ]; then
+        return 0
+    fi
+  fi
+
+  echo "Comment not updated, http code: $http_code"
+
+  return 1
+}
+
+function wait_master_host_connection_string() {
+  local ip
   if ! ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$log_file")"; then
     echo "Master ip not found"
-    continue
+    return 1
   fi
 
   #https://stackoverflow.com/posts/36760050/revisions
   # we need to verify ip because string ca fsynced partially
   if ! echo "$ip" | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}'; then
     echo "$ip is not ip"
-    continue
+    return 1
   fi
 
   master_ip=$ip
   echo "IP found $master_ip"
 
-  user=""
+  local user
   if ! user="$(grep -Po '(?<=master_user_name_for_ssh = ).+$' "$log_file")"; then
     echo "User not found"
-    continue
+    return 1
   fi
 
   if [ -z "$user" ]; then
-    continue
+    echo "User is empty"
+    return 1
   fi
 
   master_user="$user"
   echo "User was found: $master_user"
 
   # got ip and user
-  break
+  return 0
+}
+
+# wait master ip and user. 10 minutes 60 cycles wit 10 second sleep
+sleep_second=0
+for (( i=1; i<=60; i++ )); do
+  # yep sleep before
+  sleep $sleep_second
+  sleep_second=10
+
+  if wait_master_host_connection_string; then
+    break
+  fi
 done
 
 if [[ "$master_ip" == "" || "$master_user" == "" ]]; then
@@ -59,62 +137,37 @@ if [[ "$master_ip" == "" || "$master_user" == "" ]]; then
   exit 1
 fi
 
-body=""
 # get body
+sleep_second=0
 for (( i=1; i<=5; i++ )); do
-  got_body="$(curl \
-    -f \
-    -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
-    "$comment_url"
-  )"
-  exit_code="$?"
-  if [ "$exit_code" == 0 ]; then
-    echo "Comment result $body"
+  sleep "$sleep_second"
+  sleep_second=5
 
-    if ! bbody="$(echo "$got_body" | jq -r '.body')"; then
-        continue
-    fi
-
-    body="${bbody}\n\nMaster ssh connection string: ssh ${master_user}@${master_ip}\n"
+  response_file="$(mktemp)"
+  if get_comment "$response_file"; then
+    rm -f "$response_file"
     break
   fi
 
-  sleep 5
+  rm -f "$response_file"
+  echo "Next attempt to getting comment in 5 seconds"
 done
 
-if [ -z "$body" ]; then
+if [ -z "$result_body" ]; then
   echo "Timeout waiting comment body"
   exit 1
 fi
 
-
 # update comment
+sleep_second=0
 for (( i=1; i<=5; i++ )); do
-  response_file=$(mktemp)
-  http_code="$(curl \
-    --output "$response_file" \
-    --write-out "%{http_code}" \
-    -X PATCH \
-    -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
-    -d "{\"body\":\"$body\"}" \
-    "$comment_url"
-  )"
-  exit_code="$?"
+  sleep "$sleep_second"
+  sleep_second=5
 
-  cat "$response_file"
-  rm -f "$response_file"
-
-  if [ "$exit_code" == 0 ]; then
-    if [ "$http_code" == "200" ]; then
-        exit 0
-    fi
-
-    echo "Comment not updated, http code: $http_code"
+  if update_comment "$result_body" ; then
+    echo "Comment was updated"
+    exit 0
   fi
-
-  sleep 5
 done
 
 echo "Timeout waiting comment updating"
