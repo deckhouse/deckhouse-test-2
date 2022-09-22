@@ -43,22 +43,22 @@ function get_comment(){
     return 1
   fi
 
+  local connection_str="Master ssh connection string: \`ssh ${master_user}@${master_ip}\`"
   local bbody
-  if ! bbody="$(cat "$response_file" | jq -r '.body')"; then
+  if ! bbody="$(cat "$response_file" | jq -crM --arg a "$connection_str" '{body: (.body + "\r\n\r\n" + $a + "\r\n")}')"; then
     return 1
   fi
 
-  bbody="${bbody//$'\n'/\\n}"
-  result_body="${bbody}\n\nMaster ssh connection string: \`ssh ${master_user}@${master_ip}\n\`"
+  result_body="$bbody"
+  echo "Result body: $result_body"
 }
 
 function update_comment(){
-  local body="$1"
+  local http_body="$1"
   local response_file=$(mktemp)
   local exit_code
   local http_code
-  http_body=$(printf 'aaaaa %s' "$body")
-  echo "$http_body" > /tmp/aaa-bbb
+
   http_code="$(curl \
     -v --output "$response_file" \
     --write-out "%{http_code}" \

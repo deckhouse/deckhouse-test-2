@@ -413,7 +413,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -824,7 +824,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1235,7 +1235,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1646,7 +1646,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2057,7 +2057,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2468,7 +2468,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2879,7 +2879,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3290,7 +3290,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3701,7 +3701,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -4112,7 +4112,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" &
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
