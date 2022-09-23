@@ -36,7 +36,9 @@ const {
   hasJobResult,
   renderJobStatusOneLine,
   renderJobStatusSeparate,
-  renderWorkflowStatusFinal, releaseIssueHeader
+  renderWorkflowStatusFinal,
+  releaseIssueHeader,
+  buildFailedE2eTestAdditionalInfo,
 } = require("./comments");
 
 /**
@@ -120,6 +122,7 @@ module.exports.updateCommentOnStart = async ({ github, context, core, name }) =>
  * @param {object} inputs.jobContext - The job context contains information about the currently running job.
  * @param {object} inputs.stepsContext - The steps context contains information about previously executed steps.
  * @param {object} inputs.jobNames - An object with each job names.
+ * @param {object} inputs.jobsContext - An object with jobs context.
  * @returns {Promise<*>}
  */
 module.exports.updateCommentOnFinish = async ({
@@ -131,7 +134,8 @@ module.exports.updateCommentOnFinish = async ({
   needsContext,
   jobContext,
   stepsContext,
-  jobNames
+  jobNames,
+  jobsContext
 }) => {
   const repo_url = context.payload.repository.html_url;
   const run_id = context.runId;
@@ -179,7 +183,9 @@ module.exports.updateCommentOnFinish = async ({
     } else if (statusConfig.includes(',separate')) {
       statusReport = renderJobStatusSeparate(status, name, startedAt);
     } else if (statusConfig.includes(',final')) {
-      statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt);
+      const addInfo = buildFailedE2eTestAdditionalInfo(jobsContext);
+      core.debug(`Additional info: ${addInfo}`);
+      statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);
     }
   }
 
@@ -238,7 +244,10 @@ module.exports.updateCommentOnFinish = async ({
 
     core.info(`Status for workflow report is ${status}`);
 
-    statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt);
+    const addInfo = buildFailedE2eTestAdditionalInfo(jobsContext);
+    core.debug(`Additional info: ${addInfo}`);
+
+    statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);
   }
 
   if (statusConfig.includes(',final')) {

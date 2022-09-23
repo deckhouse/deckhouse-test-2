@@ -186,7 +186,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_20 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -413,7 +413,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -445,10 +451,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -561,6 +579,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -570,6 +589,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -579,9 +599,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -593,7 +614,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_21 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -820,7 +841,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -852,10 +879,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -968,6 +1007,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -977,6 +1017,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -986,9 +1027,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1000,7 +1042,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_22 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -1227,7 +1269,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1259,10 +1307,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -1375,6 +1435,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -1384,6 +1445,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1393,9 +1455,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1407,7 +1470,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_23 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -1634,7 +1697,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1666,10 +1735,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -1782,6 +1863,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -1791,6 +1873,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1800,9 +1883,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1814,7 +1898,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_docker_1_24 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Docker
@@ -2041,7 +2125,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2073,10 +2163,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -2189,6 +2291,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -2198,6 +2301,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2207,9 +2311,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -2221,7 +2326,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_20 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -2448,7 +2553,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2480,10 +2591,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -2596,6 +2719,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -2605,6 +2729,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2614,9 +2739,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -2628,7 +2754,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_21 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -2855,7 +2981,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2887,10 +3019,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -3003,6 +3147,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -3012,6 +3157,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3021,9 +3167,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -3035,7 +3182,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_22 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -3262,7 +3409,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3294,10 +3447,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -3410,6 +3575,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -3419,6 +3585,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3428,9 +3595,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -3442,7 +3610,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_23 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -3669,7 +3837,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3701,10 +3875,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -3817,6 +4003,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -3826,6 +4013,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3835,9 +4023,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -3849,7 +4038,7 @@ jobs:
       - git_info
     if: needs.check_e2e_labels.outputs.run_containerd_1_24 == 'true'
     outputs:
-      ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+      ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -4076,7 +4265,13 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          echo '::echo::on'
+          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+          echo '::echo::off'
+
+          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -4108,10 +4303,22 @@ jobs:
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
+        env:
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
           # it sets `should_run` output var if e2e/stay-failed-cluster label
           script: |
             const ci = require('./.github/scripts/js/ci');
+            const fs = require('fs');
+
+            try {
+              const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+              core.setOutput('ssh_master_connection_string', data);
+            } catch (err) {
+              // this file can be not created
+              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+            }
+
             return await ci.checkLabel({
               github,
               context,
@@ -4224,6 +4431,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -4233,6 +4441,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4242,9 +4451,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -4272,6 +4482,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -4281,6 +4492,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4290,9 +4502,10 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
+            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
       # </template: update_comment_on_finish>
 
 

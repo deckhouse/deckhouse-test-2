@@ -102,7 +102,13 @@ run: |
 {!{- if eq $script_arg "run-test" }!}
   comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
   echo "Full comment url for updating ${comment_url}"
-  $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+
+  ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+  echo '::echo::on'
+  echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
+  echo '::echo::off'
+
+  $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
 {!{ end }!}
 
   docker run --rm \
@@ -204,7 +210,7 @@ check_e2e_labels:
   if: needs.check_e2e_labels.outputs.run_{!{ $ctx.cri }!}_{!{ $ctx.kubernetesVersionSlug }!} == 'true'
 {!{- end }!}
   outputs:
-    ssh_master_connection_string: ${{ steps.e2e_test_run.outputs.ssh_master_connection_string }}
+    ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
     CRI: {!{ $ctx.criName }!}
@@ -339,10 +345,22 @@ check_e2e_labels:
       if: ${{ failure() || cancelled() }}
       id: check_stay_failed_cluster
       uses: {!{ index (ds "actions") "actions/github-script" }!}
+      env:
+        SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
       with:
         # it sets `should_run` output var if e2e/stay-failed-cluster label
         script: |
           const ci = require('./.github/scripts/js/ci');
+          const fs = require('fs');
+
+          try {
+            const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+            core.setOutput('ssh_master_connection_string', data);
+          } catch (err) {
+            // this file can be not created
+            core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+          }
+
           return await ci.checkLabel({
             github,
             context,

@@ -2,6 +2,7 @@
 
 log_file="$1"
 comment_url="$2"
+connection_str_out_file="$3"
 
 if [ -z "$log_file" ]; then
   echo "Log file is required"
@@ -14,11 +15,14 @@ if [ -z "$comment_url" ]; then
 fi
 
 if [ -z "$TOKEN_GITHUB_BOT" ]; then
-  echo "Token env is required is required"
+  echo "Token env is required"
   exit 1
 fi
 
-echo "$TOKEN_GITHUB_BOT" | md5sum -
+if [ -z "$connection_str_out_file" ]; then
+  echo "Connection string output file is required"
+  exit 1
+fi
 
 master_ip=""
 master_user=""
@@ -55,6 +59,8 @@ function get_comment(){
   if ! bbody="$(cat "$response_file" | jq -crM --arg a "$connection_str" '{body: (.body + "\r\n\r\n" + $a + "\r\n")}')"; then
     return 1
   fi
+
+  echo -n "$connection_str" > "$connection_str_out_file"
 
   result_body="$bbody"
   echo "Result body: $result_body"
