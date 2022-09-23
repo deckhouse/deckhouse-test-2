@@ -25,7 +25,7 @@ function get_comment(){
     --output "$response_file" \
     --write-out "%{http_code}" \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Authorization: Bearer $TOKEN_GITHUB_BOT" \
     "$comment_url"
   )"
   exit_code="$?"
@@ -64,7 +64,7 @@ function update_comment(){
     --write-out "%{http_code}" \
     -X PATCH \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $GITHUB_TOKEN" \
+    -H "Authorization: Bearer $TOKEN_GITHUB_BOT" \
     -d "$http_body" \
     "$comment_url"
   )"
