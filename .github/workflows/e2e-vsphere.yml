@@ -391,7 +391,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -413,7 +413,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -479,7 +479,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -800,7 +800,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -822,7 +822,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -888,7 +888,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1209,7 +1209,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1231,7 +1231,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1297,7 +1297,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1618,7 +1618,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -1640,7 +1640,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -1706,7 +1706,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2027,7 +2027,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2049,7 +2049,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2115,7 +2115,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2436,7 +2436,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2458,7 +2458,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2524,7 +2524,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2845,7 +2845,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -2867,7 +2867,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -2933,7 +2933,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3254,7 +3254,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3276,7 +3276,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3342,7 +3342,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3663,7 +3663,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -3685,7 +3685,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -3751,7 +3751,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -4072,7 +4072,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
@@ -4094,7 +4094,7 @@ jobs:
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
+          GITHUB_TOKEN="$TOKEN_GITHUB_BOT" $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" > "${dhctl_log_file}-wait-log" 2>&1 &
 
 
           docker run --rm \
@@ -4160,7 +4160,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           jq --version
 
