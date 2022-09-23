@@ -588,7 +588,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1015,7 +1015,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1442,7 +1442,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1869,7 +1869,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2296,7 +2296,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2723,7 +2723,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3150,7 +3150,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3577,7 +3577,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4004,7 +4004,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4431,7 +4431,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4481,7 +4481,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = JSON.parse(process.env.JOBS_CONTEXT);
+            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
