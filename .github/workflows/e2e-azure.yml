@@ -587,6 +587,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -1022,6 +1023,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -1457,6 +1459,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -1892,6 +1895,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -2327,6 +2331,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -2762,6 +2767,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -3197,6 +3203,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -3632,6 +3639,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -4067,6 +4075,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -4502,6 +4511,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -4552,6 +4562,7 @@ jobs:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
           STEPS_CONTEXT: ${{ toJSON(steps) }}
+          JOBS_CONTEXT: ${{ toJSON(jobs) }}
         uses: actions/github-script@v5.0.0
         with:
           github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
