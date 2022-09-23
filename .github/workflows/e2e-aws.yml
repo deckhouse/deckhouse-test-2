@@ -588,7 +588,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -598,10 +597,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1015,7 +1013,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1025,10 +1022,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1442,7 +1438,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1452,10 +1447,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -1869,7 +1863,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -1879,10 +1872,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -2296,7 +2288,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2306,10 +2297,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -2723,7 +2713,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -2733,10 +2722,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -3150,7 +3138,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3160,10 +3147,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -3577,7 +3563,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -3587,10 +3572,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -4004,7 +3988,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4014,10 +3997,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -4431,7 +4413,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4441,10 +4422,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
   # </template: e2e_run_job_template>
 
@@ -4481,7 +4461,6 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            const jobsContext = {};
             let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
@@ -4491,10 +4470,9 @@ jobs:
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
             core.info(`jobNames: ${JSON.stringify(jobNames)}`);
-            core.info(`jobsContext: ${JSON.stringify(jobs)}`);
 
             const ci = require('./.github/scripts/js/ci');
-            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames, jobsContext});
+            return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
       # </template: update_comment_on_finish>
 
 
