@@ -13,6 +13,13 @@ if [ -z "$comment_url" ]; then
   exit 1
 fi
 
+if [ -z "$TOKEN_GITHUB_BOT" ]; then
+  echo "Token env is required is required"
+  exit 1
+fi
+
+echo "$TOKEN_GITHUB_BOT" | md5sum -
+
 master_ip=""
 master_user=""
 result_body=""
