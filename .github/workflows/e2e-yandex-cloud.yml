@@ -461,12 +461,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -890,12 +892,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -1319,12 +1323,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -1748,12 +1754,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -2177,12 +2185,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -2606,12 +2616,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -3035,12 +3047,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -3464,12 +3478,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -3893,12 +3909,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
@@ -4322,12 +4340,14 @@ jobs:
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
 
+            core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
             try {
               const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
               core.setOutput('ssh_master_connection_string', data);
             } catch (err) {
               // this file can be not created
-              core.warning(`Cannot read ssh connection file ${e.name}: ${e.message}`);
+              core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
             }
 
             return await ci.checkLabel({
