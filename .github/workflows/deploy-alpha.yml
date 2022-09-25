@@ -777,6 +777,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -784,6 +785,7 @@ jobs:
             core.info(`needsContext: ${JSON.stringify(needsContext)}`);
             core.info(`jobContext: ${JSON.stringify(jobContext)}`);
             core.info(`stepsContext: ${JSON.stringify(stepsContext)}`);
+            core.info(`jobNames: ${JSON.stringify(jobNames)}`);
 
             const ci = require('./.github/scripts/js/ci');
             return await ci.updateCommentOnFinish({github, context, core, statusConfig, name, needsContext, jobContext, stepsContext, jobNames});
