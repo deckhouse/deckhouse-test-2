@@ -188,7 +188,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_docker_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard docker 1_20"
@@ -549,8 +549,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_docker_1_20
         with:
           name: failed_cluster_statevsphere_docker_1_20
           path: |
@@ -618,7 +616,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_docker_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard docker 1_21"
@@ -979,8 +977,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_docker_1_21
         with:
           name: failed_cluster_statevsphere_docker_1_21
           path: |
@@ -1048,7 +1044,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_docker_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard docker 1_22"
@@ -1409,8 +1405,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_docker_1_22
         with:
           name: failed_cluster_statevsphere_docker_1_22
           path: |
@@ -1478,7 +1472,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_docker_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard docker 1_23"
@@ -1839,8 +1833,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_docker_1_23
         with:
           name: failed_cluster_statevsphere_docker_1_23
           path: |
@@ -1908,7 +1900,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_docker_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard docker 1_24"
@@ -2269,8 +2261,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_docker_1_24
         with:
           name: failed_cluster_statevsphere_docker_1_24
           path: |
@@ -2338,7 +2328,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_20"
@@ -2699,8 +2689,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_20
         with:
           name: failed_cluster_statevsphere_containerd_1_20
           path: |
@@ -2768,7 +2756,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_21"
@@ -3129,8 +3117,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_21
         with:
           name: failed_cluster_statevsphere_containerd_1_21
           path: |
@@ -3198,7 +3184,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_22"
@@ -3559,8 +3545,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_22
         with:
           name: failed_cluster_statevsphere_containerd_1_22
           path: |
@@ -3628,7 +3612,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_23"
@@ -3989,8 +3973,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_23
         with:
           name: failed_cluster_statevsphere_containerd_1_23
           path: |
@@ -4058,7 +4040,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_24"
@@ -4419,8 +4401,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_24
         with:
           name: failed_cluster_statevsphere_containerd_1_24
           path: |

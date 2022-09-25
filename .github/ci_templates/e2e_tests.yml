@@ -210,7 +210,7 @@ check_e2e_labels:
   outputs:
     ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
     run_id: ${{ github.run_id }}
-    state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+    state_artifact_name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
     # need for find state in artifact
     state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
     ran_for: {!{ printf "%s %s %s %s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersionSlug | quote }!}
@@ -394,8 +394,6 @@ check_e2e_labels:
       id: save_failed_cluster_state
       if: ${{ failure() && !steps.check_failed_cluster.should_run }}
       uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
-      outputs:
-        artifact_name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
       with:
         name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
         path: |

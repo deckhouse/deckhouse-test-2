@@ -121,7 +121,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_stateaws_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "aws WithoutNAT containerd 1_21"
@@ -469,8 +469,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_stateaws_containerd_1_21
         with:
           name: failed_cluster_stateaws_containerd_1_21
           path: |
@@ -624,7 +622,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_stateazure_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure Standard containerd 1_21"
@@ -980,8 +978,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_stateazure_containerd_1_21
         with:
           name: failed_cluster_stateazure_containerd_1_21
           path: |
@@ -1135,7 +1131,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_stategcp_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "gcp WithoutNAT containerd 1_21"
@@ -1479,8 +1475,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_stategcp_containerd_1_21
         with:
           name: failed_cluster_stategcp_containerd_1_21
           path: |
@@ -1634,7 +1628,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_stateyandex-cloud_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud WithoutNAT containerd 1_21"
@@ -1986,8 +1980,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_stateyandex-cloud_containerd_1_21
         with:
           name: failed_cluster_stateyandex-cloud_containerd_1_21
           path: |
@@ -2141,7 +2133,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_stateopenstack_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack Standard containerd 1_21"
@@ -2485,8 +2477,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_stateopenstack_containerd_1_21
         with:
           name: failed_cluster_stateopenstack_containerd_1_21
           path: |
@@ -2640,7 +2630,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statevsphere_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere Standard containerd 1_21"
@@ -2988,8 +2978,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statevsphere_containerd_1_21
         with:
           name: failed_cluster_statevsphere_containerd_1_21
           path: |
@@ -3143,7 +3131,7 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      state_artifact_name: failed_cluster_statestatic_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "static Static containerd 1_21"
@@ -3487,8 +3475,6 @@ jobs:
         id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
-        outputs:
-          artifact_name: failed_cluster_statestatic_containerd_1_21
         with:
           name: failed_cluster_statestatic_containerd_1_21
           path: |
