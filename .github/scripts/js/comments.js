@@ -104,15 +104,17 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
  * Build additional info about failed e2e test
  * Contains information about
  *
- * @param {object} jobs - GitHub jobs context
+ * @param {object} jobs - GitHub needsContext context
  * @returns {string}
  */
-module.exports.buildFailedE2eTestAdditionalInfo = function ({ jobs }){
-  const connectStrings = Object.getOwnPropertyNames(jobs).map((key, _i, _a) => {
-    const result = jobs[key].result;
+module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext }){
+  const connectStrings = Object.getOwnPropertyNames(needsContext).
+  filter((k) => k.startsWith('run_')).
+  map((key, _i, _a) => {
+    const result = needsContext[key].result;
     if (result === 'failure' || result === 'cancelled') {
-      if (jobs[key].outputs){
-        return jobs[key].outputs['ssh_master_connection_string'];
+      if (needsContext[key].outputs){
+        return needsContext[key].outputs['ssh_master_connection_string'];
       }
     }
 
@@ -123,7 +125,7 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ jobs }){
     return "";
   }
 
-  return "\r\n" + connectStrings.join("\r\n") + "\r\n";
+  return "\r\n" + "\r\n" + connectStrings.join("\r\n") + "\r\n" + "\r\n";
 }
 
 /**
