@@ -1,7 +1,9 @@
 //@ts-check
 
 const skipE2eLabel = 'skip/e2e';
+const abortFailedE2eLabel = 'e2e/failed/abort';
 module.exports.skipE2eLabel = skipE2eLabel;
+module.exports.abortFailedE2eLabel = abortFailedE2eLabel;
 
 // Labels available for pull requests.
 const labels = {
@@ -33,7 +35,7 @@ const labels = {
   'e2e/use/k8s/1.24': { type: 'e2e-use', ver: '1.24' },
 
   // E2E: skip failed cluster
-  'e2e/stay-failed-cluster': { type: 'e2e-stay-failed', },
+  'e2e/failed/stay': { type: 'e2e-stay-failed', },
 
   // Allow running workflows for external PRs.
   'status/ok-to-test': { type: 'ok-to-test' },

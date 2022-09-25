@@ -80,8 +80,6 @@
   DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
   TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
 run: |
-  jq --version
-
   echo "Execute '{!{ $script }!} {!{ $script_arg }!}' via 'docker run', using environment:
     INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
     DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -96,14 +94,14 @@ run: |
 
   ls -lh $(pwd)/testing
 
-  dhctl_log_file="${DHCTL_LOG_FILE}-{!{ $script_arg }!}-${PROVIDER:-not_provided}"
+  dhctl_log_file="${DHCTL_LOG_FILE}-{!{ $script_arg }!}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
   echo "DHCTL log file: $dhctl_log_file"
 
 {!{- if eq $script_arg "run-test" }!}
   comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
   echo "Full comment url for updating ${comment_url}"
 
-  ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+  ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
   echo '::echo::on'
   echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
   echo '::echo::off'
@@ -211,6 +209,11 @@ check_e2e_labels:
 {!{- end }!}
   outputs:
     ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+    run_id: ${{ github.run_id }}
+    state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+    # need for find state in artifact
+    state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+    ran_for: {!{ printf "%s %s %s %s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersionSlug | quote }!}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
     CRI: {!{ $ctx.criName }!}
@@ -348,7 +351,7 @@ check_e2e_labels:
       env:
         SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
       with:
-        # it sets `should_run` output var if e2e/stay-failed-cluster label
+        # it sets `should_run` output var if e2e/failed/stay label
         script: |
           const ci = require('./.github/scripts/js/ci');
           const fs = require('fs');
@@ -388,12 +391,16 @@ check_e2e_labels:
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
 
     - name: Save dhctl state
+      id: save_failed_cluster_state
       if: ${{ failure() && !steps.check_failed_cluster.should_run }}
       uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
+      outputs:
+        artifact_name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
       with:
         name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
         path: |
           ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+          ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
     - name: Save test results
       if: always()

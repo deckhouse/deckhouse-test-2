@@ -600,6 +600,7 @@ const parseCommandArgumentAsRef = (cmdArg) => {
  *   /e2e/use/k8s/1.22
  *   /e2e/use/cri/docker
  *   /e2e/use/cri/containerd
+ *   /e2e/failed/abort
  *   /deploy/web/stage v1.3.2
  *   /deploy/alpha - to deploy all editions
  *   /deploy/alpha/ce,ee,fe

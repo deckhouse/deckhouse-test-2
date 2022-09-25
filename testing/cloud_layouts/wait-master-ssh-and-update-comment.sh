@@ -54,9 +54,10 @@ function get_comment(){
     return 1
   fi
 
-  local connection_str="Master ssh connection string: \`ssh ${master_user}@${master_ip}\`"
+  local connection_str="${master_user}@${master_ip}"
+  local connection_str_body="${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION} - Connection string: \`ssh ${connection_str}\`"
   local bbody
-  if ! bbody="$(cat "$response_file" | jq -crM --arg a "$connection_str" '{body: (.body + "\r\n\r\n" + $a + "\r\n")}')"; then
+  if ! bbody="$(cat "$response_file" | jq -crM --arg a "$connection_str_body" '{body: (.body + "\r\n\r\n" + $a + "\r\n")}')"; then
     return 1
   fi
 

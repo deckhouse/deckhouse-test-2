@@ -187,6 +187,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_docker_1_20 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard docker 1_20"
     env:
       PROVIDER: vSphere
       CRI: Docker
@@ -393,8 +398,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -409,12 +412,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -454,7 +457,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -500,8 +503,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -516,7 +517,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -545,12 +546,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_docker_1_20
         with:
           name: failed_cluster_statevsphere_docker_1_20
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -612,6 +617,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_docker_1_21 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard docker 1_21"
     env:
       PROVIDER: vSphere
       CRI: Docker
@@ -818,8 +828,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -834,12 +842,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -879,7 +887,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -925,8 +933,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -941,7 +947,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -970,12 +976,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_docker_1_21
         with:
           name: failed_cluster_statevsphere_docker_1_21
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -1037,6 +1047,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_docker_1_22 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard docker 1_22"
     env:
       PROVIDER: vSphere
       CRI: Docker
@@ -1243,8 +1258,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1259,12 +1272,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -1304,7 +1317,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -1350,8 +1363,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1366,7 +1377,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1395,12 +1406,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_docker_1_22
         with:
           name: failed_cluster_statevsphere_docker_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -1462,6 +1477,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_docker_1_23 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard docker 1_23"
     env:
       PROVIDER: vSphere
       CRI: Docker
@@ -1668,8 +1688,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1684,12 +1702,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -1729,7 +1747,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -1775,8 +1793,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -1791,7 +1807,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1820,12 +1836,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_docker_1_23
         with:
           name: failed_cluster_statevsphere_docker_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -1887,6 +1907,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_docker_1_24 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard docker 1_24"
     env:
       PROVIDER: vSphere
       CRI: Docker
@@ -2093,8 +2118,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2109,12 +2132,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -2154,7 +2177,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -2200,8 +2223,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2216,7 +2237,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2245,12 +2266,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_docker_1_24
         with:
           name: failed_cluster_statevsphere_docker_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -2312,6 +2337,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_containerd_1_20 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard containerd 1_20"
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -2518,8 +2548,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2534,12 +2562,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -2579,7 +2607,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -2625,8 +2653,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2641,7 +2667,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2670,12 +2696,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_containerd_1_20
         with:
           name: failed_cluster_statevsphere_containerd_1_20
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -2737,6 +2767,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_containerd_1_21 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard containerd 1_21"
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -2943,8 +2978,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -2959,12 +2992,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -3004,7 +3037,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -3050,8 +3083,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3066,7 +3097,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3095,12 +3126,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_containerd_1_21
         with:
           name: failed_cluster_statevsphere_containerd_1_21
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -3162,6 +3197,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_containerd_1_22 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard containerd 1_22"
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -3368,8 +3408,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3384,12 +3422,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -3429,7 +3467,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -3475,8 +3513,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3491,7 +3527,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3520,12 +3556,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_containerd_1_22
         with:
           name: failed_cluster_statevsphere_containerd_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -3587,6 +3627,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_containerd_1_23 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard containerd 1_23"
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -3793,8 +3838,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3809,12 +3852,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -3854,7 +3897,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -3900,8 +3943,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -3916,7 +3957,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3945,12 +3986,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_containerd_1_23
         with:
           name: failed_cluster_statevsphere_containerd_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()
@@ -4012,6 +4057,11 @@ jobs:
     if: needs.check_e2e_labels.outputs.run_containerd_1_24 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
+      run_id: ${{ github.run_id }}
+      state_artifact_name: ${{ steps.save_failed_cluster_state.outputs.artifact_name }}
+      # need for find state in artifact
+      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
+      ran_for: "vsphere Standard containerd 1_24"
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -4218,8 +4268,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -4234,12 +4282,12 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER:-not_provided}"
+          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo '::echo::on'
           echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
           echo '::echo::off'
@@ -4279,7 +4327,7 @@ jobs:
         env:
           SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
         with:
-          # it sets `should_run` output var if e2e/stay-failed-cluster label
+          # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const ci = require('./.github/scripts/js/ci');
             const fs = require('fs');
@@ -4325,8 +4373,6 @@ jobs:
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
-          jq --version
-
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
@@ -4341,7 +4387,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER:-not_provided}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -4370,12 +4416,16 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Save dhctl state
+        id: save_failed_cluster_state
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
+        outputs:
+          artifact_name: failed_cluster_statevsphere_containerd_1_24
         with:
           name: failed_cluster_statevsphere_containerd_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
+            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
 
       - name: Save test results
         if: always()

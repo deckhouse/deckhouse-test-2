@@ -106,6 +106,7 @@ ssh_user=
 master_ip=
 # bootstrap log
 bootstrap_log="${DHCTL_LOG_FILE}"
+terraform_state_file="/tmp/static-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.tfstate"
 
 function abort_bootstrap_from_cache() {
   >&2 echo "Run abort_bootstrap_from_cache"
@@ -143,7 +144,7 @@ function destroy_static_infra() {
   >&2 echo "Run destroy_static_infra"
 
   pushd "$cwd"
-  terraform destroy -input=false -auto-approve || exitCode=$?
+  terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
   popd
 
   return $exitCode
@@ -337,7 +338,7 @@ function bootstrap_static() {
   pushd "$cwd"
 
   terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
-  terraform apply -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
+  terraform apply -state="${terraform_state_file}" -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
   popd
 
   if ! master_ip="$(grep "master_ip_address_for_ssh" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d " ")" ; then

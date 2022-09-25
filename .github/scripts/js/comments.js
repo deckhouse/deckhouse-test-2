@@ -2,6 +2,8 @@
  * Bot related functions.
  */
 
+const {abortFailedE2eLabel} = require('./constants');
+
 const WORKFLOW_START_MARKER = '<!-- workflow_start -->'
 module.exports.WORKFLOW_START_MARKER = WORKFLOW_START_MARKER;
 
@@ -107,14 +109,29 @@ module.exports.renderWorkflowStatusFinal = (status, name, ref, build_url, starte
  * @param {object} jobs - GitHub needsContext context
  * @returns {string}
  */
-module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext }){
+module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core }){
   const connectStrings = Object.getOwnPropertyNames(needsContext).
   filter((k) => k.startsWith('run_')).
   map((key, _i, _a) => {
     const result = needsContext[key].result;
     if (result === 'failure' || result === 'cancelled') {
       if (needsContext[key].outputs){
-        return needsContext[key].outputs['ssh_master_connection_string'];
+        const outputs = needsContext[key].outputs;
+
+        const connectStr = outputs['ssh_master_connection_string'] || '';
+        const ranFor = outputs['ran_for'] || '';
+        const runId = outputs['ran_id'] || '';
+        const artifactName = outputs['state_artifact_name'] || '';
+        const stateDir = needsContext[key].outputs['state_dir'] || '';
+
+        if (!stateDir || !ranFor || !connectStr || !artifactName) {
+          core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
+        }
+
+        return `E2e for ${ranFor} was failed. Use:
+  \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
+  \`${abortFailedE2eLabel} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
+`
       }
     }
 
@@ -125,7 +142,7 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext }){
     return "";
   }
 
-  return "\r\n" + "\r\n" + connectStrings.join("\r\n") + "\r\n" + "\r\n";
+  return "\r\n" + "#failed_clusters_start\r\n" + connectStrings.join("\r\n") + "\r\n" + "\r\n#failed_clusters_end";
 }
 
 /**
