@@ -369,8 +369,10 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
     return core.notice(`Skip next jobs: ${isPR ? 'PR' : 'issue'} #${issue_number} has no label '${expectedLabel}'.`);
   }
 
-  // Remove label
-  await removeLabel({ github, context, core, issue_number, label: expectedLabel });
+  if(!knownLabels[expectedLabel].shouldStayAfterCheck) {
+    // Remove label
+    await removeLabel({ github, context, core, issue_number, label: expectedLabel });
+  }
 };
 module.exports.checkLabel = checkLabel;
 

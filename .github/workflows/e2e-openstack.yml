@@ -193,7 +193,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,docker,1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Docker
@@ -483,7 +483,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -624,7 +624,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,docker,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Docker
@@ -914,7 +914,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -1055,7 +1055,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,docker,1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Docker
@@ -1345,7 +1345,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -1486,7 +1486,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,docker,1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Docker
@@ -1776,7 +1776,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -1917,7 +1917,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,docker,1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Docker
@@ -2207,7 +2207,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -2348,7 +2348,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -2638,7 +2638,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -2779,7 +2779,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -3069,7 +3069,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -3210,7 +3210,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -3500,7 +3500,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -3641,7 +3641,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -3931,7 +3931,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -4072,7 +4072,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -4362,7 +4362,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack

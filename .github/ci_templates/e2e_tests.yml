@@ -317,7 +317,7 @@ check_e2e_labels:
     state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
     ran_for: {!{ printf "%s,%s,%s,%s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersion | quote }!}
     ref_full: ${{needs.git_info.outputs.ref_full}}
-    failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+    failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
     CRI: {!{ $ctx.criName }!}
@@ -384,7 +384,7 @@ check_e2e_labels:
           })
 
     - name: Cleanup bootstrapped cluster
-      if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+      if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
       id: cleanup_cluster
       env:
         PROVIDER: {!{ $ctx.providerName }!}
@@ -496,7 +496,7 @@ check_e2e_labels:
         path: ${{ steps.setup.outputs.tmp-dir-path}}
 
     - name: Cleanup bootstrapped cluster
-      if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+      if: ${{ success() }}
       id: cleanup_cluster
       env:
         PROVIDER: {!{ $ctx.providerName }!}

@@ -126,7 +126,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "aws,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -405,7 +405,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: AWS
@@ -632,7 +632,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -915,7 +915,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: Azure
@@ -1146,7 +1146,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "gcp,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: GCP
       CRI: Containerd
@@ -1423,7 +1423,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: GCP
@@ -1648,7 +1648,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -1929,7 +1929,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
@@ -2158,7 +2158,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -2435,7 +2435,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -2660,7 +2660,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -2939,7 +2939,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: vSphere
@@ -3166,7 +3166,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "static,Static,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -3443,7 +3443,7 @@ jobs:
             })
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.should_run }}
+        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
         id: cleanup_cluster
         env:
           PROVIDER: Static
