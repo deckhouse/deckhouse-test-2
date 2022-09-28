@@ -193,6 +193,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,docker,1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -631,6 +632,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,docker,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1069,6 +1071,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,docker,1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1507,6 +1510,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,docker,1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -1945,6 +1949,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,docker,1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Docker
@@ -2383,6 +2388,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -2821,6 +2827,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -3259,6 +3266,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -3697,6 +3705,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -4135,6 +4144,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd

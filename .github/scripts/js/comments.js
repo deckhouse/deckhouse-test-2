@@ -118,6 +118,10 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core
       if (needsContext[key].outputs){
         const outputs = needsContext[key].outputs;
 
+        if(!outputs['failed_cluster_stayed']){
+          return null;
+        }
+
         const connectStr = outputs['ssh_master_connection_string'] || '';
         const ranFor = outputs['ran_for'] || '';
         const runId = outputs['ran_id'] || '';
@@ -145,7 +149,7 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core
     return "";
   }
 
-  return "\r\n" + "#failed_clusters_start\r\n" + connectStrings.join("\r\n") + "\r\n" + "\r\n#failed_clusters_end";
+  return "\r\n" + "#failed_clusters_start\r\n" + connectStrings.join("\r\n") + "\r\n#failed_clusters_end";
 }
 
 /**

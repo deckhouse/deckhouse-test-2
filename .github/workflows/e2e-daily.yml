@@ -126,6 +126,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "aws,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -631,6 +632,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -1144,6 +1146,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "gcp,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: GCP
       CRI: Containerd
@@ -1645,6 +1648,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud,WithoutNAT,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -2154,6 +2158,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -2655,6 +2660,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere,Standard,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -3160,6 +3166,7 @@ jobs:
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "static,Static,containerd,1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.should_run }}
     env:
       PROVIDER: Static
       CRI: Containerd
