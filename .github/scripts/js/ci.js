@@ -10,10 +10,11 @@ const {
   knownKubernetesVersions,
   knownEditions,
   e2eDefaults,
-  skipE2eLabel
+  skipE2eLabel,
 } = require('./constants');
 
 const e2eStatus = require('./e2e-commit-status');
+const e2e = require('./e2e');
 
 const {
   parseGitRef,
@@ -627,6 +628,11 @@ const detectSlashCommand = ({ comment }) => {
 
   const command = parts[0];
 
+  const e2eAbort = e2e.checkAbortE2eCluster(parts)
+  if (e2eAbort){
+    return e2eAbort;
+  }
+
   // Initial ref for e2e/run with 2 args.
   let initialRef = null
   // A ref for workflow and a target ref for e2e release update test.
@@ -811,6 +817,8 @@ module.exports.runSlashCommandForReleaseIssue = async ({ github, context, core }
     } else {
       failedMsg = `Command '${slashCommand.command}' requires issue to relate to milestone with version in title. Got milestone '${event.issue.milestone.title}'.`
     }
+  } else if(slashCommand.isDestroyFailedE2e) {
+    workflow_ref = slashCommand.targetRef;
   }
 
   // Git ref is malformed.

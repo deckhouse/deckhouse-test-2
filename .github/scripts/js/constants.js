@@ -1,9 +1,9 @@
 //@ts-check
 
 const skipE2eLabel = 'skip/e2e';
-const abortFailedE2eLabel = 'e2e/failed/abort';
+const abortFailedE2eCommand = 'e2e/failed/abort';
 module.exports.skipE2eLabel = skipE2eLabel;
-module.exports.abortFailedE2eLabel = abortFailedE2eLabel;
+module.exports.abortFailedE2eCommand = abortFailedE2eCommand;
 
 // Labels available for pull requests.
 const labels = {

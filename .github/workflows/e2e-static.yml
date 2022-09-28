@@ -188,10 +188,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_docker_1_20
+      state_artifact_name: failed_cluster_state_static_docker_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static docker 1_20"
+      ran_for: "static,Static,docker,1.20"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Docker
@@ -279,7 +280,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -375,6 +376,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Docker/1.20"
         id: e2e_test_run
         env:
@@ -413,6 +416,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -614,10 +618,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_docker_1_21
+      state_artifact_name: failed_cluster_state_static_docker_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static docker 1_21"
+      ran_for: "static,Static,docker,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Docker
@@ -705,7 +710,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -801,6 +806,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Docker/1.21"
         id: e2e_test_run
         env:
@@ -839,6 +846,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -1040,10 +1048,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_docker_1_22
+      state_artifact_name: failed_cluster_state_static_docker_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static docker 1_22"
+      ran_for: "static,Static,docker,1.22"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Docker
@@ -1131,7 +1140,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1227,6 +1236,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Docker/1.22"
         id: e2e_test_run
         env:
@@ -1265,6 +1276,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -1466,10 +1478,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_docker_1_23
+      state_artifact_name: failed_cluster_state_static_docker_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static docker 1_23"
+      ran_for: "static,Static,docker,1.23"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Docker
@@ -1557,7 +1570,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1653,6 +1666,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Docker/1.23"
         id: e2e_test_run
         env:
@@ -1691,6 +1706,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -1892,10 +1908,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_docker_1_24
+      state_artifact_name: failed_cluster_state_static_docker_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static docker 1_24"
+      ran_for: "static,Static,docker,1.24"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Docker
@@ -1983,7 +2000,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2079,6 +2096,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Docker/1.24"
         id: e2e_test_run
         env:
@@ -2117,6 +2136,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -2318,10 +2338,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_20
+      state_artifact_name: failed_cluster_state_static_containerd_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_20"
+      ran_for: "static,Static,containerd,1.20"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -2409,7 +2430,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2505,6 +2526,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.20"
         id: e2e_test_run
         env:
@@ -2543,6 +2566,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -2744,10 +2768,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_21
+      state_artifact_name: failed_cluster_state_static_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_21"
+      ran_for: "static,Static,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -2835,7 +2860,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2931,6 +2956,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -2969,6 +2996,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -3170,10 +3198,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_22
+      state_artifact_name: failed_cluster_state_static_containerd_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_22"
+      ran_for: "static,Static,containerd,1.22"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -3261,7 +3290,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -3357,6 +3386,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.22"
         id: e2e_test_run
         env:
@@ -3395,6 +3426,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -3596,10 +3628,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_23
+      state_artifact_name: failed_cluster_state_static_containerd_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_23"
+      ran_for: "static,Static,containerd,1.23"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -3687,7 +3720,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -3783,6 +3816,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.23"
         id: e2e_test_run
         env:
@@ -3821,6 +3856,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -4022,10 +4058,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_24
+      state_artifact_name: failed_cluster_state_static_containerd_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_24"
+      ran_for: "static,Static,containerd,1.24"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -4113,7 +4150,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -4209,6 +4246,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.24"
         id: e2e_test_run
         env:
@@ -4247,6 +4286,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 

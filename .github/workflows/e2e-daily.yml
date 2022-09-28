@@ -121,10 +121,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_stateaws_containerd_1_21
+      state_artifact_name: failed_cluster_state_aws_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "aws WithoutNAT containerd 1_21"
+      ran_for: "aws,WithoutNAT,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -199,7 +200,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -295,6 +296,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: AWS/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -334,6 +337,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -622,10 +626,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_stateazure_containerd_1_21
+      state_artifact_name: failed_cluster_state_azure_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "azure Standard containerd 1_21"
+      ran_for: "azure,Standard,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -700,7 +705,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -796,6 +801,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Azure/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -837,6 +844,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -1131,10 +1139,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_stategcp_containerd_1_21
+      state_artifact_name: failed_cluster_state_gcp_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "gcp WithoutNAT containerd 1_21"
+      ran_for: "gcp,WithoutNAT,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: GCP
       CRI: Containerd
@@ -1209,7 +1218,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1305,6 +1314,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: GCP/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -1343,6 +1354,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -1628,10 +1640,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_stateyandex-cloud_containerd_1_21
+      state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud WithoutNAT containerd 1_21"
+      ran_for: "yandex-cloud,WithoutNAT,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -1706,7 +1719,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -1802,6 +1815,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Yandex.Cloud/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -1842,6 +1857,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -2133,10 +2149,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_stateopenstack_containerd_1_21
+      state_artifact_name: failed_cluster_state_openstack_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "openstack Standard containerd 1_21"
+      ran_for: "openstack,Standard,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -2211,7 +2228,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2307,6 +2324,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: OpenStack/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -2345,6 +2364,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -2630,10 +2650,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statevsphere_containerd_1_21
+      state_artifact_name: failed_cluster_state_vsphere_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "vsphere Standard containerd 1_21"
+      ran_for: "vsphere,Standard,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -2708,7 +2729,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -2804,6 +2825,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: vSphere/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -2843,6 +2866,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 
@@ -3131,10 +3155,11 @@ jobs:
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
       run_id: ${{ github.run_id }}
-      state_artifact_name: failed_cluster_statestatic_containerd_1_21
+      state_artifact_name: failed_cluster_state_static_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "static Static containerd 1_21"
+      ran_for: "static,Static,containerd,1.21"
+      ref_full: ${{needs.git_info.outputs.ref_full}}
     env:
       PROVIDER: Static
       CRI: Containerd
@@ -3209,7 +3234,7 @@ jobs:
         with:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
-
+      # <template: e2e_setup_step>
       - name: Setup
         id: setup
         env:
@@ -3305,6 +3330,8 @@ jobs:
 
           echo '::echo::off'
 
+      # </template: e2e_setup_step>
+
       - name: "Run e2e test: Static/Containerd/1.21"
         id: e2e_test_run
         env:
@@ -3343,6 +3370,7 @@ jobs:
 
           dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
+          echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
           echo "Full comment url for updating ${comment_url}"
 

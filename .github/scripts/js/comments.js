@@ -2,7 +2,7 @@
  * Bot related functions.
  */
 
-const {abortFailedE2eLabel} = require('./constants');
+const {abortFailedE2eCommand} = require('./constants');
 
 const WORKFLOW_START_MARKER = '<!-- workflow_start -->'
 module.exports.WORKFLOW_START_MARKER = WORKFLOW_START_MARKER;
@@ -123,14 +123,17 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core
         const runId = outputs['ran_id'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const stateDir = needsContext[key].outputs['state_dir'] || '';
+        const fullRef = needsContext[key].outputs['ref_full'] || '';
 
-        if (!stateDir || !ranFor || !connectStr || !artifactName) {
+        if (!fullRef || !stateDir || !ranFor || !connectStr || !artifactName) {
           core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
         }
 
-        return `E2e for ${ranFor} was failed. Use:
+        const splitRunFor = ranFor.replace(',', ' ');
+
+        return `E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
-  \`${abortFailedE2eLabel} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
+  \`${abortFailedE2eCommand} ${fullRef} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
 `
       }
     }
