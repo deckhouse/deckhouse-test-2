@@ -563,7 +563,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_docker_1_20
+          name: failed_cluster_state_azure_docker_1_20
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1006,7 +1006,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_docker_1_21
+          name: failed_cluster_state_azure_docker_1_21
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1449,7 +1449,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_docker_1_22
+          name: failed_cluster_state_azure_docker_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -1892,7 +1892,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_docker_1_23
+          name: failed_cluster_state_azure_docker_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -2335,7 +2335,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_docker_1_24
+          name: failed_cluster_state_azure_docker_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -2778,7 +2778,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_containerd_1_20
+          name: failed_cluster_state_azure_containerd_1_20
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -3221,7 +3221,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_containerd_1_21
+          name: failed_cluster_state_azure_containerd_1_21
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -3664,7 +3664,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_containerd_1_22
+          name: failed_cluster_state_azure_containerd_1_22
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -4107,7 +4107,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_containerd_1_23
+          name: failed_cluster_state_azure_containerd_1_23
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
@@ -4550,7 +4550,7 @@ jobs:
         if: ${{ failure() && !steps.check_failed_cluster.should_run }}
         uses: actions/upload-artifact@v2
         with:
-          name: failed_cluster_stateazure_containerd_1_24
+          name: failed_cluster_state_azure_containerd_1_24
           path: |
             ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
             ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate

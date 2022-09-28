@@ -405,7 +405,7 @@ check_e2e_labels:
       if: ${{ failure() && !steps.check_failed_cluster.should_run }}
       uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
       with:
-        name: failed_cluster_state{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
+        name: failed_cluster_state_{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
         path: |
           ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
           ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
