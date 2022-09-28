@@ -14,7 +14,6 @@ const {
 } = require('./constants');
 
 const e2eStatus = require('./e2e-commit-status');
-const e2e = require('./e2e');
 
 const {
   parseGitRef,
@@ -596,6 +595,31 @@ const parseCommandArgumentAsRef = (cmdArg) => {
 };
 
 /**
+ * Extract argv slash command array from comment.
+ *
+ * @param {string} comment - A comment body.
+ * @returns {object}
+ */
+const extractCommandFromComment = (comment) => {
+  // Split comment to lines.
+  const lines = comment.split(/\r\n|\n|\r/).filter(l => l.startsWith('/'));
+  if (lines.length < 1) {
+    return {'err': 'first line is not a slash command'}
+  }
+
+  // Search for user command in the first line of the comment.
+  // User command is a command and a tag name.
+  const parts = lines[0].split(/\s+/);
+
+  if ( ! /^\/[a-z\d_\-\/.,]+$/.test(parts[0])) {
+    return {'err': 'not a slash command in the first line'};
+  }
+
+  return {'argv': parts}
+};
+
+
+/**
  * Detect slash command in the comment.
  * Commands are similar to labels:
  *   /build release-1.30
@@ -610,30 +634,17 @@ const parseCommandArgumentAsRef = (cmdArg) => {
  *   /suspend/alpha
  *
  * @param {object} inputs
- * @param {object} inputs.comment - A comment body.
+ * @param {string} inputs.comment - A comment body.
  * @returns {object}
  */
 const detectSlashCommand = ({ comment }) => {
-  // Split comment to lines.
-  const lines = comment.split(/\r\n|\n|\r/).filter(l => l.startsWith('/'));
-  if (lines.length < 1) {
-    return {notFoundMsg: 'first line is not a slash command'}
+  const arg = extractCommandFromComment(comment);
+  if(arg.err) {
+    return {notFoundMsg: arg.err}
   }
 
-  // Search for user command in the first line of the comment.
-  // User command is a command and a tag name.
-  const parts = lines[0].split(/\s+/);
-
-  if ( ! /^\/[a-z\d_\-\/.,]+$/.test(parts[0])) {
-    return {notFoundMsg: 'not a slash command in the first line'};
-  }
-
+  const parts = arg.argv;
   const command = parts[0];
-
-  const e2eAbort = e2e.checkAbortE2eCluster(parts)
-  if (e2eAbort){
-    return e2eAbort;
-  }
 
   // Initial ref for e2e/run with 2 args.
   let initialRef = null
