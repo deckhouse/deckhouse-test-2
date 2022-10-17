@@ -14,6 +14,7 @@ jobs:
     outputs:
       trigger_for_release_issue: ${{steps.check.outputs.trigger_for_release_issue}}
       trigger_for_changelog: ${{steps.check.outputs.trigger_for_changelog}}
+      trigger_for_pull_request: ${{steps.check.outputs.trigger_for_pull_request}}
     steps:
       - name: Check conditions for release issue
         id: check
@@ -84,7 +85,7 @@ jobs:
     name: Trigger workflow by comment
     runs-on: ubuntu-latest
     needs:
-      - conditions
+    - conditions
     if: ${{needs.conditions.outputs.trigger_for_pull_request == 'true'}}
     steps:
 

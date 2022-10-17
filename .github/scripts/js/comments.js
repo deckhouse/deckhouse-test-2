@@ -137,6 +137,7 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core
 
         return `E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
+
   \`${abortFailedE2eCommand} ${fullRef} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
 `
       }
