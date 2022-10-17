@@ -23,7 +23,7 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
 
   const { argv } = arg;
 
-  let slashCommand = dispatchPullRequestCommand(argv);
+  let slashCommand = dispatchPullRequestCommand(argv, core);
   if (!slashCommand) {
     return core.info(`Ignore comment: command ${argv[0]} not found.`);
   }
@@ -84,10 +84,13 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
 /**
  *
  * @param {string[]} argv - slash command arguments [0] arg is name of command
+ * @param {object} core - github core object
  * @return {object}
  */
-function dispatchPullRequestCommand(argv){
+function dispatchPullRequestCommand(argv, core){
   const command = argv[0];
+  core.debug(`Command is ${argv[0]}`)
+  core.debug(`argv is ${argv}`)
   switch (command) {
     case abortFailedE2eCommand:
       return checkAbortE2eCluster(argv)
