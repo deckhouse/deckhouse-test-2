@@ -38,8 +38,11 @@ const {
   renderJobStatusSeparate,
   renderWorkflowStatusFinal,
   releaseIssueHeader,
-  buildFailedE2eTestAdditionalInfo,
 } = require("./comments");
+
+const {
+  buildFailedE2eTestAdditionalInfo
+} = require("./e2e-clean");
 
 /**
  * Update a comment in "release" issue or pull request when workflow is started.
