@@ -191,7 +191,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_docker_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,docker,1.20"
+      ran_for: "yandex-cloud;WithoutNAT;docker;1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -630,7 +630,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_docker_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,docker,1.21"
+      ran_for: "yandex-cloud;WithoutNAT;docker;1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -1069,7 +1069,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_docker_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,docker,1.22"
+      ran_for: "yandex-cloud;WithoutNAT;docker;1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -1508,7 +1508,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_docker_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,docker,1.23"
+      ran_for: "yandex-cloud;WithoutNAT;docker;1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -1947,7 +1947,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_docker_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,docker,1.24"
+      ran_for: "yandex-cloud;WithoutNAT;docker;1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -2386,7 +2386,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,containerd,1.20"
+      ran_for: "yandex-cloud;WithoutNAT;containerd;1.20"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -2825,7 +2825,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,containerd,1.21"
+      ran_for: "yandex-cloud;WithoutNAT;containerd;1.21"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -3264,7 +3264,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,containerd,1.22"
+      ran_for: "yandex-cloud;WithoutNAT;containerd;1.22"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -3703,7 +3703,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,containerd,1.23"
+      ran_for: "yandex-cloud;WithoutNAT;containerd;1.23"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
@@ -4142,7 +4142,7 @@ jobs:
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      ran_for: "yandex-cloud,WithoutNAT,containerd,1.24"
+      ran_for: "yandex-cloud;WithoutNAT;containerd;1.24"
       ref_full: ${{needs.git_info.outputs.ref_full}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
