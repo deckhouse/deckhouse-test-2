@@ -133,7 +133,7 @@ module.exports.buildFailedE2eTestAdditionalInfo = function ({ needsContext, core
           core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
         }
 
-        const splitRunFor = ranFor.replace(',', ' ');
+        const splitRunFor = ranFor.replace(';', ' ');
 
         return `E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;

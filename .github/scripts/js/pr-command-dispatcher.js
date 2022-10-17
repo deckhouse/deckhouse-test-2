@@ -132,7 +132,7 @@ function checkAbortE2eCluster(parts){
     return {err};
   }
 
-  const ranForSplit = parts[2].split(',').map(v => v.trim()).filter(v => !!v);
+  const ranForSplit = parts[2].split(';').map(v => v.trim()).filter(v => !!v);
   if (ranForSplit.length !== 4) {
     let err = '"ran for" argument should have 4 parts';
     switch (ranForSplit.length) {
