@@ -780,6 +780,7 @@ const reactToComment = async ({github, context, comment_id, content}) => {
     content,
   });
 };
+module.exports.reactToComment = reactToComment;
 
 /**
  * Use issue comment to determine a workflow to run.
@@ -1366,6 +1367,7 @@ const startWorkflow = async ({ github, context, core, workflow_id, ref, inputs }
   }
   return core.info(`Workflow '${workflow_id}' started successfully`);
 };
+module.exports.startWorkflow = startWorkflow;
 
 /**
  * Start 'build-and-test_release.yml' workflow depending on context.ref.
