@@ -618,6 +618,7 @@ const extractCommandFromComment = (comment) => {
   return {'argv': parts}
 };
 
+module.exports.extractCommandFromComment = extractCommandFromComment;
 
 /**
  * Detect slash command in the comment.
