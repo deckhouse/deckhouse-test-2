@@ -66,17 +66,11 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
     return core.setFailed(`Cannot start workflow: ${JSON.stringify(response)}`);
   }
 
-  const commentInfo = {
-    issue_id: '' + event.issue.id,
-    issue_number: '' + event.issue.number,
-    comment_id: '' + response.data.id,
-  };
-
   return await startWorkflow({github, context, core,
     workflow_id: workflow.ID,
     ref: workflow.targetRef,
     inputs: {
-      ...commentInfo,
+      comment_id: '' + response.data.id,
       ...slashCommand.inputs
     },
   });
