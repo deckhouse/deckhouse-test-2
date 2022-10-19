@@ -11,23 +11,26 @@ function checkAbortE2eCluster(parts){
     return null;
   }
 
-  if (parts.length !== 6) {
+  if (parts.length !== 7) {
     let err = 'clean failed e2e cluster should have 6 arguments'
     switch (parts.length){
+      case 6:
+        err = 'comment id for starting e2e required';
+        break;
       case 5:
-        err = 'state dir is required';
+        err = 'state dir comment id for starting e2e are required';
         break;
       case 4:
-        err = 'artifact name and state dir are required';
+        err = 'artifact name and state dir and comment id for starting e2e are required';
         break;
       case 3:
-        err = 'run id, artifact name and state dir are required';
+        err = 'run id, artifact name and state dir and comment id for starting e2e are required';
         break;
       case 2:
-        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir are required';
+        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
         break;
       case 1:
-        err = 'full_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir are required';
+        err = 'full_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
         break;
     }
     return {err};
@@ -70,6 +73,7 @@ function checkAbortE2eCluster(parts){
       layout: ranForSplit[1],
       cri: ranForSplit[2],
       k8s_version: ranForSplit[3],
+      start_e2e_comment_id: parts[6],
     },
   };
 }
@@ -98,11 +102,12 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const connectStr = outputs['ssh_master_connection_string'] || '';
         const ranFor = outputs['ran_for'] || '';
         const runId = outputs['run_id'] || '';
+        const startCommentId = outputs['start_e2e_comment_id'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const stateDir = needsContext[key].outputs['state_dir'] || '';
         const branch = needsContext[key].outputs['ref'] || '';
 
-        if (!branch || !stateDir || !ranFor || !connectStr || !artifactName || !runId) {
+        if (!branch || !stateDir || !ranFor || !connectStr || !artifactName || !runId || !startCommentId) {
           core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
         }
 
@@ -111,7 +116,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         return `E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
 
-  \`${abortFailedE2eCommand} ${branch} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
+  \`${abortFailedE2eCommand} ${branch} ${ranFor} ${runId} ${artifactName} ${stateDir} ${startCommentId}\` - for abort failed cluster
 `
       }
     }

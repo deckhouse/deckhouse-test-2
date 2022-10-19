@@ -194,6 +194,7 @@ jobs:
       ran_for: "azure;Standard;docker;1.20"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Docker
@@ -637,6 +638,7 @@ jobs:
       ran_for: "azure;Standard;docker;1.21"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Docker
@@ -1080,6 +1082,7 @@ jobs:
       ran_for: "azure;Standard;docker;1.22"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Docker
@@ -1523,6 +1526,7 @@ jobs:
       ran_for: "azure;Standard;docker;1.23"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Docker
@@ -1966,6 +1970,7 @@ jobs:
       ran_for: "azure;Standard;docker;1.24"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Docker
@@ -2409,6 +2414,7 @@ jobs:
       ran_for: "azure;Standard;containerd;1.20"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -2852,6 +2858,7 @@ jobs:
       ran_for: "azure;Standard;containerd;1.21"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -3295,6 +3302,7 @@ jobs:
       ran_for: "azure;Standard;containerd;1.22"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -3738,6 +3746,7 @@ jobs:
       ran_for: "azure;Standard;containerd;1.23"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -4181,6 +4190,7 @@ jobs:
       ran_for: "azure;Standard;containerd;1.24"
       ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      start_e2e_comment_id: ${{ inputs.comment_id }}
     env:
       PROVIDER: Azure
       CRI: Containerd

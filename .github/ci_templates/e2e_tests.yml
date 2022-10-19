@@ -318,6 +318,7 @@ check_e2e_labels:
     ran_for: {!{ printf "%s;%s;%s;%s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersion | quote }!}
     ref: ${{needs.git_info.outputs.ci_commit_branch}}
     failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+    start_e2e_comment_id: ${{ inputs.comment_id }}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
     CRI: {!{ $ctx.criName }!}
