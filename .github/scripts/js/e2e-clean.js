@@ -113,10 +113,14 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
 
         const splitRunFor = ranFor.replace(';', ' ');
 
-        return `E2e for ${splitRunFor} was failed. Use:
+        return `
+<!--- failed_clusters_start ${ranFor} -->
+E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
 
   \`${abortFailedE2eCommand} ${branch} ${ranFor} ${runId} ${artifactName} ${stateDir} ${startCommentId}\` - for abort failed cluster
+<!--- failed_clusters_end ${ranFor} -->
+
 `
       }
     }
@@ -128,7 +132,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
     return "";
   }
 
-  return "\r\n" + "#failed_clusters_start\r\n" + connectStrings.join("\r\n") + "\r\n#failed_clusters_end";
+  return "\r\n" + connectStrings.join("\r\n") + "\r\n";
 }
 
 module.exports = {
