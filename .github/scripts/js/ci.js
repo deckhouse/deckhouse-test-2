@@ -1344,7 +1344,7 @@ const addReleaseIssueComment = async ({ github, context, core, issue, gitRefInfo
  * @returns {Promise<void>}
  */
 const startWorkflow = async ({ github, context, core, workflow_id, ref, inputs }) => {
-  core.info(`Start workflow '${workflow_id}' using ref '${ref}' and inputs ${JSON.stringify(inputs)}.`);
+  core.info(`Start workfStart workflowlow '${workflow_id}' using ref '${ref}' and inputs ${JSON.stringify(inputs)}.`);
 
   let response = null
   try {

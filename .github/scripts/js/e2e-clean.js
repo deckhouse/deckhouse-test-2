@@ -94,14 +94,15 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
           return null;
         }
 
+        // ci_commit_branch
         const connectStr = outputs['ssh_master_connection_string'] || '';
         const ranFor = outputs['ran_for'] || '';
         const runId = outputs['run_id'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const stateDir = needsContext[key].outputs['state_dir'] || '';
-        const fullRef = needsContext[key].outputs['ref_full'] || '';
+        const branch = needsContext[key].outputs['ref'] || '';
 
-        if (!fullRef || !stateDir || !ranFor || !connectStr || !artifactName || !runId) {
+        if (!branch || !stateDir || !ranFor || !connectStr || !artifactName || !runId) {
           core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
         }
 
@@ -110,7 +111,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         return `E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
 
-  \`${abortFailedE2eCommand} ${fullRef} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
+  \`${abortFailedE2eCommand} ${branch} ${ranFor} ${runId} ${artifactName} ${stateDir}\` - for abort failed cluster
 `
       }
     }

@@ -316,7 +316,7 @@ check_e2e_labels:
     # need for find state in artifact
     state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
     ran_for: {!{ printf "%s;%s;%s;%s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersion | quote }!}
-    ref_full: ${{needs.git_info.outputs.ref_full}}
+    ref: ${{needs.git_info.outputs.ci_commit_branch}}
     failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
   env:
     PROVIDER: {!{ $ctx.providerName }!}
