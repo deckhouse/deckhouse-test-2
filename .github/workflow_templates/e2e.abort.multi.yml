@@ -49,7 +49,7 @@ on:
       state_dir:
         description: 'Directory in the artifact with dhctl/terraform state'
         required: true
-      old_comment_id:
+      start_e2e_comment_id:
         description: 'ID of comment in issue with creation message'
         required: true
       comment_id:
