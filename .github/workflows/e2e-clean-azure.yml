@@ -142,7 +142,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_docker_1_20:
     name: "e2e destroy failed: Azure, Docker, Kubernetes 1.20"
-    if: ${{ github.event.inputs.cri === 'docker' && github.event.inputs.k8s_version === '1.20' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'docker' && github.event.inputs.k8s_version == '1.20' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -456,7 +456,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_docker_1_21:
     name: "e2e destroy failed: Azure, Docker, Kubernetes 1.21"
-    if: ${{ github.event.inputs.cri === 'docker' && github.event.inputs.k8s_version === '1.21' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'docker' && github.event.inputs.k8s_version == '1.21' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -770,7 +770,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_docker_1_22:
     name: "e2e destroy failed: Azure, Docker, Kubernetes 1.22"
-    if: ${{ github.event.inputs.cri === 'docker' && github.event.inputs.k8s_version === '1.22' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'docker' && github.event.inputs.k8s_version == '1.22' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -1084,7 +1084,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_docker_1_23:
     name: "e2e destroy failed: Azure, Docker, Kubernetes 1.23"
-    if: ${{ github.event.inputs.cri === 'docker' && github.event.inputs.k8s_version === '1.23' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'docker' && github.event.inputs.k8s_version == '1.23' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -1398,7 +1398,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_docker_1_24:
     name: "e2e destroy failed: Azure, Docker, Kubernetes 1.24"
-    if: ${{ github.event.inputs.cri === 'docker' && github.event.inputs.k8s_version === '1.24' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'docker' && github.event.inputs.k8s_version == '1.24' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -1712,7 +1712,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_20:
     name: "e2e destroy failed: Azure, Containerd, Kubernetes 1.20"
-    if: ${{ github.event.inputs.cri === 'containerd' && github.event.inputs.k8s_version === '1.20' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.20' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -2026,7 +2026,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_21:
     name: "e2e destroy failed: Azure, Containerd, Kubernetes 1.21"
-    if: ${{ github.event.inputs.cri === 'containerd' && github.event.inputs.k8s_version === '1.21' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.21' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -2340,7 +2340,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_22:
     name: "e2e destroy failed: Azure, Containerd, Kubernetes 1.22"
-    if: ${{ github.event.inputs.cri === 'containerd' && github.event.inputs.k8s_version === '1.22' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.22' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -2654,7 +2654,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_23:
     name: "e2e destroy failed: Azure, Containerd, Kubernetes 1.23"
-    if: ${{ github.event.inputs.cri === 'containerd' && github.event.inputs.k8s_version === '1.23' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.23' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
@@ -2968,7 +2968,7 @@ jobs:
   # <template: e2e_run_job_template>
   run_containerd_1_24:
     name: "e2e destroy failed: Azure, Containerd, Kubernetes 1.24"
-    if: ${{ github.event.inputs.cri === 'containerd' && github.event.inputs.k8s_version === '1.24' && github.event.inputs.layout === 'Standard' }}
+    if: ${{ github.event.inputs.cri == 'containerd' && github.event.inputs.k8s_version == '1.24' && github.event.inputs.layout == 'Standard' }}
     needs:
       - git_info
     env:
