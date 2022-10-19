@@ -192,7 +192,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;docker;1.20"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -631,7 +631,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;docker;1.21"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -1070,7 +1070,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;docker;1.22"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -1509,7 +1509,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;docker;1.23"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -1948,7 +1948,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;docker;1.24"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -2387,7 +2387,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.20"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -2826,7 +2826,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.21"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -3265,7 +3265,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.22"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -3704,7 +3704,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.23"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
@@ -4143,7 +4143,7 @@ jobs:
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.24"
-      ref_full: ${{needs.git_info.outputs.ref_full}}
+      ref: ${{needs.git_info.outputs.ci_commit_branch}}
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     env:
       PROVIDER: Yandex.Cloud
