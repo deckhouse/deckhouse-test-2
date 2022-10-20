@@ -37,6 +37,10 @@ on:
       initial_ref_slug:
         description: 'An image tag to install first and then switch to workflow context ref'
         required: false
+      ci_commit_ref_name:
+        description: 'Git ref name for image tags'
+        required: false
+
 
 env:
 

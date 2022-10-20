@@ -59,6 +59,11 @@ function checkAbortE2eCluster(parts){
 
   const provider = ranForSplit[0];
 
+  const prNumber = context.payload.pull_request.number;
+  const targetRepo = context.payload.repository.full_name;
+  const prRepo = context.payload.pull_request.head.repo.full_name;
+  const prRef = context.payload.pull_request.head.ref;
+
   return {
     isDestroyFailedE2e: true,
     // Triggering workflow_dispatch requires a ref to checkout workflows.
@@ -69,6 +74,7 @@ function checkAbortE2eCluster(parts){
       targetRef: 'refs/heads/main',
     },
     inputs: {
+      ci_commit_ref_name: prRepo === targetRepo ? prRef : `pr${prNumber}`,
       initial_ref_slug: parts[1],
       pull_request_ref: parts[1],
       run_id: parts[3],
