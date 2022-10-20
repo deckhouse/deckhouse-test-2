@@ -34,6 +34,9 @@ on:
       pull_request_ref:
         description: 'Git ref for checkout PR sources'
         required: false
+      initial_ref_slug:
+        description: 'An image tag to install first and then switch to workflow context ref'
+        required: false
 
 env:
 
