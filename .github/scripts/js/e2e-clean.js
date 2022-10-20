@@ -3,9 +3,10 @@ const {abortFailedE2eCommand} = require("./constants");
 /**
  *
  * @param {string[]} parts - slash command strings
+ * @param {object} context - GitHub context
  * @return {object}
  */
-function checkAbortE2eCluster(parts){
+function checkAbortE2eCluster(parts, context){
   const command = parts[0];
   if (command !== abortFailedE2eCommand) {
     return null;
