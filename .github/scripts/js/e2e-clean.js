@@ -61,11 +61,15 @@ function checkAbortE2eCluster(parts){
 
   return {
     isDestroyFailedE2e: true,
+    // Triggering workflow_dispatch requires a ref to checkout workflows.
+    // We use refs/heads/main for workflows and pass refs/pulls/head/NUM in
+    // pull_request_ref field to checkout PR content.
     workflow: {
       ID: `e2e-clean-${provider}.yml`,
-      targetRef: parts[1],
+      targetRef: 'refs/heads/main',
     },
     inputs: {
+      pull_request_ref: parts[1],
       run_id: parts[3],
       state_artifact_name: parts[4],
       state_dir: parts[5],

@@ -31,6 +31,9 @@ on:
       k8s_version:
         description: 'CRI which was tested'
         required: true
+      pull_request_ref:
+        description: 'Git ref for checkout PR sources'
+        required: false
 
 env:
 
