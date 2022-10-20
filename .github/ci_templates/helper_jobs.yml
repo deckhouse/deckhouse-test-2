@@ -39,6 +39,8 @@ git_info:
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
         script: |
+          core.debug(`Event: ${context.eventName}`)
+          core.debug(`Inputs: ${JSON.stringify(context.payload.inputs)}`)
           const { GITHUB_REF_TYPE, GITHUB_REF_NAME, GITHUB_REF } = process.env
 
           let refSlug = ''
