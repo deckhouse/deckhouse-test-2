@@ -69,6 +69,7 @@ function checkAbortE2eCluster(parts){
       targetRef: 'refs/heads/main',
     },
     inputs: {
+      initial_ref_slug: parts[1],
       pull_request_ref: parts[1],
       run_id: parts[3],
       state_artifact_name: parts[4],
