@@ -37,10 +37,6 @@ on:
       ci_commit_ref_name:
         description: 'Git ref name for image tags'
         required: false
-      deckhouse_image_tag:
-        description: 'Git ref name for image tags'
-        required: false
-
 
 env:
 
