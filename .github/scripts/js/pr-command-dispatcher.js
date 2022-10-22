@@ -46,7 +46,7 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
     return await reactToComment({github, context, comment_id, content: 'confused'});
   }
 
-  core.info(`Use ref '${workflow.targetRef}' for workflow.`);
+  core.info(`Use ref '${targetRef}' for workflow.`);
 
   // React with rocket emoji!
   await reactToComment({github, context, comment_id, content: 'rocket'});
