@@ -82,7 +82,6 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
   const provider = ranForSplit[0];
 
   return buildReturn('isDestroyFailedE2e', `e2e-clean-${provider}.yml`,'refs/heads/main', {
-      ci_commit_ref_name: `pr${prNumber}`,
       pull_request_ref: argv[1],
       run_id: argv[3],
       state_artifact_name: argv[4],
