@@ -43,6 +43,7 @@ const {
 const {
   buildFailedE2eTestAdditionalInfo
 } = require("./e2e-clean");
+const {dispatchPullRequestCommand} = require("./pr-command-dispatcher");
 
 /**
  * Update a comment in "release" issue or pull request when workflow is started.
@@ -572,6 +573,32 @@ module.exports.checkValidationLabels = ({ core, labels }) => {
 };
 
 /**
+ * Extract argv slash command array from comment.
+ *
+ * @param {string} comment - A comment body.
+ * @returns {object}
+ */
+const extractCommandFromComment = (comment) => {
+  // Split comment to lines.
+  const lines = comment.split(/\r\n|\n|\r/).filter(l => l.startsWith('/'));
+  if (lines.length < 1) {
+    return {'err': 'first line is not a slash command'}
+  }
+
+  // Search for user command in the first line of the comment.
+  // User command is a command and a tag name.
+  const argv = lines[0].split(/\s+/);
+
+  if ( ! /^\/[a-z\d_\-\/.,]+$/.test(argv[0])) {
+    return {'err': 'not a slash command in the first line'};
+  }
+
+  return {argv, lines}
+};
+
+module.exports.extractCommandFromComment = extractCommandFromComment;
+
+/**
  *
  *
  * @param cmdArg - String with possible git ref. Support main and release branches, and tags.
@@ -594,34 +621,10 @@ const parseCommandArgumentAsRef = (cmdArg) => {
   if (ref) {
     return parseGitRef(ref);
   }
-  return {notFoundMsg: `git_ref ${cmdArg} not allowed. Only main, release-X.Y, vX.Y.Z or test-vX.Y.Z.`};
+  return {err: `git_ref ${cmdArg} not allowed. Only main, release-X.Y, vX.Y.Z or test-vX.Y.Z.`};
 };
 
-/**
- * Extract argv slash command array from comment.
- *
- * @param {string} comment - A comment body.
- * @returns {object}
- */
-const extractCommandFromComment = (comment) => {
-  // Split comment to lines.
-  const lines = comment.split(/\r\n|\n|\r/).filter(l => l.startsWith('/'));
-  if (lines.length < 1) {
-    return {'err': 'first line is not a slash command'}
-  }
-
-  // Search for user command in the first line of the comment.
-  // User command is a command and a tag name.
-  const parts = lines[0].split(/\s+/);
-
-  if ( ! /^\/[a-z\d_\-\/.,]+$/.test(parts[0])) {
-    return {'err': 'not a slash command in the first line'};
-  }
-
-  return {'argv': parts}
-};
-
-module.exports.extractCommandFromComment = extractCommandFromComment;
+module.exports.parseCommandArgumentAsRef = parseCommandArgumentAsRef;
 
 /**
  * Detect slash command in the comment.
@@ -639,9 +642,11 @@ module.exports.extractCommandFromComment = extractCommandFromComment;
  *
  * @param {object} inputs
  * @param {string} inputs.comment - A comment body.
+ * @param {object} inputs.context - An object containing the context of the workflow run.
+ * @param {object} inputs.core - A reference to the '@actions/core' package.
  * @returns {object}
  */
-const detectSlashCommand = ({ comment }) => {
+const detectSlashCommand = ({ comment , context, core}) => {
   const arg = extractCommandFromComment(comment);
   if(arg.err) {
     return {notFoundMsg: arg.err}
@@ -650,66 +655,22 @@ const detectSlashCommand = ({ comment }) => {
   const parts = arg.argv;
   const command = parts[0];
 
-  // Initial ref for e2e/run with 2 args.
-  let initialRef = null
-  // A ref for workflow and a target ref for e2e release update test.
-  let targetRef = null
-
-  if (parts[1] && parts[2]) {
-    initialRef = parseCommandArgumentAsRef(parts[1])
-    targetRef = parseCommandArgumentAsRef(parts[2])
-  } else if (parts[1]) {
-    targetRef = parseCommandArgumentAsRef(parts[1])
-  }
-
-  if (initialRef && initialRef.notFoundMsg) {
-    return initialRef
-  }
-  if (targetRef && targetRef.notFoundMsg) {
-    return targetRef
-  }
-
-  let workflow_id = '';
+  let workflow_id = ''
   let inputs = null;
 
-  // Detect /e2e/run/* commands and /e2e/use/* arguments.
-  const isE2E = Object.entries(knownLabels)
-    .some(([name, info]) => {
-      return info.type.startsWith('e2e') && command.startsWith('/'+name)
-    })
-  if (isE2E) {
-    for (const provider of knownProviders) {
-      if (command.includes(provider)) {
-        workflow_id = `e2e-${provider}.yml`;
-        break;
-      }
+  const cmd = dispatchPullRequestCommand({arg, context, core})
+  if(cmd) {
+    if (cmd.err) {
+      return {notFoundMsg: cmd.err}
     }
 
-    // Extract cri and ver from the rest lines or use defaults.
-    if (workflow_id) {
-      let ver = [];
-      let cri = [];
-      for (const line of lines) {
-        let useParts = line.split('/e2e/use/cri/');
-        if (useParts[1]) {
-          cri.push(useParts[1]);
-        }
-        useParts = line.split('/e2e/use/k8s/');
-        if (useParts[1]) {
-          ver.push(useParts[1]);
-        }
-      }
+    return cmd
+  }
 
-      inputs = {
-        cri: cri.join(','),
-        ver: ver.join(','),
-      }
-
-      // Add initial_ref_slug input when e2e command has two args.
-      if (initialRef) {
-        inputs.initial_ref_slug = initialRef.refSlug
-      }
-    }
+  // A ref for workflow and a target ref for e2e release update test.
+  let targetRef = parseCommandArgumentAsRef(parts[1])
+  if (targetRef.err) {
+    return {notFoundMsg: targetRef.err}
   }
 
   // Detect /deploy/* commands.
@@ -797,7 +758,7 @@ module.exports.runSlashCommandForReleaseIssue = async ({ github, context, core }
   const comment_id = event.comment.id;
   core.debug(`Event: ${JSON.stringify(event)}`);
 
-  const slashCommand = detectSlashCommand({ comment: event.comment.body });
+  const slashCommand = detectSlashCommand({ comment: event.comment.body, context, core });
   if (slashCommand.notFoundMsg) {
     return core.info(`Ignore comment: ${slashCommand.notFoundMsg}.`);
   }

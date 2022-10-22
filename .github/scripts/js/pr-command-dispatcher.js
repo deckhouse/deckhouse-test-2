@@ -1,5 +1,4 @@
-const {abortFailedE2eCommand} = require("./constants");
-const {checkAbortE2eCluster} = require("./e2e-clean");
+const {tryParseAbortE2eCluster, tryParseRunE2e} = require("./e2e/slash_workflow_comand");
 const {commentCommandRecognition} = require("./comments");
 const {extractCommandFromComment, reactToComment, startWorkflow} = require("./ci");
 
@@ -18,15 +17,14 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
   core.debug(`Event: ${JSON.stringify(event)}`);
 
   const arg = extractCommandFromComment(event.comment.body)
+  const {argv} = arg
   if(arg.err) {
     return core.info(`Ignore comment: ${arg.err}.`);
   }
 
-  const { argv } = arg;
-
-  let slashCommand = dispatchPullRequestCommand(argv, core, context);
+  let slashCommand = dispatchPullRequestCommand({arg, core, context});
   if (!slashCommand) {
-    return core.info(`Ignore comment: command ${argv[0]} not found.`);
+    return core.info(`Ignore comment: workflow for command ${argv[0]} not found.`);
   }
 
   if (slashCommand.err) {
@@ -35,15 +33,15 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
 
   core.info(`Command detected: ${JSON.stringify(slashCommand)}`);
 
-  const { workflow } = slashCommand;
+  const { targetRef, workflow_id } = slashCommand;
   // Git ref is malformed.
-  if (!workflow.targetRef) {
+  if (!targetRef) {
     core.setFailed('targetRef is missed');
     return await reactToComment({github, context, comment_id, content: 'confused'});
   }
 
   // Git ref is malformed.
-  if (!workflow.ID) {
+  if (!workflow_id) {
     core.setFailed('workflowID is missed');
     return await reactToComment({github, context, comment_id, content: 'confused'});
   }
@@ -78,18 +76,28 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
 
 /**
  *
- * @param {string[]} argv - slash command arguments [0] arg is name of command
+ * @param {object} arg - slash command arguments as argv [0] arg is name of command and as lines comment lines
  * @param {object} core - github core object
  * @param {object} context - github core object
  * @return {object}
  */
-function dispatchPullRequestCommand(argv, core, context){
+function dispatchPullRequestCommand({arg, core, context}){
+  const { argv, lines } = arg;
   const command = argv[0];
-  core.debug(`Command is ${argv[0]}`)
+  core.debug(`Command is ${command}`)
   core.debug(`argv is ${JSON.stringify(argv)}`)
-  switch (command) {
-    case abortFailedE2eCommand:
-      return checkAbortE2eCluster(argv, context)
+
+  // TODO rewrite to some argv parse library
+  const checks = [
+    tryParseRunE2e,
+    tryParseAbortE2eCluster
+  ]
+
+  for (let i = 0; i < checks.length; i++) {
+    const res = checks[i]({argv, lines, core, context})
+    if (res !== null) {
+      return res;
+    }
   }
 
   return null;
@@ -97,4 +105,5 @@ function dispatchPullRequestCommand(argv, core, context){
 
 module.exports = {
   runSlashCommandForPullRequest,
+  dispatchPullRequestCommand
 }
