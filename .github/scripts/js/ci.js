@@ -853,6 +853,7 @@ function getPullRequestInfo({ github, context, core, ref }) {
   // Triggering workflow_dispatch requires a ref to checkout workflows.
   // We use refs/heads/main for workflows and pass refs/pulls/head/NUM in
   // pull_request_ref field to checkout PR content.
+  core.debug(`Pull request info context: ${context}`)
   const targetRepo = context.payload.repository.full_name;
   const prRepo = context.payload.pull_request.head.repo.full_name;
   const prRef = context.payload.pull_request.head.ref;
