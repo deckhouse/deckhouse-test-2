@@ -1,4 +1,5 @@
 const {abortFailedE2eCommand, knownLabels, knownProviders} = require("../constants");
+const {getPullRequestInfo} = require("../ci");
 
 /**
  * Build valid return object
@@ -81,6 +82,8 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
 
   const provider = ranForSplit[0];
 
+  const prInfo = getPullRequestInfo({github, core, context})
+
   return buildReturn('isDestroyFailedE2e', `e2e-clean-${provider}.yml`,'refs/heads/main', {
       pull_request_ref: argv[1],
       run_id: argv[3],
@@ -91,6 +94,8 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
       cri: ranForSplit[2],
       k8s_version: ranForSplit[3],
       start_e2e_comment_id: argv[6],
+
+      ci_commit_ref_name: prInfo.ci_commit_ref_name,
     },
   )
 }

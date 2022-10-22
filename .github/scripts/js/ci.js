@@ -847,6 +847,32 @@ module.exports.runSlashCommandForReleaseIssue = async ({ github, context, core }
  * @param {object} inputs.github - A pre-authenticated octokit/rest.js client with pagination plugins.
  * @param {object} inputs.context - An object containing the context of the workflow run.
  * @param {object} inputs.core - A reference to the '@actions/core' package.
+ * @returns {object}
+ */
+function getPullRequestInfo({ github, context, core, ref }) {
+  // Triggering workflow_dispatch requires a ref to checkout workflows.
+  // We use refs/heads/main for workflows and pass refs/pulls/head/NUM in
+  // pull_request_ref field to checkout PR content.
+  const targetRepo = context.payload.repository.full_name;
+  const prRepo = context.payload.pull_request.head.repo.full_name;
+  const prRef = context.payload.pull_request.head.ref;
+  return {
+    ci_commit_ref_name: prRepo === targetRepo ? prRef : `pr${prNumber}`,
+    pull_request_ref: ref,
+    pull_request_sha: context.payload.pull_request.head.sha,
+    pull_request_head_label: context.payload.pull_request.head.label
+  };
+}
+
+module.exports.getPullRequestInfo = getPullRequestInfo
+
+/**
+ * Get labels from PR and determine a workflow to run next.
+ *
+ * @param {object} inputs
+ * @param {object} inputs.github - A pre-authenticated octokit/rest.js client with pagination plugins.
+ * @param {object} inputs.context - An object containing the context of the workflow run.
+ * @param {object} inputs.core - A reference to the '@actions/core' package.
  * @param {string} inputs.ref - A git ref to checkout head commit for PR (e.g. refs/pull/133/head).
  * @returns {Promise<void>}
  */
@@ -979,18 +1005,7 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
         comment_id: '' + response.data.id
       };
 
-      // Triggering workflow_dispatch requires a ref to checkout workflows.
-      // We use refs/heads/main for workflows and pass refs/pulls/head/NUM in
-      // pull_request_ref field to checkout PR content.
-      const targetRepo = context.payload.repository.full_name;
-      const prRepo = context.payload.pull_request.head.repo.full_name;
-      const prRef = context.payload.pull_request.head.ref;
-      const prInfo = {
-        ci_commit_ref_name: prRepo === targetRepo ? prRef : `pr${prNumber}`,
-        pull_request_ref: ref,
-        pull_request_sha: context.payload.pull_request.head.sha,
-        pull_request_head_label: context.payload.pull_request.head.label
-      };
+      const prInfo = getPullRequestInfo({github, context, core, ref})
 
       await startWorkflow({
         github,
