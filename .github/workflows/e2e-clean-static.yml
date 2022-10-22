@@ -34,10 +34,10 @@ on:
       pull_request_ref:
         description: 'Git ref for checkout PR sources'
         required: false
-      initial_ref_slug:
-        description: 'An image tag to install first and then switch to workflow context ref'
-        required: false
       ci_commit_ref_name:
+        description: 'Git ref name for image tags'
+        required: false
+      deckhouse_image_tag:
         description: 'Git ref name for image tags'
         required: false
 
