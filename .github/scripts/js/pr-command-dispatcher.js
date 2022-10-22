@@ -65,8 +65,8 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
   }
 
   return await startWorkflow({github, context, core,
-    workflow_id: workflow.ID,
-    ref: workflow.targetRef,
+    workflow_id: workflow_id,
+    ref: targetRef,
     inputs: {
       comment_id: '' + response.data.id,
       ...slashCommand.inputs
