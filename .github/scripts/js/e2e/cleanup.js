@@ -57,7 +57,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
 E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
 
-  \`${abortFailedE2eCommand} \` - for abort failed cluster
+  \`${argv.join(' ')}\` - for abort failed cluster
 <!--- failed_clusters_end ${ranFor} -->
 
 `
