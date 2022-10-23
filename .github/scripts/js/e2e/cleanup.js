@@ -96,4 +96,5 @@ async function checkStayFailedLabel({core, github, context}){
 
 module.exports = {
   buildFailedE2eTestAdditionalInfo,
+  checkStayFailedLabel,
 }
