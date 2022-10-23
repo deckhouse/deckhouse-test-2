@@ -105,5 +105,17 @@ jobs:
 {!{-   end -}!}
 {!{- end }!}
 
+  last_comment:
+    name: Update comment on finish
+    needs: {!{ $lastCommentNeeds | toJSON }!}
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    env:
+      JOB_NAMES: |
+        {!{ $jobNames | toJSON }!}
+    steps:
+{!{ tmpl.Exec "checkout_step" $ctx | strings.Indent 6 }!}
+{!{ tmpl.Exec "update_comment_on_finish" (slice "workflow,final,no-skipped,restore-separate" $workflowName) | strings.Indent 6 }!}
+
 # </template: e2e_workflow_template>
 {!{ end -}!}

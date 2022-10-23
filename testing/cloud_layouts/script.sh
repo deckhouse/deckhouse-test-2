@@ -356,10 +356,6 @@ function bootstrap_static() {
 
   echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
 
-  sleep 20
-
-  exit 1
-
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
