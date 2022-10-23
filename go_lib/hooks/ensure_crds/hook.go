@@ -23,13 +23,10 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
 	"github.com/flant/addon-operator/sdk"
 	"github.com/flant/shell-operator/pkg/kube/object_patch"
-	"github.com/hashicorp/go-multierror"
 	yamlv3 "gopkg.in/yaml.v3"
 	"k8s.io/apiextensions-apiserver/pkg/apis/apiextensions"
 	v1 "k8s.io/apiextensions-apiserver/pkg/apis/apiextensions/v1"
@@ -50,47 +47,48 @@ func RegisterEnsureCRDsHook(crdsGlob string) bool {
 
 func EnsureCRDsHandler(crdsGlob string) func(input *go_hook.HookInput, dc dependency.Container) error {
 	return func(input *go_hook.HookInput, dc dependency.Container) error {
-		result := new(multierror.Error)
-
-		crds, err := filepath.Glob(crdsGlob)
-		if err != nil {
-			return err
-		}
-
-		for _, crdFilePath := range crds {
-			if match := strings.HasPrefix(filepath.Base(crdFilePath), "doc-"); match {
-				continue
-			}
-
-			content, err := loadCRDsFromFile(crdFilePath)
-			if err != nil {
-				result = multierror.Append(result, err)
-				continue
-			}
-
-			crdYAMLs, err := splitYAML(content)
-			if err != nil {
-				result = multierror.Append(result, err)
-				continue
-			}
-
-			for _, crdYAML := range crdYAMLs {
-				if len(crdYAML) == 0 {
-					continue
-				}
-				err = putCRDToCluster(input, dc, crdYAML)
-				if err != nil {
-					result = multierror.Append(result, err)
-					continue
-				}
-			}
-		}
-
-		if result.ErrorOrNil() != nil {
-			input.LogEntry.WithError(result).Error("ensure_crds failed")
-		}
-
-		return result.ErrorOrNil()
+		return fmt.Errorf("Error!!!!!!!!!!")
+		//result := new(multierror.Error)
+		//
+		//crds, err := filepath.Glob(crdsGlob)
+		//if err != nil {
+		//	return err
+		//}
+		//
+		//for _, crdFilePath := range crds {
+		//	if match := strings.HasPrefix(filepath.Base(crdFilePath), "doc-"); match {
+		//		continue
+		//	}
+		//
+		//	content, err := loadCRDsFromFile(crdFilePath)
+		//	if err != nil {
+		//		result = multierror.Append(result, err)
+		//		continue
+		//	}
+		//
+		//	crdYAMLs, err := splitYAML(content)
+		//	if err != nil {
+		//		result = multierror.Append(result, err)
+		//		continue
+		//	}
+		//
+		//	for _, crdYAML := range crdYAMLs {
+		//		if len(crdYAML) == 0 {
+		//			continue
+		//		}
+		//		err = putCRDToCluster(input, dc, crdYAML)
+		//		if err != nil {
+		//			result = multierror.Append(result, err)
+		//			continue
+		//		}
+		//	}
+		//}
+		//
+		//if result.ErrorOrNil() != nil {
+		//	input.LogEntry.WithError(result).Error("ensure_crds failed")
+		//}
+		//
+		//return result.ErrorOrNil()
 	}
 }
 
