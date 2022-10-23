@@ -141,7 +141,8 @@ function destroy_cluster() {
 }
 
 function destroy_static_infra() {
-  >&2 echo "Run destroy_static_infra"
+  >&2 echo "Run destroy_static_infra:"
+  ls -lh ${terraform_state_file}
 
   pushd "$cwd"
   terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
