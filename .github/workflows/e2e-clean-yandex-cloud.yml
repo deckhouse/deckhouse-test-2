@@ -3289,7 +3289,7 @@ jobs:
       # <template: update_comment_on_finish>
       - name: Update comment on finish
         id: update_comment_on_finish
-        if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
+        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}

@@ -29,11 +29,16 @@ Use statusConfig to set status source and render options.
 {!{ define "update_comment_on_finish" }!}
 {!{- $statusConfig := index . 0 -}!}
 {!{- $name := index . 1 -}!}
+{!{- $forceUpdate := eq (len .) 3 | test.Ternary true false -}!}
 
 # <template: update_comment_on_finish>
 - name: Update comment on finish
   id: update_comment_on_finish
+{!{- if eq $forceUpdate true }!}
+  if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+{!{- else }!}
   if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
+{!{- end }!}
   env:
     NEEDS_CONTEXT: ${{ toJSON(needs) }}
     JOB_CONTEXT: ${{ toJSON(job) }}
