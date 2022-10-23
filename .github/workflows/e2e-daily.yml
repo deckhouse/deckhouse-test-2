@@ -133,8 +133,8 @@ jobs:
       ran_for: "aws;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: AWS
       CRI: Containerd
@@ -641,8 +641,8 @@ jobs:
       ran_for: "azure;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: Azure
       CRI: Containerd
@@ -1157,8 +1157,8 @@ jobs:
       ran_for: "gcp;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: GCP
       CRI: Containerd
@@ -1661,8 +1661,8 @@ jobs:
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: Yandex.Cloud
       CRI: Containerd
@@ -2173,8 +2173,8 @@ jobs:
       ran_for: "openstack;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: OpenStack
       CRI: Containerd
@@ -2677,8 +2677,8 @@ jobs:
       ran_for: "vsphere;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: vSphere
       CRI: Containerd
@@ -3185,8 +3185,8 @@ jobs:
       ran_for: "static;Static;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
-      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }},
-      pull_request_ref: ${{ github.event.inputs.pull_request_ref }},
+      ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
+      pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
     env:
       PROVIDER: Static
       CRI: Containerd
