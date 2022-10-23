@@ -110,6 +110,9 @@ terraform_state_file="/tmp/static-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.tfstate
 
 function abort_bootstrap_from_cache() {
   >&2 echo "Run abort_bootstrap_from_cache"
+  echo "Test dir -----"
+  ls -lh /tmp
+
   dhctl bootstrap-phase abort \
     --force-abort-from-cache \
     --config "$cwd/configuration.yaml" \
@@ -120,6 +123,9 @@ function abort_bootstrap_from_cache() {
 
 function abort_bootstrap() {
   >&2 echo "Run abort_bootstrap"
+  echo "Test dir -----"
+  ls -lh /tmp
+
   dhctl bootstrap-phase abort \
     --ssh-user "$ssh_user" \
     --ssh-agent-private-keys "$ssh_private_key_path" \
@@ -423,7 +429,7 @@ ENDSSH
 function bootstrap() {
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
-  --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee "$bootstrap_log" || return $?
+  --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee -a "$bootstrap_log" || return $?
 
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
