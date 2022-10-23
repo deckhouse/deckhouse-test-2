@@ -47,7 +47,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const argc = argv.filter(v => !!v).length
 
         if (shouldArgc !== argc) {
-          core.debug(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(outputs)}`)
+          core.debug(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(argv)}; ${JSON.stringify(outputs)}`)
         }
 
         const splitRunFor = ranFor.replace(';', ' ');
