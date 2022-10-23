@@ -25,6 +25,7 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/converge"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/deckhouse"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/resources"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/client"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/operations"
@@ -32,6 +33,7 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/state"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/state/cache"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/system/ssh"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/template"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/terminal"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/terraform"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/util/tomb"
@@ -193,7 +195,7 @@ func DefineBootstrapCommand(kpApp *kingpin.Application) *kingpin.CmdClause {
 
 		showWarningAboutUsageDontUsePublicImagesFlagIfNeed()
 
-		// bootstrapState := bootstrap.NewBootstrapState(stateCache)
+		bootstrapState := bootstrap.NewBootstrapState(stateCache)
 
 		clusterUUID, err := generateClusterUUID(stateCache)
 		if err != nil {
@@ -280,86 +282,84 @@ func DefineBootstrapCommand(kpApp *kingpin.Application) *kingpin.CmdClause {
 			nodeIP = static.NodeIP
 		}
 
-		return fmt.Errorf("Error!!!!!!")
-
 		// next parse and check resources
 		// do it after bootstrap cloud because resources can be template
 		// and we want to fail immediately if template has errors
-		//var resourcesToCreate template.Resources
-		//if app.ResourcesPath != "" {
-		//	parsedResources, err := template.ParseResources(app.ResourcesPath, resourcesTemplateData)
-		//	if err != nil {
-		//		return err
-		//	}
-		//
-		//	resourcesToCreate = parsedResources
-		//}
-		//
-		//if err := operations.WaitForSSHConnectionOnMaster(sshClient); err != nil {
-		//	return err
-		//}
-		//if err := operations.RunBashiblePipeline(sshClient, metaConfig, nodeIP, devicePath); err != nil {
-		//	return err
-		//}
-		//kubeCl, err := operations.ConnectToKubernetesAPI(sshClient)
-		//if err != nil {
-		//	return err
-		//}
-		//if err := operations.InstallDeckhouse(kubeCl, deckhouseInstallConfig); err != nil {
-		//	return err
-		//}
-		//
-		//if metaConfig.ClusterType == config.CloudClusterType {
-		//	err := converge.NewInLockLocalRunner(kubeCl, "local-bootstraper").Run(func() error {
-		//		return bootstrapAdditionalNodesForCloudCluster(kubeCl, metaConfig, masterAddressesForSSH)
-		//	})
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-		//
-		//if resourcesToCreate != nil {
-		//	err = log.Process("bootstrap", "Create Resources", func() error {
-		//		return resources.CreateResourcesLoop(kubeCl, resourcesToCreate)
-		//	})
-		//	if err != nil {
-		//		return err
-		//	}
-		//}
-		//
-		//if app.PostBootstrapScriptPath != "" {
-		//	postScriptExecutor := bootstrap.NewPostBootstrapScriptExecutor(sshClient, app.PostBootstrapScriptPath, bootstrapState).
-		//		WithTimeout(app.PostBootstrapScriptTimeout)
-		//
-		//	if err := postScriptExecutor.Execute(); err != nil {
-		//		return err
-		//	}
-		//}
-		//
-		//_ = log.Process("bootstrap", "Clear cache", func() error {
-		//	cache.Global().CleanWithExceptions(
-		//		operations.MasterHostsCacheKey,
-		//		operations.ManifestCreatedInClusterCacheKey,
-		//		operations.BastionHostCacheKey,
-		//		bootstrap.PostBootstrapResultCacheKey,
-		//	)
-		//	log.WarnLn(`Next run of "dhctl bootstrap" will create a new Kubernetes cluster.`)
-		//	return nil
-		//})
-		//
-		//if metaConfig.ClusterType == config.CloudClusterType {
-		//	_ = log.Process("common", "Kubernetes Master Node addresses for SSH", func() error {
-		//		for nodeName, address := range masterAddressesForSSH {
-		//			fakeSession := sshClient.Settings.Copy()
-		//			fakeSession.SetAvailableHosts([]string{address})
-		//			log.InfoF("%s | %s\n", nodeName, fakeSession.String())
-		//		}
-		//
-		//		return nil
-		//	})
-		//}
-		//
-		//return nil
+		var resourcesToCreate template.Resources
+		if app.ResourcesPath != "" {
+			parsedResources, err := template.ParseResources(app.ResourcesPath, resourcesTemplateData)
+			if err != nil {
+				return err
+			}
+
+			resourcesToCreate = parsedResources
+		}
+
+		if err := operations.WaitForSSHConnectionOnMaster(sshClient); err != nil {
+			return err
+		}
+		if err := operations.RunBashiblePipeline(sshClient, metaConfig, nodeIP, devicePath); err != nil {
+			return err
+		}
+		kubeCl, err := operations.ConnectToKubernetesAPI(sshClient)
+		if err != nil {
+			return err
+		}
+		if err := operations.InstallDeckhouse(kubeCl, deckhouseInstallConfig); err != nil {
+			return err
+		}
+
+		if metaConfig.ClusterType == config.CloudClusterType {
+			err := converge.NewInLockLocalRunner(kubeCl, "local-bootstraper").Run(func() error {
+				return bootstrapAdditionalNodesForCloudCluster(kubeCl, metaConfig, masterAddressesForSSH)
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		if resourcesToCreate != nil {
+			err = log.Process("bootstrap", "Create Resources", func() error {
+				return resources.CreateResourcesLoop(kubeCl, resourcesToCreate)
+			})
+			if err != nil {
+				return err
+			}
+		}
+
+		if app.PostBootstrapScriptPath != "" {
+			postScriptExecutor := bootstrap.NewPostBootstrapScriptExecutor(sshClient, app.PostBootstrapScriptPath, bootstrapState).
+				WithTimeout(app.PostBootstrapScriptTimeout)
+
+			if err := postScriptExecutor.Execute(); err != nil {
+				return err
+			}
+		}
+
+		_ = log.Process("bootstrap", "Clear cache", func() error {
+			cache.Global().CleanWithExceptions(
+				operations.MasterHostsCacheKey,
+				operations.ManifestCreatedInClusterCacheKey,
+				operations.BastionHostCacheKey,
+				bootstrap.PostBootstrapResultCacheKey,
+			)
+			log.WarnLn(`Next run of "dhctl bootstrap" will create a new Kubernetes cluster.`)
+			return nil
+		})
+
+		if metaConfig.ClusterType == config.CloudClusterType {
+			_ = log.Process("common", "Kubernetes Master Node addresses for SSH", func() error {
+				for nodeName, address := range masterAddressesForSSH {
+					fakeSession := sshClient.Settings.Copy()
+					fakeSession.SetAvailableHosts([]string{address})
+					log.InfoF("%s | %s\n", nodeName, fakeSession.String())
+				}
+
+				return nil
+			})
+		}
+
+		return nil
 	}
 
 	cmd.Action(func(c *kingpin.ParseContext) error {
