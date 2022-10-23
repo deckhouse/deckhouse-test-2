@@ -1,5 +1,4 @@
 const {abortFailedE2eCommand, knownLabels, knownProviders} = require("../constants");
-const {getPullRequestInfo} = require("../ci");
 
 /**
  * Build valid return object
@@ -30,30 +29,32 @@ function buildReturn(flag, workflow_id, targetRef, inputs) {
 function tryParseAbortE2eCluster({argv, context, core, github}){
   const command = argv[0];
   if (command !== abortFailedE2eCommand) {
-
     return null;
   }
 
-  if (argv.length !== 7) {
+  if (argv.length !== 8) {
     let err = 'clean failed e2e cluster should have 6 arguments'
     switch (argv.length){
+      case 7:
+        err = 'comment id for starting e2e is required';
+        break;
       case 6:
-        err = 'comment id for starting e2e required';
+        err = 'state dir and comment id for starting e2e are required';
         break;
       case 5:
-        err = 'state dir comment id for starting e2e are required';
-        break;
-      case 4:
         err = 'artifact name and state dir and comment id for starting e2e are required';
         break;
-      case 3:
+      case 4:
         err = 'run id, artifact name and state dir and comment id for starting e2e are required';
         break;
+      case 3:
+        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name and state dir and comment id for starting e2e are required';
+        break;
       case 2:
-        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
+        err = 'pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
         break;
       case 1:
-        err = 'full_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
+        err = 'ci_commit_ref_name, pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
         break;
     }
     return {err};
@@ -82,20 +83,17 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
 
   const provider = ranForSplit[0];
 
-  const prInfo = getPullRequestInfo({github, core, context})
-
   return buildReturn('isDestroyFailedE2e', `e2e-clean-${provider}.yml`,'refs/heads/main', {
-      pull_request_ref: argv[1],
-      run_id: argv[3],
-      state_artifact_name: argv[4],
-      state_dir: argv[5],
+      ci_commit_ref_name: argv[1],
+      pull_request_ref: argv[2],
+      run_id: argv[4],
+      state_artifact_name: argv[5],
+      state_dir: argv[6],
 
       layout: ranForSplit[1],
       cri: ranForSplit[2],
       k8s_version: ranForSplit[3],
-      start_e2e_comment_id: argv[6],
-
-      ci_commit_ref_name: prInfo.ci_commit_ref_name,
+      start_e2e_comment_id: argv[7],
     },
   )
 }

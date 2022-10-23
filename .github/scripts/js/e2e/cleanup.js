@@ -1,4 +1,4 @@
-const {abortFailedE2eCommand} = require("./constants");
+const {abortFailedE2eCommand} = require("../constants");
 
 /**
  * Build additional info about failed e2e test
@@ -27,9 +27,26 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const startCommentId = outputs['start_e2e_comment_id'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const stateDir = needsContext[key].outputs['state_dir'] || '';
-        const branch = needsContext[key].outputs['ref'] || '';
+        const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
+        const pull_request_ref = needsContext[key].outputs['pull_request_ref'] || '';
+        const pull_request_sha = needsContext[key].outputs['pull_request_sha'] || '';
 
-        if (!branch || !stateDir || !ranFor || !connectStr || !artifactName || !runId || !startCommentId) {
+        const argv = [
+          abortFailedE2eCommand,
+          ci_commit_ref_name,
+          pull_request_ref,
+          pull_request_sha,
+          ranFor,
+          runId,
+          artifactName,
+          stateDir,
+          startCommentId,
+        ]
+
+        const shouldArgc = argv.length
+        const argc = argv.filter(v => !!v).length
+
+        if (shouldArgc !== argc) {
           core.warn(`Incorrect outputs for ${key}: ${JSON.stringify(outputs)}`)
         }
 
@@ -40,7 +57,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
 E2e for ${splitRunFor} was failed. Use:
   \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
 
-  \`${abortFailedE2eCommand} ${branch} ${ranFor} ${runId} ${artifactName} ${stateDir} ${startCommentId}\` - for abort failed cluster
+  \`${abortFailedE2eCommand} \` - for abort failed cluster
 <!--- failed_clusters_end ${ranFor} -->
 
 `
