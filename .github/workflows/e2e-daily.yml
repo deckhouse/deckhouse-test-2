@@ -130,7 +130,6 @@ jobs:
       state_artifact_name: failed_cluster_state_aws_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "aws;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -638,7 +637,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_containerd_1_21
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -1156,7 +1154,6 @@ jobs:
       state_artifact_name: failed_cluster_state_gcp_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "gcp;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -1660,7 +1657,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_yandex-cloud_containerd_1_21
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "yandex-cloud;WithoutNAT;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -2174,7 +2170,6 @@ jobs:
       state_artifact_name: failed_cluster_state_openstack_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "openstack;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -2678,7 +2673,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_vsphere_containerd_1_21
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "vsphere;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -3187,7 +3181,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_static_containerd_1_21
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "static;Static;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}

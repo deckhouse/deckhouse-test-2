@@ -197,7 +197,6 @@ jobs:
       state_artifact_name: failed_cluster_state_azure_docker_1_20
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;docker;1.20"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -642,7 +641,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_docker_1_21
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;docker;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -1089,7 +1087,6 @@ jobs:
       state_artifact_name: failed_cluster_state_azure_docker_1_22
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;docker;1.22"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -1534,7 +1531,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_docker_1_23
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;docker;1.23"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -1981,7 +1977,6 @@ jobs:
       state_artifact_name: failed_cluster_state_azure_docker_1_24
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;docker;1.24"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -2426,7 +2421,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_containerd_1_20
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.20"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -2873,7 +2867,6 @@ jobs:
       state_artifact_name: failed_cluster_state_azure_containerd_1_21
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.21"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -3318,7 +3311,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_containerd_1_22
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.22"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
@@ -3765,7 +3757,6 @@ jobs:
       state_artifact_name: failed_cluster_state_azure_containerd_1_23
       # need for find state in artifact
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.23"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -4210,7 +4201,6 @@ jobs:
       run_id: ${{ github.run_id }}
       state_artifact_name: failed_cluster_state_azure_containerd_1_24
       # need for find state in artifact
-      state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       state_dir: ${{ steps.setup.outputs.tmp-dir-path}}
       ran_for: "azure;Standard;containerd;1.24"
       failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
