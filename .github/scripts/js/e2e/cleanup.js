@@ -26,7 +26,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const runId = outputs['run_id'] || '';
         const startCommentId = outputs['start_e2e_comment_id'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
-        const stateDir = needsContext[key].outputs['state_dir'] || '';
+        const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || '';
         const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
         const pull_request_ref = needsContext[key].outputs['pull_request_ref'] || '';
 
@@ -37,7 +37,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
           ranFor,
           runId,
           artifactName,
-          stateDir,
+          clusterPrefix,
           startCommentId,
         ]
 
@@ -45,7 +45,8 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const argc = argv.filter(v => !!v).length
 
         if (shouldArgc !== argc) {
-          core.debug(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(argv)}; ${JSON.stringify(outputs)}`)
+          core.error(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(argv)}; ${JSON.stringify(outputs)}`)
+          return
         }
 
         const splitRunFor = ranFor.replace(';', ' ');

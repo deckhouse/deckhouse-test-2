@@ -46,8 +46,8 @@ on:
       state_artifact_name:
         description: 'GitHub artifact name with dhctl/terraform status'
         required: true
-      state_dir:
-        description: 'Directory in the artifact with dhctl/terraform state'
+      cluster_prefix:
+        description: 'Dhctl cluster prefix'
         required: true
       start_e2e_comment_id:
         description: 'ID of comment in issue with creation message'

@@ -39,22 +39,22 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
         err = 'comment id for starting e2e is required';
         break;
       case 6:
-        err = 'state dir and comment id for starting e2e are required';
+        err = 'cluster_prefix and comment id for starting e2e are required';
         break;
       case 5:
-        err = 'artifact name and state dir and comment id for starting e2e are required';
+        err = 'artifact name and cluster_prefix and comment id for starting e2e are required';
         break;
       case 4:
-        err = 'run id, artifact name and state dir and comment id for starting e2e are required';
+        err = 'run id, artifact name and cluster_prefix and comment id for starting e2e are required';
         break;
       case 3:
-        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name and state dir and comment id for starting e2e are required';
+        err = 'ran for (provider, layout, cri, k8s version), run id, artifact name and cluster_prefix and comment id for starting e2e are required';
         break;
       case 2:
-        err = 'pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
+        err = 'pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and cluster_prefix and comment id for starting e2e are required';
         break;
       case 1:
-        err = 'ci_commit_ref_name, pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and state dir and comment id for starting e2e are required';
+        err = 'ci_commit_ref_name, pull_request_ref, ran for (provider, layout, cri, k8s version), run id, artifact name, and cluster_prefix and comment id for starting e2e are required';
         break;
     }
     return {err};
@@ -88,7 +88,7 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
       pull_request_ref: argv[2],
       run_id: argv[4],
       state_artifact_name: argv[5],
-      state_dir: argv[6],
+      cluster_prefix: argv[6],
 
       layout: ranForSplit[1],
       cri: ranForSplit[2],
