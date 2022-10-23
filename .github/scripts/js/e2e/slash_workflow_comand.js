@@ -60,7 +60,7 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
     return {err};
   }
 
-  const ranForSplit = argv[2].split(';').map(v => v.trim()).filter(v => !!v);
+  const ranForSplit = argv[3].split(';').map(v => v.trim()).filter(v => !!v);
   if (ranForSplit.length !== 4) {
     let err = '"ran for" argument should have 4 parts';
     switch (ranForSplit.length) {
