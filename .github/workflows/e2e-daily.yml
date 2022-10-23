@@ -392,7 +392,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -887,7 +887,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -1380,7 +1380,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -1871,7 +1871,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -2362,7 +2362,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -2851,7 +2851,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
@@ -3340,7 +3340,7 @@ jobs:
         with:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
-            const  = require('./.github/scripts/js/e2e/cleanup');
+            const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
             await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
       - name: Cleanup bootstrapped cluster
