@@ -111,7 +111,7 @@ terraform_state_file="/tmp/static-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.tfstate
 function abort_bootstrap_from_cache() {
   >&2 echo "Run abort_bootstrap_from_cache"
   echo "Test dir -----"
-  ls -lh /tmp
+  ls -lhR /tmp
 
   dhctl bootstrap-phase abort \
     --force-abort-from-cache \
@@ -124,7 +124,7 @@ function abort_bootstrap_from_cache() {
 function abort_bootstrap() {
   >&2 echo "Run abort_bootstrap"
   echo "Test dir -----"
-  ls -lh /tmp
+  ls -lhR /tmp
 
   dhctl bootstrap-phase abort \
     --ssh-user "$ssh_user" \
