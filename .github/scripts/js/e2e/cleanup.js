@@ -29,13 +29,11 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
         const stateDir = needsContext[key].outputs['state_dir'] || '';
         const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
         const pull_request_ref = needsContext[key].outputs['pull_request_ref'] || '';
-        const pull_request_sha = needsContext[key].outputs['pull_request_sha'] || '';
 
         const argv = [
           abortFailedE2eCommand,
           ci_commit_ref_name,
           pull_request_ref,
-          pull_request_sha,
           ranFor,
           runId,
           artifactName,
