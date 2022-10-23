@@ -147,6 +147,7 @@ function destroy_static_infra() {
   ls -lh /tmp
 
   pushd "$cwd"
+  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
   terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
   popd
 
