@@ -1,4 +1,6 @@
 const {abortFailedE2eCommand} = require("../constants");
+const ci = require('../ci');
+const fs = require('fs');
 
 /**
  * Build additional info about failed e2e test
@@ -71,6 +73,25 @@ E2e for ${splitRunFor} was failed. Use:
   }
 
   return "\r\n" + connectStrings.join("\r\n") + "\r\n";
+}
+
+async function checkStayFailedLabel({core, github, context}){
+  core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
+
+  try {
+    const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
+    core.setOutput('ssh_master_connection_string', data);
+  } catch (err) {
+    // this file can be not created
+    core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
+  }
+
+  return await ci.checkLabel({
+    github,
+    context,
+    core,
+    labelType: 'e2e-stay-failed',
+  })
 }
 
 module.exports = {

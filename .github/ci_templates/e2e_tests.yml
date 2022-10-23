@@ -314,7 +314,7 @@ check_e2e_labels:
     run_id: ${{ github.run_id }}
     state_artifact_name: failed_cluster_state_{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
     # need for find state in artifact
-    cluster_prefix: ${{ ${{ steps.setup.outputs.dhctl-prefix }}
+    cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
     ran_for: {!{ printf "%s;%s;%s;%s" $ctx.provider $ctx.layout $ctx.cri $ctx.kubernetesVersion | quote }!}
     failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
     start_e2e_comment_id: ${{ inputs.comment_id }}
@@ -365,25 +365,8 @@ check_e2e_labels:
       with:
         # it sets `should_run` output var if e2e/failed/stay label
         script: |
-          const ci = require('./.github/scripts/js/ci');
-          const fs = require('fs');
-
-          core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
-
-          try {
-            const data = fs.readFileSync(process.env.SSH_CONNECT_STR_FILE, 'utf8');
-            core.setOutput('ssh_master_connection_string', data);
-          } catch (err) {
-            // this file can be not created
-            core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
-          }
-
-          return await ci.checkLabel({
-            github,
-            context,
-            core,
-            labelType: 'e2e-stay-failed',
-          })
+          const  = require('./.github/scripts/js/e2e/cleanup');
+          await e2e_cleanup.checkStayFailedLabel({core, context, github});
 
     - name: Cleanup bootstrapped cluster
       if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
