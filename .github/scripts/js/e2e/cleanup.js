@@ -10,27 +10,25 @@ const fs = require('fs');
  * @returns {string}
  */
 function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
+  core.debug("Start buildFailedE2eTestAdditionalInfo")
   const connectStrings = Object.getOwnPropertyNames(needsContext).
   filter((k) => k.startsWith('run_')).
   map((key, _i, _a) => {
     const result = needsContext[key].result;
+    core.debug(`buildFailedE2eTestAdditionalInfo result for ${key}: result`)
     if (result === 'failure' || result === 'cancelled') {
       if (needsContext[key].outputs){
-        const outputs = needsContext[key].outputs;
-
-        if(!outputs['failed_cluster_stayed']){
-          return null;
-        }
+        const outputs = needsContext[key].outputs
 
         // ci_commit_branch
-        const connectStr = outputs['ssh_master_connection_string'] || '';
-        const ranFor = outputs['ran_for'] || '';
-        const runId = outputs['run_id'] || '';
-        const issueNumber = context.issue.number || '';
-        const artifactName = outputs['state_artifact_name'] || '';
-        const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || '';
-        const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
-        const pull_request_ref = needsContext[key].outputs['pull_request_ref'] || '';
+        const connectStr = outputs['ssh_master_connection_string'] || ''
+        const ranFor = outputs['ran_for'] || ''
+        const runId = outputs['run_id'] || ''
+        const issueNumber = context.issue.number || ''
+        const artifactName = outputs['state_artifact_name'] || ''
+        const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || ''
+        const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || ''
+        const pull_request_ref = needsContext[key].outputs['pull_request_ref'] || ''
 
         const argv = [
           abortFailedE2eCommand,
@@ -43,10 +41,13 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
           issueNumber,
         ]
 
+        core.debug(`result argv: ${JSON.stringify(argv)}`)
+
         const shouldArgc = argv.length
         const argc = argv.filter(v => !!v).length
 
         if (shouldArgc !== argc) {
+          core.debug(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(argv)}; ${JSON.stringify(outputs)}`)
           core.error(`Incorrect outputs for ${key} ${shouldArgc} != ${argc}: ${JSON.stringify(argv)}; ${JSON.stringify(outputs)}`)
           return
         }
@@ -69,9 +70,11 @@ E2e for ${splitRunFor} was failed. Use:
   }).filter((v) => !!v)
 
   if (connectStrings.length === 0) {
+    core.debug("buildFailedE2eTestAdditionalInfo connection strings is empty")
     return "";
   }
 
+  core.debug("buildFailedE2eTestAdditionalInfo was finished")
   return "\r\n" + connectStrings.join("\r\n") + "\r\n";
 }
 
