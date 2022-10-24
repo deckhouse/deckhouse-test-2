@@ -93,7 +93,7 @@ function tryParseAbortE2eCluster({argv, context, core, github}){
       layout: ranForSplit[1],
       cri: ranForSplit[2],
       k8s_version: ranForSplit[3],
-      start_e2e_comment_id: argv[7],
+      issue_number: argv[7],
     },
   )
 }

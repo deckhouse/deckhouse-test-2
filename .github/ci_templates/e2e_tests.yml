@@ -356,7 +356,7 @@ check_e2e_labels:
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test") | strings.Indent 6 }!}
 
-    - name: Check stay failed cluster
+    - name: Read connection string
       if: ${{ failure() || cancelled() }}
       id: check_stay_failed_cluster
       uses: {!{ index (ds "actions") "actions/github-script" }!}
@@ -366,10 +366,19 @@ check_e2e_labels:
         # it sets `should_run` output var if e2e/failed/stay label
         script: |
           const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-          await e2e_cleanup.checkStayFailedLabel({core, context, github});
+          await e2e_cleanup.readConnectionScript({core, context, github});
+
+    - name: Label pr if e2e failed
+      if: ${{ failure() || cancelled() }}
+      id: check_stay_failed_cluster
+      uses: actions-ecosystem/action-add-labels@v1
+      with:
+        github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+        number: ${{ needs.git_info.outputs.pr_number }}
+        labels: "e2e/cluster/failed"
 
     - name: Cleanup bootstrapped cluster
-      if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+      if: ${{ success() }}
       id: cleanup_cluster
       env:
         PROVIDER: {!{ $ctx.providerName }!}
@@ -387,7 +396,7 @@ check_e2e_labels:
 
     - name: Save dhctl state
       id: save_failed_cluster_state
-      if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+      if: ${{ failure() }}
       uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
       with:
         name: failed_cluster_state_{!{ printf "%s_%s_%s" $ctx.provider $ctx.cri $ctx.kubernetesVersionSlug }!}
@@ -496,6 +505,14 @@ check_e2e_labels:
         DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
+
+    - name: Remove failed cluster label
+      if: ${{ success() }}
+      uses: actions-ecosystem/action-remove-labels@v1
+      with:
+        github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+        number: ${{ needs.git_info.outputs.pr_number }}
+        labels: "e2e/cluster/failed"
 
     - name: Cleanup temp directory
       if: always()

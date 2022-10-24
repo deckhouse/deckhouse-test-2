@@ -22,11 +22,14 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
           return null;
         }
 
+        const inputs = needsContext[key].inputs;
+        core.debug(`inputs for ${key}: ${inputs}`)
+
         // ci_commit_branch
         const connectStr = outputs['ssh_master_connection_string'] || '';
         const ranFor = outputs['ran_for'] || '';
         const runId = outputs['run_id'] || '';
-        const startCommentId = outputs['start_e2e_comment_id'] || '';
+        const issueNumber = inputs['issue_number'] || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || '';
         const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
@@ -40,7 +43,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
           runId,
           artifactName,
           clusterPrefix,
-          startCommentId,
+          issueNumber,
         ]
 
         const shouldArgc = argv.length
@@ -75,7 +78,7 @@ E2e for ${splitRunFor} was failed. Use:
   return "\r\n" + connectStrings.join("\r\n") + "\r\n";
 }
 
-async function checkStayFailedLabel({core, github, context}){
+async function readConnectionScript({core, github, context}){
   core.debug(`SSH_CONNECT_STR_FILE ${process.env.SSH_CONNECT_STR_FILE}`);
 
   try {
@@ -85,16 +88,9 @@ async function checkStayFailedLabel({core, github, context}){
     // this file can be not created
     core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
   }
-
-  return await ci.checkLabel({
-    github,
-    context,
-    core,
-    labelType: 'e2e-stay-failed',
-  })
 }
 
 module.exports = {
   buildFailedE2eTestAdditionalInfo,
-  checkStayFailedLabel,
+  readConnectionScript,
 }

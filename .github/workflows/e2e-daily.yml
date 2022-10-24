@@ -52,6 +52,7 @@ jobs:
       ci_commit_ref_slug: ${{ steps.git_info.outputs.ci_commit_ref_slug }}
       ref_full: ${{ steps.git_info.outputs.ref_full }}
       github_sha: ${{ steps.git_info.outputs.github_sha }}
+      pr_number: ${{ steps.git_info.outputs.pr_number }}
     # Skip the CI for automation PRs, e.g. changelog
     if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
     steps:
@@ -70,14 +71,15 @@ jobs:
             let githubBranch = ''
             let githubTag = ''
             let githubSHA = ''
+            let prNumber = ''
             if (context.eventName === "workflow_dispatch" && context.payload.inputs && context.payload.inputs.pull_request_ref) {
               core.debug(`Workflow dispatch and ref ${context.payload.inputs.pull_request_ref}`)
               // Trigger: workflow_dispatch with pull_request_ref.
               // Extract pull request number from 'refs/pull/<NUM>/merge'
-              const prNum   = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
-              core.debug(`Pull request number ${prNum}`)
+              prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
+              core.debug(`Pull request number ${prNumber}`)
 
-              refSlug       = `pr${prNum}`
+              refSlug       = `pr${prNumber}`
               refName       = context.payload.inputs.ci_commit_ref_name
               refFull       = context.payload.inputs.pull_request_ref
               githubBranch  = refName
@@ -96,6 +98,7 @@ jobs:
               githubBranch = refName
               githubSHA = context.payload.pull_request.head.sha
               core.info(`pull request event: set git info from pull_request.head. pr:${prRepo}:${prRef} target:${targetRepo}:${context.ref}`)
+              prNumber = context.issue.number
             } else {
               core.debug(`Other trigger`)
               // Other triggers: workflow_dispatch without pull_request_ref, schedule, push...
@@ -107,7 +110,12 @@ jobs:
               githubBranch  = GITHUB_REF_TYPE == "branch" ? refName : ""
               githubSHA     = context.sha
               core.info(`${context.eventName} event: set git info from context: ${JSON.stringify({GITHUB_REF_NAME, GITHUB_REF_TYPE, sha: context.sha })}`)
+              if (context.issue && context.issue.number) {
+                prNumber = context.issue.number
+              }
             }
+
+
 
             core.setCommandEcho(true)
             core.setOutput('ci_commit_ref_slug', refSlug)
@@ -116,6 +124,7 @@ jobs:
             core.setOutput(`ci_commit_branch`, githubBranch)
             core.setOutput(`ref_full`, refFull)
             core.setOutput('github_sha', githubSHA)
+            core.setOutput('pr_number', prNumber)
             core.setCommandEcho(false)
 
   # </template: git_info_job>
@@ -383,7 +392,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -393,10 +402,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: AWS
@@ -463,7 +481,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_aws_containerd_1_21
@@ -878,7 +896,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -888,10 +906,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: Azure
@@ -962,7 +989,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_azure_containerd_1_21
@@ -1371,7 +1398,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -1381,10 +1408,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: GCP
@@ -1449,7 +1485,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_gcp_containerd_1_21
@@ -1862,7 +1898,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -1872,10 +1908,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: Yandex.Cloud
@@ -1944,7 +1989,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_yandex-cloud_containerd_1_21
@@ -2353,7 +2398,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -2363,10 +2408,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: OpenStack
@@ -2431,7 +2485,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_openstack_containerd_1_21
@@ -2842,7 +2896,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -2852,10 +2906,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: vSphere
@@ -2922,7 +2985,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_vsphere_containerd_1_21
@@ -3331,7 +3394,7 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Check stay failed cluster
+      - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
         uses: actions/github-script@v5.0.0
@@ -3341,10 +3404,19 @@ jobs:
           # it sets `should_run` output var if e2e/failed/stay label
           script: |
             const e2e_cleanup = require('./.github/scripts/js/e2e/cleanup');
-            await e2e_cleanup.checkStayFailedLabel({core, context, github});
+            await e2e_cleanup.readConnectionScript({core, context, github});
+
+      - name: Label pr if e2e failed
+        if: ${{ failure() || cancelled() }}
+        id: check_stay_failed_cluster
+        uses: actions-ecosystem/action-add-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || !steps.check_stay_failed_cluster.outputs.should_run }}
+        if: ${{ success() }}
         id: cleanup_cluster
         env:
           PROVIDER: Static
@@ -3409,7 +3481,7 @@ jobs:
 
       - name: Save dhctl state
         id: save_failed_cluster_state
-        if: ${{ failure() && !steps.check_failed_cluster.should_run }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v2
         with:
           name: failed_cluster_state_static_containerd_1_21

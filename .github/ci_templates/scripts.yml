@@ -29,23 +29,15 @@ Use statusConfig to set status source and render options.
 {!{ define "update_comment_on_finish" }!}
 {!{- $statusConfig := index . 0 -}!}
 {!{- $name := index . 1 -}!}
-{!{- $forceUpdate := eq (len .) 3 | test.Ternary true false -}!}
 
 # <template: update_comment_on_finish>
 - name: Update comment on finish
   id: update_comment_on_finish
-{!{- if eq $forceUpdate true }!}
-  if: ${{ always() && github.event_name == 'workflow_dispatch' }}
-{!{- else }!}
   if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
-{!{- end }!}
   env:
     NEEDS_CONTEXT: ${{ toJSON(needs) }}
     JOB_CONTEXT: ${{ toJSON(job) }}
     STEPS_CONTEXT: ${{ toJSON(steps) }}
-{!{- if contains "e2e:" $name }!}
-    JOBS_CONTEXT: ${{ toJSON(jobs) }}
-{!{- end }!}
   uses: {!{ index (ds "actions") "actions/github-script" }!}
   with:
     github-token: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
@@ -55,7 +47,7 @@ Use statusConfig to set status source and render options.
       const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
       const jobContext = JSON.parse(process.env.JOB_CONTEXT);
       const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-      let jobNames = null;
+      let jobNames = null
       if (process.env.JOB_NAMES) {
         jobNames = JSON.parse(process.env.JOB_NAMES);
       }

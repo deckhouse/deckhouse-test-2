@@ -16,7 +16,7 @@ on:
       cluster_prefix:
         description: 'Dhctl cluster prefix'
         required: true
-      start_e2e_comment_id:
+      issue_number:
         description: 'ID of comment in issue with creation message'
         required: true
       comment_id:
@@ -81,6 +81,7 @@ jobs:
       ci_commit_ref_slug: ${{ steps.git_info.outputs.ci_commit_ref_slug }}
       ref_full: ${{ steps.git_info.outputs.ref_full }}
       github_sha: ${{ steps.git_info.outputs.github_sha }}
+      pr_number: ${{ steps.git_info.outputs.pr_number }}
     # Skip the CI for automation PRs, e.g. changelog
     if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
     steps:
@@ -99,14 +100,15 @@ jobs:
             let githubBranch = ''
             let githubTag = ''
             let githubSHA = ''
+            let prNumber = ''
             if (context.eventName === "workflow_dispatch" && context.payload.inputs && context.payload.inputs.pull_request_ref) {
               core.debug(`Workflow dispatch and ref ${context.payload.inputs.pull_request_ref}`)
               // Trigger: workflow_dispatch with pull_request_ref.
               // Extract pull request number from 'refs/pull/<NUM>/merge'
-              const prNum   = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
-              core.debug(`Pull request number ${prNum}`)
+              prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
+              core.debug(`Pull request number ${prNumber}`)
 
-              refSlug       = `pr${prNum}`
+              refSlug       = `pr${prNumber}`
               refName       = context.payload.inputs.ci_commit_ref_name
               refFull       = context.payload.inputs.pull_request_ref
               githubBranch  = refName
@@ -125,6 +127,7 @@ jobs:
               githubBranch = refName
               githubSHA = context.payload.pull_request.head.sha
               core.info(`pull request event: set git info from pull_request.head. pr:${prRepo}:${prRef} target:${targetRepo}:${context.ref}`)
+              prNumber = context.issue.number
             } else {
               core.debug(`Other trigger`)
               // Other triggers: workflow_dispatch without pull_request_ref, schedule, push...
@@ -136,7 +139,12 @@ jobs:
               githubBranch  = GITHUB_REF_TYPE == "branch" ? refName : ""
               githubSHA     = context.sha
               core.info(`${context.eventName} event: set git info from context: ${JSON.stringify({GITHUB_REF_NAME, GITHUB_REF_TYPE, sha: context.sha })}`)
+              if (context.issue && context.issue.number) {
+                prNumber = context.issue.number
+              }
             }
+
+
 
             core.setCommandEcho(true)
             core.setOutput('ci_commit_ref_slug', refSlug)
@@ -145,6 +153,7 @@ jobs:
             core.setOutput(`ci_commit_branch`, githubBranch)
             core.setOutput(`ref_full`, refFull)
             core.setOutput('github_sha', githubSHA)
+            core.setOutput('pr_number', prNumber)
             core.setCommandEcho(false)
 
   # </template: git_info_job>
@@ -418,6 +427,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -447,7 +464,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -730,6 +747,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -759,7 +784,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1042,6 +1067,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -1071,7 +1104,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1354,6 +1387,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -1383,7 +1424,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1666,6 +1707,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -1695,7 +1744,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -1978,6 +2027,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -2007,7 +2064,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2290,6 +2347,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -2319,7 +2384,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2602,6 +2667,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -2631,7 +2704,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -2914,6 +2987,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -2943,7 +3024,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -3226,6 +3307,14 @@ jobs:
 
         # </template: e2e_run_template>
 
+      - name: Remove failed cluster label
+        if: ${{ success() }}
+        uses: actions-ecosystem/action-remove-labels@v1
+        with:
+          github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
+          number: ${{ needs.git_info.outputs.pr_number }}
+          labels: "e2e/cluster/failed"
+
       - name: Cleanup temp directory
         if: always()
         env:
@@ -3255,7 +3344,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }
@@ -3289,7 +3378,7 @@ jobs:
       # <template: update_comment_on_finish>
       - name: Update comment on finish
         id: update_comment_on_finish
-        if: ${{ always() && github.event_name == 'workflow_dispatch' }}
+        if: ${{ always() && github.event_name == 'workflow_dispatch' && !!github.event.inputs.issue_number }}
         env:
           NEEDS_CONTEXT: ${{ toJSON(needs) }}
           JOB_CONTEXT: ${{ toJSON(job) }}
@@ -3303,7 +3392,7 @@ jobs:
             const needsContext = JSON.parse(process.env.NEEDS_CONTEXT);
             const jobContext = JSON.parse(process.env.JOB_CONTEXT);
             const stepsContext = JSON.parse(process.env.STEPS_CONTEXT);
-            let jobNames = null;
+            let jobNames = null
             if (process.env.JOB_NAMES) {
               jobNames = JSON.parse(process.env.JOB_NAMES);
             }

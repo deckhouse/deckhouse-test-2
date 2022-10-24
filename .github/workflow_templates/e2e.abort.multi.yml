@@ -49,7 +49,7 @@ on:
       cluster_prefix:
         description: 'Dhctl cluster prefix'
         required: true
-      start_e2e_comment_id:
+      issue_number:
         description: 'ID of comment in issue with creation message'
         required: true
       comment_id:
@@ -115,7 +115,7 @@ jobs:
         {!{ $jobNames | toJSON }!}
     steps:
 {!{ tmpl.Exec "checkout_step" $ctx | strings.Indent 6 }!}
-{!{ tmpl.Exec "update_comment_on_finish" (slice "workflow,final,no-skipped,restore-separate" $workflowName true) | strings.Indent 6 }!}
+{!{ tmpl.Exec "update_comment_on_finish" (slice "workflow,final,no-skipped,restore-separate" $workflowName) | strings.Indent 6 }!}
 
 # </template: e2e_workflow_template>
 {!{ end -}!}
