@@ -185,7 +185,7 @@ module.exports.updateCommentOnFinish = async ({
     } else if (statusConfig.includes(',separate')) {
       statusReport = renderJobStatusSeparate(status, name, startedAt);
     } else if (statusConfig.includes(',final')) {
-      const addInfo = buildFailedE2eTestAdditionalInfo({needsContext, core});
+      const addInfo = buildFailedE2eTestAdditionalInfo({needsContext, core, context});
       core.debug(`Additional info: ${addInfo}`);
       statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);
     }
@@ -246,7 +246,7 @@ module.exports.updateCommentOnFinish = async ({
 
     core.info(`Status for workflow report is ${status}`);
 
-    const addInfo = buildFailedE2eTestAdditionalInfo({needsContext, core});
+    const addInfo = buildFailedE2eTestAdditionalInfo({needsContext, core, context});
     core.debug(`Additional info: ${addInfo}`);
 
     statusReport = renderWorkflowStatusFinal(status, name, ref, build_url, startedAt, addInfo);

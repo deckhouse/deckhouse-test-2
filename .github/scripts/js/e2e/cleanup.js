@@ -9,7 +9,7 @@ const fs = require('fs');
  * @param {object} jobs - GitHub needsContext context
  * @returns {string}
  */
-function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
+function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
   const connectStrings = Object.getOwnPropertyNames(needsContext).
   filter((k) => k.startsWith('run_')).
   map((key, _i, _a) => {
@@ -22,14 +22,11 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core }){
           return null;
         }
 
-        const inputs = needsContext[key].inputs;
-        core.debug(`inputs for ${key}: ${inputs}`)
-
         // ci_commit_branch
         const connectStr = outputs['ssh_master_connection_string'] || '';
         const ranFor = outputs['ran_for'] || '';
         const runId = outputs['run_id'] || '';
-        const issueNumber = inputs['issue_number'] || '';
+        const issueNumber = context.issue.number || '';
         const artifactName = outputs['state_artifact_name'] || '';
         const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || '';
         const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || '';
