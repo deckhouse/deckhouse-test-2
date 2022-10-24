@@ -207,7 +207,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;docker;1.20"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -635,7 +635,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;docker;1.21"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -1063,7 +1063,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;docker;1.22"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -1491,7 +1491,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;docker;1.23"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -1919,7 +1919,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;docker;1.24"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -2347,7 +2347,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;containerd;1.20"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -2775,7 +2775,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;containerd;1.21"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -3203,7 +3203,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;containerd;1.22"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -3631,7 +3631,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;containerd;1.23"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
@@ -4059,7 +4059,7 @@ jobs:
       # need for find state in artifact
       cluster_prefix: ${{ steps.setup.outputs.dhctl-prefix }}
       ran_for: "aws;WithoutNAT;containerd;1.24"
-      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.should_run }}
+      failed_cluster_stayed: ${{ steps.check_stay_failed_cluster.outputs.failed_cluster_stayed }}
       start_e2e_comment_id: ${{ inputs.comment_id }}
       ci_commit_ref_name: ${{ github.event.inputs.ci_commit_ref_name }}
       pull_request_ref: ${{ github.event.inputs.pull_request_ref }}
