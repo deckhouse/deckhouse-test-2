@@ -372,10 +372,8 @@ const checkLabel = async ({ github, context, core, labelType, labelSubject, onSu
     return core.notice(`Skip next jobs: ${isPR ? 'PR' : 'issue'} #${issue_number} has no label '${expectedLabel}'.`);
   }
 
-  if(!knownLabels[expectedLabel].shouldStayAfterCheck) {
-    // Remove label
-    await removeLabel({ github, context, core, issue_number, label: expectedLabel });
-  }
+  // Remove label
+  await removeLabel({ github, context, core, issue_number, label: expectedLabel });
 };
 module.exports.checkLabel = checkLabel;
 
@@ -1307,7 +1305,7 @@ const addReleaseIssueComment = async ({ github, context, core, issue, gitRefInfo
  * @returns {Promise<void>}
  */
 const startWorkflow = async ({ github, context, core, workflow_id, ref, inputs }) => {
-  core.info(`Start workfStart workflowlow '${workflow_id}' using ref '${ref}' and inputs ${JSON.stringify(inputs)}.`);
+  core.info(`Start workflow '${workflow_id}' using ref '${ref}' and inputs ${JSON.stringify(inputs)}.`);
 
   let response = null
   try {

@@ -1,4 +1,5 @@
 const {abortFailedE2eCommand, knownLabels, knownProviders} = require("../constants");
+const {parseCommandArgumentAsRef} = require("../ci");
 
 /**
  * Build valid return object

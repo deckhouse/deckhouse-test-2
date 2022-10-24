@@ -57,11 +57,12 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
         }
 
         const splitRunFor = ranFor.replace(';', ' ');
+        const outConnectStr = connectStr ? `\`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;` : '';
 
         return `
 <!--- failed_clusters_start ${ranFor} -->
 E2e for ${splitRunFor} was failed. Use:
-  \`ssh -i ~/.ssh/e2e-id-rsa ${connectStr}\` - connect for debugging;
+  ${outConnectStr}
 
   \`${argv.join(' ')}\` - for abort failed cluster
 <!--- failed_clusters_end ${ranFor} -->
