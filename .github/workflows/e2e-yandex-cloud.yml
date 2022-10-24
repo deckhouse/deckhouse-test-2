@@ -488,7 +488,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -921,7 +920,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -1354,7 +1352,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -1787,7 +1784,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -2220,7 +2216,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -2653,7 +2648,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -3086,7 +3080,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -3519,7 +3512,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -3952,7 +3944,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
@@ -4385,7 +4376,6 @@ jobs:
 
       - name: Label pr if e2e failed
         if: ${{ failure() || cancelled() }}
-        id: check_stay_failed_cluster
         uses: actions-ecosystem/action-add-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
