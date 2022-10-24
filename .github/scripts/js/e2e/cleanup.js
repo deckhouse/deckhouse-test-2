@@ -28,7 +28,7 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
         const connectStr = outputs['ssh_master_connection_string'] || ''
         const ranFor = outputs['ran_for'] || ''
         const runId = outputs['run_id'] || ''
-        const issueNumber = context.issue.number || ''
+        const issueNumber = outputs['issue_number'] || ''
         const artifactName = outputs['state_artifact_name'] || ''
         const clusterPrefix = needsContext[key].outputs['cluster_prefix'] || ''
         const ci_commit_ref_name = needsContext[key].outputs['ci_commit_ref_name'] || ''
