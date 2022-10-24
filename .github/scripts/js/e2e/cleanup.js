@@ -20,6 +20,10 @@ function buildFailedE2eTestAdditionalInfo({ needsContext, core, context }){
       if (needsContext[key].outputs){
         const outputs = needsContext[key].outputs
 
+        if(!outputs['failed_cluster_stayed']){
+          return null;
+        }
+
         // ci_commit_branch
         const connectStr = outputs['ssh_master_connection_string'] || ''
         const ranFor = outputs['ran_for'] || ''
@@ -88,6 +92,8 @@ async function readConnectionScript({core, github, context}){
     // this file can be not created
     core.warning(`Cannot read ssh connection file ${err.name}: ${err.message}`);
   }
+
+  core.setOutput('failed_cluster_stayed', 'true');
 }
 
 module.exports = {
