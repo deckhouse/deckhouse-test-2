@@ -351,6 +351,9 @@ function bootstrap_static() {
   fi
 
   echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
+  
+  sleep 20
+  exit 1
 
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
