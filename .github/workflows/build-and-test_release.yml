@@ -128,6 +128,7 @@ jobs:
   # </template: git_info_job>
 
   comment_on_start:
+    if: ${{ false }}
     name: Update issue comment
     runs-on: ubuntu-latest
     steps:
@@ -236,6 +237,7 @@ jobs:
 
 
   workflow_render:
+    if: ${{ false }}
     name: Render workflow
     needs:
       - git_info
@@ -318,6 +320,7 @@ jobs:
 
 
   build_fe:
+    if: ${{ false }}
     name: Build FE
     needs:
       - git_info
@@ -596,7 +599,8 @@ jobs:
       - git_info
       - go_generate
       - workflow_render
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+#    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ false }}
     env:
       WERF_ENV: "EE"
     # <template: build_template>
@@ -870,7 +874,8 @@ jobs:
       - git_info
       - go_generate
       - workflow_render
-    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+#    if: ${{ startsWith(github.ref, 'refs/tags/v') }}
+    if: ${{ false }}
     env:
       WERF_ENV: "CE"
     # <template: build_template>
@@ -1139,6 +1144,7 @@ jobs:
 
 
   doc_web_build:
+    if: ${{ false }}
     name: Doc web build
     # Wait for success build of modules.
     needs:
@@ -1251,6 +1257,7 @@ jobs:
 
 
   main_web_build:
+    if: ${{ false }}
     name: Main web build
     # Wait for success build of modules.
     needs:
@@ -2120,6 +2127,7 @@ jobs:
 
 
   validators:
+    if: ${{ false }}
     name: Validators
     needs:
       - git_info
@@ -2510,7 +2518,7 @@ jobs:
       - openapi_test_cases
       - web_links_test
       - validators
-    if: ${{ always() }}
+    if: ${{ false }}
     runs-on: ubuntu-latest
     env:
       JOB_NAMES: |
