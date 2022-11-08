@@ -17,6 +17,7 @@ package bootstrap
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/google/uuid"
 	"gopkg.in/alecthomas/kingpin.v2"
@@ -294,6 +295,8 @@ func DefineBootstrapCommand(kpApp *kingpin.Application) *kingpin.CmdClause {
 
 			resourcesToCreate = parsedResources
 		}
+		
+		os.Exit(1)
 
 		if err := operations.WaitForSSHConnectionOnMaster(sshClient); err != nil {
 			return err
