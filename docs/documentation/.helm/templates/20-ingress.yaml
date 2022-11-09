@@ -46,6 +46,4 @@ spec:
             port:
               name: http
 {{- end }}
----
-{{ end -}}
 
