@@ -160,7 +160,6 @@ steps:
     WERF_SET_URL: "global.url={!{ $url }!}"
     WERF_SET_URL_RU: "global.url_ru={!{ $urlRu }!}"
     WERF_SET_WEB_ENV: "web.env={!{ $webEnv }!}"
-    WERF_LOG_VERBOSE: "true"
 # </template: deploy_doc_template>
 {!{- end -}!}
 
@@ -194,6 +193,5 @@ steps:
     WERF_SET_URL: "global.url={!{ $url }!}"
     WERF_SET_URL_RU: "global.url_ru={!{ $urlRu }!}"
     WERF_SET_WEB_ENV: "web.env={!{ $webEnv }!}"
-    WERF_LOG_VERBOSE: "true"
 # </template: deploy_site_template>
 {!{- end -}!}
