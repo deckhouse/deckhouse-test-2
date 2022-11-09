@@ -22,7 +22,7 @@ metadata:
       rewrite ^/ru/(.*) {{ $hostRu }}/$1 permanent;
       rewrite ^/en/(.*) {{ $hostEn }}/$1 permanent;
       {{- include "rewrites" . | nindent 6 }}
-{{- if or ( eq .Values.web.env "web-stage")  ( eq .Values.web.env "web-test")  }}
+{{- if ne .Values.web.env "web-production" }}
     nginx.ingress.kubernetes.io/auth-signin: https://$host/dex-authenticator/sign_in
     nginx.ingress.kubernetes.io/auth-url: https://{{ $.Chart.Name }}-{{ .Lang }}-dex-authenticator.deckhouse-{{ $.Values.web.env }}.svc.cluster.local/dex-authenticator/auth
     nginx.ingress.kubernetes.io/auth-response-headers: X-Auth-Request-User,X-Auth-Request-Email
@@ -57,11 +57,7 @@ spec:
   secretName: tls-{{ .URL }}
   issuerRef:
     kind: ClusterIssuer
-{{- if hasPrefix "review" $.Values.web.env }}
-    name: letsencrypt-staging
-{{- else }}
     name: letsencrypt
-{{- end }}
   commonName: {{ .URL }}
   dnsNames:
   - {{ .URL }}
