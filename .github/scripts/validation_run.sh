@@ -19,6 +19,9 @@
 #   - title and description of pull request
 #   - diff content
 
+
+
+
 set -Eeo pipefail
 
 # Create tmp dir and set traps to clean it after execution.
