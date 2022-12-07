@@ -74,7 +74,7 @@ function tryParseAbortE2eCluster({argv, context, core}){
     state_artifact_name,
     cluster_prefix,
     installer_image_path,
-    ssh_connection_string: sshConnectStr,
+    ssh_master_connection_string: sshConnectStr,
 
     layout,
     cri,

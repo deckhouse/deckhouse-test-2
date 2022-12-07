@@ -63,7 +63,6 @@ jobs:
             let githubSHA = ''
             let prNumber = ''
             if (context.eventName === "workflow_dispatch" && context.payload.inputs && context.payload.inputs.pull_request_ref) {
-              core.debug(`Workflow dispatch and ref ${context.payload.inputs.pull_request_ref}`)
               // Trigger: workflow_dispatch with pull_request_ref.
               // Extract pull request number from 'refs/pull/<NUM>/merge'
               prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
@@ -76,7 +75,6 @@ jobs:
               githubSHA     = context.payload.inputs.pull_request_sha
               core.info(`workflow_dispatch event: set git info from inputs. inputs: ${JSON.stringify(context.payload.inputs)}`)
             } else if (context.eventName === "pull_request" || context.eventName === "pull_request_target" ) {
-              core.debug(`eventName === "pull_request" or target`)
               // For PRs from forks, tag images with `prXXX` to avoid clashes between branches.
               const targetRepo = context.payload.repository.full_name;
               const prRepo = context.payload.pull_request.head.repo.full_name
@@ -90,7 +88,6 @@ jobs:
               core.info(`pull request event: set git info from pull_request.head. pr:${prRepo}:${prRef} target:${targetRepo}:${context.ref}`)
               prNumber = context.issue.number
             } else {
-              core.debug(`Other trigger`)
               // Other triggers: workflow_dispatch without pull_request_ref, schedule, push...
               // refName is 'main' or tag name, so slugification is not necessary.
               refSlug       = GITHUB_REF_NAME
@@ -100,12 +97,7 @@ jobs:
               githubBranch  = GITHUB_REF_TYPE == "branch" ? refName : ""
               githubSHA     = context.sha
               core.info(`${context.eventName} event: set git info from context: ${JSON.stringify({GITHUB_REF_NAME, GITHUB_REF_TYPE, sha: context.sha })}`)
-              if (context.issue && context.issue.number) {
-                prNumber = context.issue.number
-              }
             }
-
-
 
             core.setCommandEcho(true)
             core.setOutput('ci_commit_ref_slug', refSlug)

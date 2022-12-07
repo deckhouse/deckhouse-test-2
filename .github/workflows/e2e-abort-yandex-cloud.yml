@@ -36,7 +36,7 @@ on:
         description: 'Installer image without host'
         required: true
       # needs for destroy cloud clusters if cluster was bootstrapped fully, but e2e was not pass
-      ssh_connection_string:
+      ssh_master_connection_string:
         description: 'SSH connection string'
         required: false
 env:
@@ -69,6 +69,7 @@ jobs:
           unixTimestamp=$(date +%s)
           echo "::set-output name=started_at::${unixTimestamp}"
       # </template: started_at_output>
+
 
 
   # <template: e2e_run_job_template>
@@ -224,7 +225,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -233,7 +234,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -260,7 +261,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -484,7 +485,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -493,7 +494,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -520,7 +521,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -744,7 +745,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -753,7 +754,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -780,7 +781,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1004,7 +1005,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -1013,7 +1014,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1040,7 +1041,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1264,7 +1265,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -1273,7 +1274,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1300,7 +1301,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1524,7 +1525,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -1533,7 +1534,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1560,7 +1561,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1784,7 +1785,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -1793,7 +1794,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1820,7 +1821,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2044,7 +2045,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -2053,7 +2054,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2080,7 +2081,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2304,7 +2305,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -2313,7 +2314,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2340,7 +2341,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2564,7 +2565,7 @@ jobs:
           PREFIX: ${{ github.event.inputs.cluster_prefix }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
           DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-          MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_connection_string }}
+          SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
         # <template: e2e_run_template>
           LAYOUT_YANDEX_CLOUD_ID: ${{ secrets.LAYOUT_YANDEX_CLOUD_ID }}
           LAYOUT_YANDEX_FOLDER_ID: ${{ secrets.LAYOUT_YANDEX_FOLDER_ID }}
@@ -2573,7 +2574,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2600,7 +2601,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \

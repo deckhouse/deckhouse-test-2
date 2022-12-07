@@ -102,7 +102,6 @@ jobs:
             let githubSHA = ''
             let prNumber = ''
             if (context.eventName === "workflow_dispatch" && context.payload.inputs && context.payload.inputs.pull_request_ref) {
-              core.debug(`Workflow dispatch and ref ${context.payload.inputs.pull_request_ref}`)
               // Trigger: workflow_dispatch with pull_request_ref.
               // Extract pull request number from 'refs/pull/<NUM>/merge'
               prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
@@ -115,7 +114,6 @@ jobs:
               githubSHA     = context.payload.inputs.pull_request_sha
               core.info(`workflow_dispatch event: set git info from inputs. inputs: ${JSON.stringify(context.payload.inputs)}`)
             } else if (context.eventName === "pull_request" || context.eventName === "pull_request_target" ) {
-              core.debug(`eventName === "pull_request" or target`)
               // For PRs from forks, tag images with `prXXX` to avoid clashes between branches.
               const targetRepo = context.payload.repository.full_name;
               const prRepo = context.payload.pull_request.head.repo.full_name
@@ -129,7 +127,6 @@ jobs:
               core.info(`pull request event: set git info from pull_request.head. pr:${prRepo}:${prRef} target:${targetRepo}:${context.ref}`)
               prNumber = context.issue.number
             } else {
-              core.debug(`Other trigger`)
               // Other triggers: workflow_dispatch without pull_request_ref, schedule, push...
               // refName is 'main' or tag name, so slugification is not necessary.
               refSlug       = GITHUB_REF_NAME
@@ -139,12 +136,7 @@ jobs:
               githubBranch  = GITHUB_REF_TYPE == "branch" ? refName : ""
               githubSHA     = context.sha
               core.info(`${context.eventName} event: set git info from context: ${JSON.stringify({GITHUB_REF_NAME, GITHUB_REF_TYPE, sha: context.sha })}`)
-              if (context.issue && context.issue.number) {
-                prNumber = context.issue.number
-              }
             }
-
-
 
             core.setCommandEcho(true)
             core.setOutput('ci_commit_ref_slug', refSlug)
@@ -418,7 +410,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -456,7 +448,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -495,7 +487,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -517,7 +509,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -544,7 +536,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -851,7 +843,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -889,7 +881,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -928,7 +920,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -950,7 +942,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -977,7 +969,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1284,7 +1276,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1322,7 +1314,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1361,7 +1353,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1383,7 +1375,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1410,7 +1402,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1717,7 +1709,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1755,7 +1747,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -1794,7 +1786,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1816,7 +1808,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -1843,7 +1835,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2150,7 +2142,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2188,7 +2180,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2227,7 +2219,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2249,7 +2241,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2276,7 +2268,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2583,7 +2575,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2621,7 +2613,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -2660,7 +2652,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2682,7 +2674,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -2709,7 +2701,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3016,7 +3008,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3054,7 +3046,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3093,7 +3085,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -3115,7 +3107,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3142,7 +3134,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3449,7 +3441,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3487,7 +3479,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3526,7 +3518,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -3548,7 +3540,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3575,7 +3567,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3882,7 +3874,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -3920,7 +3912,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -3959,7 +3951,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -3981,7 +3973,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -4008,7 +4000,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -4315,7 +4307,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh run-test' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -4353,7 +4345,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \
@@ -4392,7 +4384,7 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: ${{ success() || 'true' == 'false' }}
+        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -4414,7 +4406,7 @@ jobs:
           GITHUB_API_SERVER: ${{ github.api_url }}
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
-          TOKEN_GITHUB_BOT: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
         run: |
           echo "Execute 'script.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
@@ -4441,7 +4433,7 @@ jobs:
             -e KUBERNETES_VERSION=${KUBERNETES_VERSION} \
             -e CRI=${CRI} \
             -e PROVIDER=${PROVIDER:-not_provided} \
-            -e MASTER_CONNECTION_STRING=${MASTER_CONNECTION_STRING:-} \
+            -e MASTER_CONNECTION_STRING=${SSH_MASTER_CONNECTION_STRING:-} \
             -e LAYOUT=${LAYOUT:-not_provided} \
             -e DHCTL_LOG_FILE="/tmp/$(basename ${dhctl_log_file})" \
             -e SSH_KEY=${LAYOUT_SSH_KEY:-not_provided} \

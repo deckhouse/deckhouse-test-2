@@ -28,7 +28,7 @@ if [ -z "$comment_url" ]; then
   exit 1
 fi
 
-if [ -z "$TOKEN_GITHUB_BOT" ]; then
+if [ -z "$GITHUB_TOKEN" ]; then
   echo "Token env is required"
   exit 1
 fi
@@ -50,7 +50,7 @@ function get_comment(){
     --output "$response_file" \
     --write-out "%{http_code}" \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $TOKEN_GITHUB_BOT" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
     "$comment_url"
   )"
   exit_code="$?"
@@ -90,7 +90,7 @@ function update_comment(){
     --write-out "%{http_code}" \
     -X PATCH \
     -H "Accept: application/vnd.github+json" \
-    -H "Authorization: Bearer $TOKEN_GITHUB_BOT" \
+    -H "Authorization: Bearer $GITHUB_TOKEN" \
     -d "$http_body" \
     "$comment_url"
   )"
@@ -118,8 +118,8 @@ function wait_master_host_connection_string() {
     return 1
   fi
 
-  #https://stackoverflow.com/posts/36760050/revisions
-  # we need to verify ip because string ca fsynced partially
+  # IP validation regex from https://stackoverflow.com/posts/36760050/revisions
+  # IP should be verified because streaming log can contains partial string.
   if ! echo "$ip" | grep -Po '((25[0-5]|(2[0-4]|1\d|[1-9]|)\d)\.?\b){4}'; then
     echo "$ip is not ip"
     return 1
@@ -168,32 +168,32 @@ echo -n "$connection_str" > "$connection_str_out_file"
 
 echo "Connection str $connection_str has been written to file $connection_str_out_file"
 
-# get body
-sleep_second=0
-for (( i=1; i<=5; i++ )); do
-  sleep "$sleep_second"
-  sleep_second=5
-
-  response_file="$(mktemp)"
-  if get_comment "$response_file"; then
-    rm -f "$response_file"
-    break
-  fi
-
-  rm -f "$response_file"
-  echo "Next attempt to getting comment in 5 seconds"
-done
-
-if [ -z "$result_body" ]; then
-  echo "Timeout waiting comment body"
-  exit 1
-fi
-
 # update comment
-sleep_second=0
+sleep_second_upd=0
 for (( i=1; i<=5; i++ )); do
-  sleep "$sleep_second"
-  sleep_second=5
+  sleep "$sleep_second_upd"
+  sleep_second_upd=5
+
+  # get body
+  sleep_second=0
+  for (( j=1; j<=5; j++ )); do
+    sleep "$sleep_second"
+    sleep_second=5
+
+    response_file="$(mktemp)"
+    if get_comment "$response_file"; then
+      rm -f "$response_file"
+      break
+    fi
+
+    rm -f "$response_file"
+    echo "Next attempt to getting comment in 5 seconds"
+  done
+
+  if [ -z "$result_body" ]; then
+    echo "Timeout waiting comment body"
+    exit 1
+  fi
 
   if update_comment "$result_body" ; then
     echo "Comment was updated"

@@ -69,7 +69,7 @@ on:
         description: 'Installer image without host'
         required: true
       # needs for destroy cloud clusters if cluster was bootstrapped fully, but e2e was not pass
-      ssh_connection_string:
+      ssh_master_connection_string:
         description: 'SSH connection string'
         required: false
 env:
@@ -88,6 +88,7 @@ jobs:
 {!{ tmpl.Exec "started_at_output" . | strings.Indent 6 }!}
 
 {!{/* Jobs for each CRI and Kubernetes version */}!}
+{!{/* Note: it is sufficient to have one workflow 'e2e-abort.yaml' with one 'destroy' job and use provider, cri, k8s_version and layout from inputs. Still there are jobs for each CRI and Kubernetes version for similarity with e2e.multi.yaml */}!}
 {!{- $lastCommentNeeds := slice "started_at" -}!}
 {!{- $jobNames := dict -}!}
 {!{- range $criName := $ctx.criNames -}!}
