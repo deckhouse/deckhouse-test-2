@@ -3,7 +3,7 @@ const fs = require('fs');
 
 /**
  * Build additional info about failed e2e test
- * Contains information about
+ * Extracts ssh connection string, image, cluster prefix, etc.
  *
  * @param {object} jobs - GitHub needsContext context
  * @returns {string}
