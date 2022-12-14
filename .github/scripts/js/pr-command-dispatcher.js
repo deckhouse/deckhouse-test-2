@@ -18,12 +18,11 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
   core.debug(`Event: ${JSON.stringify(event)}`);
 
   const arg = extractCommandFromComment(event.comment.body)
-  const {argv} = arg
-  if(arg.err) {
+  if (arg.err) {
     return core.info(`Ignore comment: ${arg.err}.`);
   }
 
-  const commandName = argv[0];
+  const commandName = arg.argv[0];
   let slashCommand = dispatchPullRequestCommand({arg, core, context});
   if (!slashCommand) {
     return core.info(`Ignore comment: workflow for command ${commandName} not found.`);
