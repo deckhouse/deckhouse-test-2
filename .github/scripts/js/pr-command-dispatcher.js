@@ -3,7 +3,8 @@ const {commentCommandRecognition} = require("./comments");
 const {extractCommandFromComment, reactToComment, startWorkflow} = require("./ci");
 
 /**
- * Use pull request comment to determine a workflow to run.
+ * Detect slash-command in the pull request comment and start
+ * another worklflow via workflow_dispatch event.
  *
  * @param {object} inputs
  * @param {object} inputs.github - A pre-authenticated octokit/rest.js client with pagination plugins.
@@ -22,9 +23,10 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
     return core.info(`Ignore comment: ${arg.err}.`);
   }
 
+  const commandName = argv[0];
   let slashCommand = dispatchPullRequestCommand({arg, core, context});
   if (!slashCommand) {
-    return core.info(`Ignore comment: workflow for command ${argv[0]} not found.`);
+    return core.info(`Ignore comment: workflow for command ${commandName} not found.`);
   }
 
   if (slashCommand.err) {
@@ -57,7 +59,7 @@ async function runSlashCommandForPullRequest({ github, context, core }) {
     owner: context.repo.owner,
     repo: context.repo.repo,
     issue_number: event.issue.number,
-    body: commentCommandRecognition(event.comment.user.login, argv[0])
+    body: commentCommandRecognition(event.comment.user.login, commandName)
   });
 
   if (response.status !== 201) {

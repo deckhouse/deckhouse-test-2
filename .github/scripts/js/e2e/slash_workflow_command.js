@@ -84,7 +84,12 @@ function tryParseAbortE2eCluster({argv, context, core}){
 
   core.debug(`e2e abort inputs: ${JSON.stringify(inputs)}`)
 
-  return buildReturn('isDestroyFailedE2e', `e2e-abort-${provider}.yml`,'refs/heads/main', inputs)
+  return {
+    isDestroyFailedE2e: true,
+    workflow_id: `e2e-abort-${provider}.yml`,
+    targetRef: 'refs/heads/main',
+    inputs,
+  }
 }
 
 

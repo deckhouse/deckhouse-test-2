@@ -43,7 +43,6 @@ const {
 const {
   buildFailedE2eTestAdditionalInfo
 } = require("./e2e/cleanup");
-const {dispatchPullRequestCommand} = require("./pr-command-dispatcher");
 const {tryParseAbortE2eCluster} = require("./e2e/slash_workflow_command");
 
 /**
@@ -679,8 +678,6 @@ const detectSlashCommand = ({ comment , context, core}) => {
 
   let workflow_id = '';
   let inputs = null;
-
-
 
   // Detect /e2e/run/* commands and /e2e/use/* arguments.
   const isE2E = Object.entries(knownLabels)
