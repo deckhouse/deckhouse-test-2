@@ -53,7 +53,6 @@ git_info:
             // Trigger: workflow_dispatch with pull_request_ref.
             // Extract pull request number from 'refs/pull/<NUM>/merge'
             prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
-            core.debug(`Pull request number ${prNumber}`)
 
             refSlug       = `pr${prNumber}`
             refName       = context.payload.inputs.ci_commit_ref_name
