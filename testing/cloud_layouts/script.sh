@@ -364,6 +364,9 @@ function bootstrap_static() {
     >&2 echo "ERROR: can't parse system_ip from terraform.log"
     return 1
   fi
+  
+  sleep 10
+  exit 1
 
   echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
 
@@ -442,6 +445,9 @@ function bootstrap() {
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
   fi
+  
+  sleep 10
+  exit 1
 
   >&2 echo "==============================================================
 
