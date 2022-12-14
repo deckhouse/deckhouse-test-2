@@ -1,23 +1,6 @@
 const {abortFailedE2eCommand} = require("../constants");
 
 /**
- * Build valid return object
- * @param {string} flag for realease issue logic
- * @param {object} workflow_id - workflow id
- * @param {object} targetRef - workflow target ref
- * @param {object} inputs - target workflow inputs
- * @return {object}
- */
-function buildReturn(flag, workflow_id, targetRef, inputs) {
-  return {
-    [flag]: true,
-    workflow_id,
-    targetRef,
-    inputs,
-  }
-}
-
-/**
  * Try parse e2e abort arguments
  * @param {object} inputs
  * @param {object} inputs.core - A reference to the '@actions/core' package.
