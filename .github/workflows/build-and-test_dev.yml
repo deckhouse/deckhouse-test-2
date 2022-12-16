@@ -272,8 +272,6 @@ jobs:
         uses: actions/github-script@v5.0.0
         with:
           script: |
-            core.debug(`Event: ${context.eventName}`)
-            core.debug(`Inputs: ${JSON.stringify(context.payload.inputs)}`)
             const { GITHUB_REF_TYPE, GITHUB_REF_NAME, GITHUB_REF } = process.env
 
             let refSlug = ''
@@ -287,7 +285,6 @@ jobs:
               // Trigger: workflow_dispatch with pull_request_ref.
               // Extract pull request number from 'refs/pull/<NUM>/merge'
               prNumber = context.payload.inputs.pull_request_ref.replace('refs/pull/', '').replace('/merge', '').replace('/head', '')
-              core.debug(`Pull request number ${prNumber}`)
 
               refSlug       = `pr${prNumber}`
               refName       = context.payload.inputs.ci_commit_ref_name
