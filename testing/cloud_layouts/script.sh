@@ -464,6 +464,9 @@ ENDSSH
   if [[ $initial_setup_failed == "true" ]] ; then
     return 1
   fi
+  
+  sleep 10
+  exit 1
 
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
@@ -536,6 +539,8 @@ function bootstrap() {
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
   --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee -a "$bootstrap_log" || return $?
+  
+  exit 1
 
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
