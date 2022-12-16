@@ -354,19 +354,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -432,7 +421,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -493,8 +482,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -528,64 +515,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "WithoutNAT",
-              "provider": "AWS",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -837,19 +766,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -919,7 +837,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -982,8 +900,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -1017,64 +933,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "Standard",
-              "provider": "Azure",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -1323,19 +1181,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1399,7 +1246,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1459,8 +1306,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -1494,64 +1339,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "WithoutNAT",
-              "provider": "GCP",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -1802,19 +1589,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1882,7 +1658,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1944,8 +1720,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -1979,64 +1753,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "WithoutNAT",
-              "provider": "Yandex.Cloud",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -2285,19 +2001,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2361,7 +2066,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2421,8 +2126,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -2456,64 +2159,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "Standard",
-              "provider": "OpenStack",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -2763,19 +2408,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2841,7 +2475,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2902,8 +2536,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -2937,64 +2569,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "Standard",
-              "provider": "vSphere",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
@@ -3243,19 +2817,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3319,7 +2882,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3379,8 +2942,6 @@ jobs:
             echo Not a directory.
           fi
 
-    # general error alter
-
 
       # <template: send_alert_template>
       - name: Check alerting credentials
@@ -3414,64 +2975,6 @@ jobs:
               "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
               "summary": "Cloud Layout Test failed",
-
-              "plk_link_url/job": "${WORKFLOW_URL}",
-              "plk_protocol_version": "1",
-              "plk_link_title_en/job": "Github job run"
-            }
-          }
-          EOF
-          )
-
-          for (( iter = 1; iter < 60; iter++ )); do
-            if curl -sS -X "POST" "https://madison.flant.com/api/events/custom/${CLOUD_LAYOUT_TESTS_MADISON_KEY}" -H 'Content-Type: application/json' -d "${alertData}"; then
-              exit 0
-            fi
-
-            echo "Alert was not sent. Wait 5 seconds before next attempt"
-            sleep 5
-          done
-
-          echo "Alert was not sent. Timeout"
-          exit 1
-        # </template: send_alert_template>
-
-
-    # alert about cluster was not cleaned correctly
-
-
-      # <template: send_alert_template>
-      - name: Check alerting credentials
-        id: check_alerting
-        if: always()
-        env:
-          KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          if [[ -n $KEY ]]; then echo "::set-output name=has_credentials::true"; fi
-      - name: Send alert on fail
-        if: ${{ steps.check_alerting.outputs.has_credentials == 'true' && (github.ref == 'refs/heads/main' && (cancelled() || failure()) && steps.cleanup-{!{ $ctx.jobID }!}.outcome) }}
-        env:
-          CLOUD_LAYOUT_TESTS_MADISON_KEY: ${{secrets.CLOUD_LAYOUT_TESTS_MADISON_KEY}}
-        run: |
-          WORKFLOW_URL="${{github.server_url}}/${{github.repository}}/actions/runs/${{github.run_id}}"
-          echo $WORKFLOW_URL
-
-          alertData=$(cat <<EOF
-          {
-            "labels": {
-              "cri": "Containerd",
-              "kube_version": "1.21",
-              "layout": "Static",
-              "provider": "Static",
-              "trigger": "CloudLayoutTestClusterNotDestroyed",
-
-              "severity_level": 7
-            },
-            "annotations": {
-              "description": "Check Github workflow log and remove cloud resources",
-              "plk_create_group_if_not_exists/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "plk_grouped_by/cloudlayouttestfailed": "CloudLayoutTestFailedGroup",
-              "summary": "Cloud resources did not clean after e2e run",
 
               "plk_link_url/job": "${WORKFLOW_URL}",
               "plk_protocol_version": "1",
