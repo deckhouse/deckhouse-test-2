@@ -54,6 +54,7 @@
 # <template: e2e_run_template>
 {!{- $provider := index . 0 -}!}
 {!{- $script_arg := index . 1 -}!}
+{!{- $run_from_issue_or_pr := index . 2 -}!}
 {!{- $script := "script.sh" -}!}
 {!{- if eq $provider "aws" }!}
   LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
@@ -95,10 +96,10 @@ run: |
 
   ls -lh $(pwd)/testing
 
-  dhctl_log_file="${DHCTL_LOG_FILE}-{!{ $script_arg }!}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+  dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
   echo "DHCTL log file: $dhctl_log_file"
 
-{!{- if eq $script_arg "run-test" }!}
+{!{- if and (eq $script_arg "run-test") $run_from_issue_or_pr }!}
   echo "Start waiting ssh connection string script"
   comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
   echo "Full comment url for updating ${comment_url}"
@@ -351,7 +352,7 @@ check_e2e_labels:
         INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
         DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
-  {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test") | strings.Indent 6 }!}
+  {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test" (coll.Has $ctx "manualRun") ) | strings.Indent 6 }!}
 
 {!{- if coll.Has $ctx "manualRun" }!}
     - name: Read connection string
@@ -390,7 +391,7 @@ check_e2e_labels:
         PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
         INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
         DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
-  {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
+  {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup" (coll.Has $ctx "manualRun") ) | strings.Indent 6 }!}
 
     - name: Save dhctl state
       id: save_failed_cluster_state
@@ -537,7 +538,7 @@ check_e2e_labels:
         INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-full }}
         DECKHOUSE_IMAGE_TAG: ${{ steps.setup.outputs.deckhouse-image-tag }}
         SSH_MASTER_CONNECTION_STRING: ${{ github.event.inputs.ssh_master_connection_string }}
-  {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup") | strings.Indent 6 }!}
+  {!{- tmpl.Exec "e2e_run_template" (slice .provider "cleanup" (coll.Has $ctx "manualRun") ) | strings.Indent 6 }!}
 
     - name: Remove failed cluster label
       if: ${{ success() }}

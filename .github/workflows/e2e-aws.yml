@@ -436,7 +436,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -533,7 +533,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -865,7 +865,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -962,7 +962,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1294,7 +1294,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -1391,7 +1391,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1723,7 +1723,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -1820,7 +1820,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2152,7 +2152,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -2249,7 +2249,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2581,7 +2581,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -2678,7 +2678,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3010,7 +3010,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -3107,7 +3107,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3439,7 +3439,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -3536,7 +3536,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3868,7 +3868,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -3965,7 +3965,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -4297,7 +4297,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
           echo "Start waiting ssh connection string script"
           comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
@@ -4394,7 +4394,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \

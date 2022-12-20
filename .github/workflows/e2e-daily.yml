@@ -354,19 +354,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -432,7 +421,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -837,19 +826,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -919,7 +897,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1323,19 +1301,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1399,7 +1366,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -1802,19 +1769,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1882,7 +1838,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2285,19 +2241,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2361,7 +2306,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -2763,19 +2708,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2841,7 +2775,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
@@ -3243,19 +3177,8 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-run-test-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
-          echo "Start waiting ssh connection string script"
-          comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-          echo "Full comment url for updating ${comment_url}"
-
-          ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo '::echo::on'
-          echo "::set-output name=ssh_connection_str_file::${ssh_connect_str_file}"
-          echo '::echo::off'
-
-          $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -3319,7 +3242,7 @@ jobs:
 
           ls -lh $(pwd)/testing
 
-          dhctl_log_file="${DHCTL_LOG_FILE}-cleanup-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
+          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
           echo "DHCTL log file: $dhctl_log_file"
 
           docker run --rm \
