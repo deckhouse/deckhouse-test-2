@@ -395,6 +395,9 @@ function bootstrap_static() {
   fi
 
   echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
+  
+  sleep 10
+  exit 1
 
   # Add key to access to hosts thru bastion
   eval "$(ssh-agent -s)"
@@ -536,6 +539,9 @@ function bootstrap() {
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
   --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee -a "$bootstrap_log" || return $?
+  
+  sleep 10
+  exit 1
 
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
