@@ -101,9 +101,6 @@ ssh_private_key_path=
 ssh_user=
 # IP of master node.
 master_ip=
-# bootstrap log
-bootstrap_log="${DHCTL_LOG_FILE}"
-terraform_state_file="/tmp/static-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}.tfstate"
 
 # function generates temp ssh parameters file
 function set_common_ssh_parameters() {
@@ -152,11 +149,10 @@ function destroy_cluster() {
 }
 
 function destroy_static_infra() {
-  >&2 echo "Run destroy_static_infra from ${terraform_state_file}"
+  >&2 echo "Run destroy_static_infra"
 
   pushd "$cwd"
-  terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
-  terraform destroy -state="${terraform_state_file}" -input=false -auto-approve || exitCode=$?
+  terraform destroy -input=false -auto-approve || exitCode=$?
   popd
 
   return $exitCode
@@ -169,33 +165,18 @@ function cleanup() {
     return $exitCode
   fi
 
-  master_ip="$MASTER_CONNECTION_STRING"
-  if [[ -n "$MASTER_CONNECTION_STRING" ]]; then
-    arrConn=(${MASTER_CONNECTION_STRING//@/ })
-    master_ip="${arrConn[1]}"
-    if [[ -n "${arrConn[0]}" ]]; then
-      ssh_user="${arrConn[0]}"
-    fi
-  fi
-
-  if [[ -z "$master_ip" ]]; then
-      # Check if 'dhctl bootstrap' was not started.
-      if [[ ! -f "$bootstrap_log" ]] ; then
-        >&2 echo "Run cleanup ... no bootstrap.log, no need to cleanup."
-        return 0
-      fi
-
-      if ! master_ip="$(parse_master_ip_from_log)" ; then
-        master_ip=""
-      fi
+  # Check if 'dhctl bootstrap' was not started.
+  if [[ ! -f "$cwd/bootstrap.log" ]] ; then
+    >&2 echo "Run cleanup ... no bootstrap.log, no need to cleanup."
+    return 0
   fi
 
   >&2 echo "Run cleanup ..."
-  if [[ -z "$master_ip" ]] ; then
+  if ! master_ip="$(parse_master_ip_from_log)" ; then
     >&2 echo "No master IP: try to abort without cache, then abort from cache"
     abort_bootstrap || abort_bootstrap_from_cache
   else
-    >&2 echo "Master IP is '${master_ip}', user is '${ssh_user}': try to destroy cluster, then abort from cache"
+    >&2 echo "Master IP is '${master_ip}': try to destroy cluster, then abort from cache"
     destroy_cluster || abort_bootstrap_from_cache
   fi
 }
@@ -215,10 +196,6 @@ function prepare_environment() {
   if [[ ! -d "$cwd" ]]; then
     >&2 echo "There is no '${LAYOUT}' layout configuration for '${PROVIDER}' provider by path: $cwd"
     return 1
-  fi
-
-  if [ -z "$bootstrap_log" ]; then
-    bootstrap_log="$cwd/bootstrap.log"
   fi
 
   ssh_private_key_path="$cwd/sshkey"
@@ -278,8 +255,6 @@ function prepare_environment() {
         KUBERNETES_VERSION="$KUBERNETES_VERSION" CRI="$CRI" DEV_BRANCH="$DEV_BRANCH" PREFIX="$PREFIX" DECKHOUSE_DOCKERCFG="$DECKHOUSE_DOCKERCFG" IMAGE_ID="$IMAGE_ID" \
         envsubst '${DECKHOUSE_DOCKERCFG} ${PREFIX} ${DEV_BRANCH} ${KUBERNETES_VERSION} ${CRI} ${CLOUD_ID} ${FOLDER_ID} ${SERVICE_ACCOUNT_JSON} ${IMAGE_ID}' \
         <"$cwd/configuration.tpl.yaml" >"$cwd/configuration.yaml"
-
-    ssh_user="ubuntu" # was "cloud-user" for redos
     ;;
 
   "GCP")
@@ -349,8 +324,6 @@ function prepare_environment() {
     ;;
   esac
 
-  echo -e "\nmaster_user_name_for_ssh = $ssh_user\n" >> "$bootstrap_log"
-
   set_common_ssh_parameters
 
   >&2 echo "Use configuration in directory '$cwd':"
@@ -378,7 +351,7 @@ function bootstrap_static() {
   >&2 echo "Run terraform to create nodes for Static cluster ..."
   pushd "$cwd"
   terraform init -input=false -plugin-dir=/usr/local/share/terraform/plugins || return $?
-  terraform apply -state="${terraform_state_file}" -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
+  terraform apply -auto-approve -no-color | tee "$cwd/terraform.log" || return $?
   popd
 
   if ! master_ip="$(grep "master_ip_address_for_ssh" "$cwd/terraform.log"| cut -d "=" -f2 | tr -d " ")" ; then
@@ -393,8 +366,6 @@ function bootstrap_static() {
     >&2 echo "ERROR: can't parse bastion_ip from terraform.log"
     return 1
   fi
-
-  echo -e "\nmaster_ip_address_for_ssh = $master_ip\n" >> "$bootstrap_log"
 
   # Add key to access to hosts thru bastion
   eval "$(ssh-agent -s)"
@@ -468,7 +439,7 @@ ENDSSH
   # Bootstrap
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-bastion-host "$bastion_ip" --ssh-bastion-user="$ssh_user" --ssh-host "$master_ip" --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
-  --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee -a "$bootstrap_log" || return $?
+  --config "$cwd/configuration.yaml" --resources "$cwd/resources.yaml" | tee "$cwd/bootstrap.log" || return $?
 
   >&2 echo "==============================================================
 
@@ -535,7 +506,7 @@ ENDSSH
 function bootstrap() {
   >&2 echo "Run dhctl bootstrap ..."
   dhctl bootstrap --yes-i-want-to-drop-cache --ssh-agent-private-keys "$ssh_private_key_path" --ssh-user "$ssh_user" \
-  --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee -a "$bootstrap_log" || return $?
+  --resources "$cwd/resources.yaml" --config "$cwd/configuration.yaml" | tee "$cwd/bootstrap.log" || return $?
 
   if ! master_ip="$(parse_master_ip_from_log)"; then
     return 1
@@ -596,28 +567,6 @@ ENDSSH
     >&2 echo "Cannot change deckhouse image to ${new_image_tag}."
     return 1
   fi
-
-  # TODO remove after full migration to ModuleConfig (after 1.42).
-  # Catch deckhouse logs between restarts during switching and migration to ModuleConfig.
-  capture_logs_during_switching &
-}
-
-function capture_logs_during_switching() {
-  # Use for-loop to catch logs between restarts.
-  >&2 echo "Fetch Deckhouse logs during release switch ..."
-  catchLogsScript=$(cat <<'END_SCRIPT'
-  for i in $(seq 1 1000) ; do
-    echo '{"msg":"=================================================="}'
-    echo '{"msg":"Get deckhouse logs attempt '$i' of 1000"}'
-    echo '{"msg":"=================================================="}'
-    kubectl -n d8-system logs deploy/deckhouse
-    echo '{"msg":"<<<<<<<=================================>>>>>>>>>>"}'
-    echo
-    sleep 0.2;
-  done
-END_SCRIPT
-)
-  $ssh_command -i "$ssh_private_key_path" $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<"${catchLogsScript}" > "$cwd/deckhouse-release-switch.json.log"
 }
 
 # wait_deckhouse_ready check if deckhouse Pod become ready.
@@ -874,7 +823,7 @@ END_SCRIPT
 
 function parse_master_ip_from_log() {
   >&2 echo "  Detect master_ip from bootstrap.log ..."
-  if ! master_ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$bootstrap_log")"; then
+  if ! master_ip="$(grep -Po '(?<=master_ip_address_for_ssh = ).+$' "$cwd/bootstrap.log")"; then
     >&2 echo "    ERROR: can't parse master_ip from bootstrap.log"
     return 1
   fi
