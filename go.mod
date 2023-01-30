@@ -19,7 +19,7 @@ require (
 	github.com/go-openapi/spec v0.19.8
 	github.com/gojuno/minimock/v3 v3.0.8
 	github.com/golang/protobuf v1.5.2
-	github.com/google/go-cmp v0.5.8
+	github.com/google/go-cmp v0.5.9
 	github.com/google/go-containerregistry v0.5.1
 	github.com/google/uuid v1.2.0
 	github.com/gophercloud/gophercloud v0.20.0
