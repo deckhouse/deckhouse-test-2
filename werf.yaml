@@ -553,7 +553,7 @@ docker:
     TF_CLI_CONFIG_FILE: /etc/terraformrc
 shell:
   beforeInstall:
-  - "apk update && apk add openssh-client gettext bash bash-completion coreutils util-linux sed gawk grep ca-certificates vim"
+  - "apk update && apk add openssh-client gettext bash bash-completion coreutils util-linux sed gawk grep ca-certificates vim git"
   - "rm -rf /var/cache/apk/*"
   setup:
   - |
