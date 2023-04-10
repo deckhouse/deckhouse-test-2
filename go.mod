@@ -29,7 +29,7 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/kyokomi/emoji v2.1.0+incompatible
 	github.com/mitchellh/hashstructure/v2 v2.0.2
-	github.com/mitchellh/mapstructure v1.4.1
+	github.com/mitchellh/mapstructure v1.4.1 // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826
 	github.com/onsi/ginkgo v1.16.5
 	github.com/onsi/gomega v1.20.2
@@ -56,7 +56,7 @@ require (
 	k8s.io/client-go v0.25.5
 	k8s.io/utils v0.0.0-20220728103510-ee6ede2d64ed
 	kubevirt.io/api v0.58.0
-	kubevirt.io/containerized-data-importer-api v1.55.2
+	kubevirt.io/containerized-data-importer-api v1.56.0
 	sigs.k8s.io/controller-runtime v0.8.3
 	sigs.k8s.io/yaml v1.3.0
 )
