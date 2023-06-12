@@ -26,7 +26,7 @@ require (
 	github.com/gophercloud/utils v0.0.0-20230418172808-6eab72e966e1
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
-	github.com/imdario/mergo v0.3.15
+	github.com/imdario/mergo v0.3.16
 	github.com/kyokomi/emoji v2.1.0+incompatible
 	github.com/mitchellh/hashstructure/v2 v2.0.2
 	github.com/mitchellh/mapstructure v1.4.1 // indirect
