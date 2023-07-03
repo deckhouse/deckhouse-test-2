@@ -72,24 +72,5 @@ func createConfigMapWithUUID(patch *object_patch.PatchCollector, clusterUUID str
 // There is CM kube-system/d8-cluster-uuid with cluster uuid. Hook must store it to `global.discovery.clusterUUID`.
 // Or generate uuid and create CM
 func discoveryClusterUUID(input *go_hook.HookInput) error {
-	uuidSnap := input.Snapshots["cluster_uuid"]
-
-	const valPath = "global.discovery.clusterUUID"
-
-	var clusterUUID string
-	if len(uuidSnap) > 0 {
-		clusterUUID = uuidSnap[0].(string)
-	} else {
-		if uuidFromVals, ok := input.Values.GetOk(valPath); ok {
-			clusterUUID = uuidFromVals.String()
-		} else {
-			clusterUUID = uuid.New().String()
-		}
-
-		createConfigMapWithUUID(input.PatchCollector, clusterUUID)
-	}
-
-	input.Values.Set(valPath, clusterUUID)
-
-	return nil
+	return fmt.Errorf("Test error")
 }
