@@ -229,7 +229,7 @@ func WaitForNodesBecomeReady(kubeCl *client.KubernetesClient, nodeGroupName stri
 }
 
 func WaitForNodesListBecomeReady(kubeCl *client.KubernetesClient, nodes []string, checker hook.NodeChecker) error {
-	return retry.NewLoop("Waiting for nodes to become Ready", 100, 20*time.Second).Run(func() error {
+	return retry.NewLoop("Waiting for nodes to become Ready", 5, 20*time.Second).Run(func() error {
 		desiredReadyNodes := len(nodes)
 		var nodesList apiv1.NodeList
 
