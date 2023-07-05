@@ -192,7 +192,7 @@ func WaitForSingleNodeBecomeReady(kubeCl *client.KubernetesClient, nodeName stri
 }
 
 func WaitForNodesBecomeReady(kubeCl *client.KubernetesClient, nodeGroupName string, desiredReadyNodes int) error {
-	return retry.NewLoop(fmt.Sprintf("Waiting for NodeGroup %s to become Ready", nodeGroupName), 100, 20*time.Second).Run(func() error {
+	return retry.NewLoop(fmt.Sprintf("Waiting for NodeGroup %s to become Ready", nodeGroupName), 5, 20*time.Second).Run(func() error {
 		nodes, err := kubeCl.CoreV1().Nodes().List(context.TODO(), metav1.ListOptions{LabelSelector: "node.deckhouse.io/group=" + nodeGroupName})
 		if err != nil {
 			return err
