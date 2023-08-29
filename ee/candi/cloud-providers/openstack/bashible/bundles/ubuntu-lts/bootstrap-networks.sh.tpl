@@ -8,15 +8,11 @@ shopt -s extglob
 function is_ip_in_cidr() {
   ip="$1"
   IFS="/" read net_address net_prefix <<< "$2"
-
   IFS=. read -r a b c d <<< "$ip"
   ip_dec="$((a * 256 ** 3 + b * 256 ** 2 + c * 256 + d))"
-
   IFS=. read -r a b c d <<< "$net_address"
   net_address_dec="$((a * 256 ** 3 + b * 256 ** 2 + c * 256 + d))"
-
   netmask=$(((0xFFFFFFFF << (32 - net_prefix)) & 0xFFFFFFFF))
-
   test $((netmask & ip_dec)) -eq $((netmask & net_address_dec))
 }
 
