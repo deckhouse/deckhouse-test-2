@@ -6,6 +6,8 @@ set -x
 */}}
 shopt -s extglob
 
+cp $BOOTSTRAP_DIR/cloud-provider-bootstrap-networks.sh /root/
+
 function is_ip_in_cidr() {
   ip="$1"
   IFS="/" read net_address net_prefix <<< "$2"
