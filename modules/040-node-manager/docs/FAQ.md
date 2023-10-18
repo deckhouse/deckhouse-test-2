@@ -49,17 +49,25 @@ You can automate the bootstrap process with any automation platform you prefer. 
 1. Pick up one of Kubernetes API Server endpoints. Note that this IP must be accessible from nodes that are being added to the cluster:
 
    ```shell
-   kubectl get ep kubernetes -o json | jq '.subsets[0].addresses[0].ip + ":" + (.subsets[0].ports[0].port | tostring)' -r
+   kubectl -n default get ep kubernetes -o json | jq '.subsets[0].addresses[0].ip + ":" + (.subsets[0].ports[0].port | tostring)' -r
    ```
 
-2. Get Kubernetes API token for special `ServiceAccount` that Deckhouse manages:
+   Check the K8s version. If the version >= 1.25, create `node-group` token:
+
+   ```shell
+   kubectl create token node-group --namespace d8-cloud-instance-manager --duration 1h
+   ```
+
+   Save the token you got and add it to the `token:` field of the Ansible playbook in the next steps.
+
+1. Get Kubernetes API token for special `ServiceAccount` that Deckhouse manages:
 
    ```shell
    kubectl -n d8-cloud-instance-manager get $(kubectl -n d8-cloud-instance-manager get secret -o name | grep node-group-token) \
      -o json | jq '.data.token' -r | base64 -d && echo ""
    ```
 
-3. Create Ansible playbook with `vars` replaced with values from previous steps:
+1. Create Ansible playbook with `vars` replaced with values from previous steps:
 
    ```yaml
    - hosts: all
@@ -97,7 +105,7 @@ You can automate the bootstrap process with any automation platform you prefer. 
          when: bootstrapped.stat.exists == False
    ```
 
-4. Specify one more `node_group` variable. This variable must be the same as the name of `NodeGroup` to which node will belong. Variable can be passed in different ways, for example, by using an inventory file.:
+1. Specify one more `node_group` variable. This variable must be the same as the name of `NodeGroup` to which node will belong. Variable can be passed in different ways, for example, by using an inventory file.:
 
    ```text
    [system]
@@ -115,7 +123,7 @@ You can automate the bootstrap process with any automation platform you prefer. 
    node_group=worker
    ```
 
-5. Run the playbook with the inventory file.
+1. Run the playbook with the inventory file.
 
 ## How do I change the NodeGroup of a static node?
 
@@ -153,7 +161,7 @@ This is only needed if you have to move a static node from one cluster to anothe
    ```
 
 1. Run cleanup script on the node:
-  
+
    ```shell
    bash /var/lib/bashible/cleanup_static_node.sh --yes-i-am-sane-and-i-understand-what-i-am-doing
    ```

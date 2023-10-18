@@ -280,7 +280,7 @@ spec:
             host: app-svc
 ```
 
-### Nginx Ingress
+### NGINX Ingress
 
 To use Ingress, you need to:
 * Configure the Ingress controller by adding Istio sidecar to it. In our case, you need to enable the `enableIstioSidecar` parameter in the [ingress-nginx](../../modules/402-ingress-nginx/) module's [IngressNginxController](../../modules/402-ingress-nginx/cr.html#ingressnginxcontroller) custom resource.
@@ -527,7 +527,7 @@ spec:
        principals: ["foo.local/*", "bar.local/*"]
 ```
 
-### Allow from any cluster (via mtls)
+### Allow from any cluster (via mTLS)
 
 > **Caution!** The denying rules (if they exist) have priority over any other rules. See the [algorithm](#decision-making-algorithm).
 
@@ -544,7 +544,7 @@ spec:
  rules:
  - from:
    - source:
-       principals: ["*"] # To force the MTLS usage.
+       principals: ["*"] # To force the mTLS usage.
 ```
 
 ### Allow all requests from anywhere (including no mTLS - plain text traffic)

@@ -44,7 +44,7 @@ const (
   modules:
     placement: {}
   discovery:
-    kubernetesVersion: 1.23.5
+    kubernetesVersion: 1.24.5
     d8SpecificNodeCountByRole:
       worker: 3
       master: 3
@@ -104,10 +104,6 @@ var _ = Describe("Module :: chrony :: helm template ::", func() {
           {
             "name": "NTP_SERVERS",
             "value": "pool.ntp.org. ntp.ubuntu.com."
-          },
-          {
-            "name": "POD_SUBNET",
-            "value": "10.111.0.0/16"
           }
         ]
 `))

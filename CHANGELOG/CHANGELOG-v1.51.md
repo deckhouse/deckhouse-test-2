@@ -66,6 +66,7 @@
  - **[flant-integration]** Take values from the `clusterConfiguration` parameter instead of the global parameter. [#5681](https://github.com/deckhouse/deckhouse/pull/5681)
  - **[flant-integration]** Change `sum` to `avg` in `controller_metrics` hook and refactor utils. [#5517](https://github.com/deckhouse/deckhouse/pull/5517)
  - **[global-hooks]** Fix orphaned endpointslice deletion. [#5912](https://github.com/deckhouse/deckhouse/pull/5912)
+ - **[ingress-nginx]** Add postpone updates for the main controller with `HostWithFailover` inlet. [#6015](https://github.com/deckhouse/deckhouse/pull/6015)
  - **[ingress-nginx]** Fix bug with absent auth cookie, which leads to logout users sometimes from web pages with authorization. [#5978](https://github.com/deckhouse/deckhouse/pull/5978)
     Ingress controller 1.6 will restart.
  - **[loki]** Fixed a volume mount init container. [#5941](https://github.com/deckhouse/deckhouse/pull/5941)
@@ -73,6 +74,7 @@
  - **[monitoring-kubernetes]** Revert `node-exporter` `kube-rbac-proxy` liveness probe. [#5642](https://github.com/deckhouse/deckhouse/pull/5642)
  - **[operator-trivy]** Fix constant creation and deletion of node-collector pods. [#5688](https://github.com/deckhouse/deckhouse/pull/5688)
  - **[operator-trivy]** Fix handling empty list in operator trivy deployment in `OPERATOR_TARGET_NAMESPACES` env (set `default` value). [#5662](https://github.com/deckhouse/deckhouse/pull/5662)
+ - **[prometheus]** Fix `fix-permissions` init container to run under *kesl* security. [#6091](https://github.com/deckhouse/deckhouse/pull/6091)
  - **[prometheus]** Switch Grafana to using the Ubuntu container. [#5962](https://github.com/deckhouse/deckhouse/pull/5962)
     Grafana will restart.
  - **[prometheus]** Fixed permissions for existing files after changing GID and UID. [#5847](https://github.com/deckhouse/deckhouse/pull/5847)

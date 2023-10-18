@@ -220,7 +220,7 @@ spec:
 
 {% endraw %}
 
-After the DexClient CR is created, Dex will register a client with a `dex-client-myname@mynamespace` ID (**clientID**).
+After the `DexClient` custom resource is created, Dex will register a client with a `dex-client-myname@mynamespace` ID (**clientID**).
 
 The client access password (**clientSecret**) will be stored in the secret object:
 {% raw %}
@@ -240,6 +240,16 @@ data:
 
 ## An example of creating a static user
 
+Create a password and enter its hash in the `password` field.
+
+Use the command below to calculate the password hash:
+
+```shell
+echo "$password" | htpasswd -inBC 10 "" | tr -d ':\n' | sed 's/$2y/$2a/'
+```
+
+Alternatively, you can use the [online service](https://bcrypt-generator.com/) to calculate the password hash.
+
 {% raw %}
 
 ```yaml
@@ -250,7 +260,6 @@ metadata:
 spec:
   email: admin@yourcompany.com
   password: $2a$10$etblbZ9yfZaKgbvysf1qguW3WULdMnxwWFrkoKpRH1yeWa5etjjAa
-  userID: some-unique-user-id
   groups:
   - Everyone
   - admins

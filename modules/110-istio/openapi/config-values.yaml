@@ -3,7 +3,7 @@ type: object
 properties:
   globalVersion:
     type: string
-    description: Specific version of Istio control-plane which handles unspecific versions of data-plane (namespaces with `istio-injection=enabled` label, not `istio.io/rev=`). Must be in supported versions list (`kubectl -n d8-system exec deploy/deckhouse -- deckhouse-controller module values istio -o json | jq '.istio.internal.supportedVersions'`). By default — the latest version in supported versions list.
+    description: Specific version of Istio control-plane which handles unspecific versions of data plane (namespaces with `istio-injection=enabled` label, not `istio.io/rev=`). Must be in supported versions list (`kubectl -n d8-system exec deploy/deckhouse -- deckhouse-controller module values istio -o json | jq '.istio.internal.supportedVersions'`). By default — the latest version in supported versions list.
     examples: ["1.12"]
     default: "1.16"
   additionalVersions:
@@ -22,7 +22,7 @@ properties:
     description: |
       How to handle requests directed to external services which aren't registered in service mesh.
       - `AllowAny` — allow.
-      - `RegistryOnly` — deny. In this case to work with external services you need to register them with ServiceEntry CR or to organize egressgateway.
+      - `RegistryOnly` — deny. In this case to work with external services you need to register them with ServiceEntry custom resource or to organize egressgateway.
     default: AllowAny
   enableHTTP10:
     type: boolean
@@ -137,7 +137,7 @@ properties:
     properties:
       enabled:
         type: boolean
-        description: Turn on or off tracing collection and displaying in kiali.
+        description: Turn on or off tracing collection and displaying in Kiali.
         default: false
         x-examples: [true]
       sampling:
@@ -180,21 +180,21 @@ properties:
       kiali:
         type: object
         description: |
-          Span displaying settings for kiali.
+          Span displaying settings for Kiali.
 
-          When not configured, kiali won't show any tracing dashboards.
+          When not configured, Kiali won't show any tracing dashboards.
         default: {}
         properties:
           jaegerURLForUsers:
             type: string
-            description: Jaeger UI address for users. Mandatory parameter if kiali is enabled.
+            description: Jaeger UI address for users. Mandatory parameter if Kiali is enabled.
             example: "https://tracing-service:4443/jaeger"
           jaegerGRPCEndpoint:
             type: string
             description: |
-              Accessible from cluster address of jaeger GRPC interface for system queries by kiali.
+              Accessible from cluster address of jaeger GRPC interface for system queries by Kiali.
 
-              When not configured, kiali will only show external links using the `jaegerURLForUsers` config without interpretationing.
+              When not configured, Kiali will only show external links using the `jaegerURLForUsers` config without interpretationing.
             example: "http://tracing.myjaeger.svc:16685/"
         x-examples:
         - {}
@@ -534,13 +534,13 @@ properties:
     additionalProperties:
       type: string
     description: |
-      Optional `nodeSelector` for istio-operator, metadata-exporter and kiali. The same as the `spec.nodeSelector` pod parameter in Kubernetes.
+      Optional `nodeSelector` for istio-operator, metadata-exporter and Kiali. The same as the `spec.nodeSelector` pod parameter in Kubernetes.
 
       If the parameter is omitted or `false`, it will be determined [automatically](https://deckhouse.io/documentation/v1/#advanced-scheduling).
   tolerations:
     type: array
     description: |
-      Optional `tolerations` for istio-operator, metadata-exporter and kiali. The same as `spec.tolerations` for the Kubernetes pod.
+      Optional `tolerations` for istio-operator, metadata-exporter and Kiali. The same as `spec.tolerations` for the Kubernetes pod.
 
       If the parameter is omitted or `false`, it will be determined [automatically](https://deckhouse.io/documentation/v1/#advanced-scheduling).
     items:
@@ -627,7 +627,7 @@ properties:
       externalAuthentication:
         type: object
         description: |
-          Parameters to enable external authentication based on the Nginx Ingress [external-auth](https://kubernetes.github.io/ingress-nginx/examples/auth/external-auth/) mechanism that uses the Nginx [auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html) module.
+          Parameters to enable external authentication based on the NGINX Ingress [external-auth](https://kubernetes.github.io/ingress-nginx/examples/auth/external-auth/) mechanism that uses the Nginx [auth_request](http://nginx.org/en/docs/http/ngx_http_auth_request_module.html) module.
 
           > External authentication is enabled automatically if the [user-authn](https://deckhouse.io/documentation/v1/modules/150-user-authn/) module is enabled.
         properties:
