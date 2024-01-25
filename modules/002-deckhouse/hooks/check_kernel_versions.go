@@ -17,7 +17,7 @@ limitations under the License.
 /*
 This hook checks nodes kernel requirements and set internal flag stopMainQueue.
 This flag used in another hook, stop_main_queue.go, which stops main queue if flag is true.
-We cannot stop queue in this hook, because we loose metrics if hook fails.
+We cannot stop queue in this hook, because we loose metrics if hook fails..
 */
 
 package hooks
