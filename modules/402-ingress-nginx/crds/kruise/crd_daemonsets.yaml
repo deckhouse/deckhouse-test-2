@@ -77,6 +77,10 @@ spec:
             spec:
               description: DaemonSetSpec defines the desired state of DaemonSet
               properties:
+                replicas:
+                  type: integer
+                  description: Replicas value equals to the number of desired pods and is set by the controller for compatibility with PDB requirements.
+                  default: 1
                 burstReplicas:
                   anyOf:
                     - type: integer
@@ -419,6 +423,9 @@ spec:
       storage: true
       subresources:
         status: {}
+        scale:
+          specReplicasPath: .spec.replicas
+          statusReplicasPath: .status.numberAvailable
 status:
   acceptedNames:
     kind: ""

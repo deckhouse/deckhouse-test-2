@@ -44,7 +44,7 @@ spec:
                       **Caution!** since `ClusterAdmin` can edit `ClusterRoleBindings`, he can broader his privileges within the cluster;
                     * `SuperAdmin` — can perform any actions with any objects (note that `limitNamespaces` (see below) restrictions remain valid).
                   enum: [User,PrivilegedUser,Editor,Admin,ClusterEditor,ClusterAdmin,SuperAdmin]
-                  example: 'PrivilegedUser'
+                  x-doc-examples: ['PrivilegedUser']
                 portForwarding:
                   type: boolean
                   default: false
@@ -80,7 +80,7 @@ spec:
 
                     Deprecated. Use the [namespaceSelector](cr.html#clusterauthorizationrule-v1-spec-namespaceselector) parameter (API version `v1` of the CR) instead.
                   x-doc-d8Revision: ee
-                  example: ['production-.*']
+                  x-doc-examples: ['production-.*']
                   items:
                     type: string
                     minLength: 1
@@ -104,11 +104,11 @@ spec:
                         type: string
                         enum: [User, Group, ServiceAccount]
                         description: 'Type of user identification resource.'
-                        example: 'Group'
+                        x-doc-examples: ['Group']
                       name:
                         type: string
                         description: 'Resource name.'
-                        example: 'some-group-name'
+                        x-doc-examples: ['some-group-name']
                       namespace:
                         type: string
                         minLength: 1
@@ -122,16 +122,13 @@ spec:
 
                     This parameter is reserved for emergencies. Please, use the `accessLevel` parameter instead.
 
-                  x-doc-example: |
-                    ```yaml
-                    additionalRoles:
-                    - apiGroup: rbac.authorization.k8s.io
+                  x-doc-examples:
+                  - - apiGroup: rbac.authorization.k8s.io
                       kind: ClusterRole
                       name: cluster-write-all
                     - apiGroup: rbac.authorization.k8s.io
                       kind: ClusterRole
                       name: cluster-read-all
-                    ```
                   items:
                     type: object
                     required:
@@ -142,18 +139,18 @@ spec:
                       apiGroup:
                         type: string
                         description: 'apiGroup for users.'
-                        example: 'rbac.authorization.k8s.io'
+                        x-doc-examples: ['rbac.authorization.k8s.io']
                         minLength: 1
                       kind:
                         type: string
                         description: 'Kind of the role.'
                         enum: [ClusterRole]
-                        example: 'ClusterRole'
+                        x-doc-examples: ['ClusterRole']
                       name:
                         type: string
                         description: 'Name of the role.'
                         minLength: 1
-                        example: 'cluster-admin'
+                        x-doc-examples: ['cluster-admin']
     - name: v1
       served: true
       storage: true
@@ -162,6 +159,8 @@ spec:
           type: object
           description: |
             This object manages RBAC and namespace-based authorization.
+
+            The settings determine which access level is assigned to the user and/or group.
           required:
           - spec
           properties:
@@ -184,7 +183,7 @@ spec:
                       **Caution!** since `ClusterAdmin` can edit `ClusterRoleBindings`, he can broader his privileges within the cluster;
                     * `SuperAdmin` — can perform any actions with any objects (note that `limitNamespaces` and `namespaceSelector` (see below) restrictions remain valid).
                   enum: [User,PrivilegedUser,Editor,Admin,ClusterEditor,ClusterAdmin,SuperAdmin]
-                  example: 'PrivilegedUser'
+                  x-doc-examples: ['PrivilegedUser']
                 portForwarding:
                   type: boolean
                   default: false
@@ -215,6 +214,7 @@ spec:
                     If the `namespaceSelector` parameter is not specified, then the set of available namespaces is determined by the value of the `limitNamespaces` and `allowAccessToSystemNamespaces` parameters. If none of the parameters `namespaceSelector`, `limitNamespaces` and `allowAccessToSystemNamespaces` are specified, then all namespaces will be available, except for the system ones (`kube-*`, `d8-*`, `loghouse`, `default`).
 
                     Is available **only** if the [enableMultiTenancy](configuration.html#parameters-enablemultitenancy) parameter is enabled.
+                  x-doc-d8Revision: ee
                   type: object
                   oneOf:
                     - required: ["labelSelector"]
@@ -229,6 +229,7 @@ spec:
                         Since `labelSelector` provides access to a limited number of the namespaces that match it, `matchAny` is needed in cases where access to all namespaces is to be granted.
                       type: boolean
                       enum: [true]
+                      x-doc-d8Revision: ee
                     labelSelector:
                       description: |
                         Defines the label selector-based filter of the namespaces.
@@ -239,26 +240,53 @@ spec:
                         If multiple `matchExpression` conditions are provided, they all must be satisfied in order to match.
                       type: object
                       minProperties: 1
+                      x-doc-d8Revision: ee
                       properties:
                         matchExpressions:
                           type: array
                           description: An array of set-based expressions.
+                          x-doc-d8Revision: ee
+                          x-doc-examples:
+                            - - key: tier
+                                operator: In
+                                values:
+                                  - production
+                                  - staging
+                              - key: tier
+                                operator: NotIn
+                                values: [production]
                           items:
+                            oneOf:
+                              - properties:
+                                  operator:
+                                    enum: [ Exists, DoesNotExist ]
+                                required: [ key, operator ]
+                                not:
+                                  required: [ values ]
+                              - properties:
+                                  operator:
+                                    enum: [ In, NotIn ]
+                                required: [ key, operator, values ]
                             type: object
-                            required:
-                              - key
-                              - operator
                             properties:
                               key:
                                 description: A label name.
                                 type: string
+                                x-doc-d8Revision: ee
                               operator:
                                 description: A comparison operator.
                                 type: string
                                 enum: [In,NotIn,Exists,DoesNotExist]
+                                x-doc-d8Revision: ee
+                                enum:
+                                  - In
+                                  - NotIn
+                                  - Exists
+                                  - DoesNotExist
                               values:
-                                type: array
                                 description: A label value.
+                                x-doc-d8Revision: ee
+                                type: array
                                 items:
                                   type: string
                                   pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?'
@@ -267,7 +295,8 @@ spec:
                         matchLabels:
                           type: object
                           description: A set of labels a namespace must have to match.
-                          example: { "foo": "bar", "baz": "who" }
+                          x-doc-examples: [{ "foo": "bar", "baz": "who" }]
+                          x-doc-d8Revision: ee
                           additionalProperties:
                             type: string
                             pattern: '[a-z0-9]([-a-z0-9]*[a-z0-9])?'
@@ -287,7 +316,7 @@ spec:
 
                     Deprecated. Use the [namespaceSelector](#clusterauthorizationrule-v1-spec-namespaceselector) field instead.
                   x-doc-d8Revision: ee
-                  example: ['production-.*']
+                  x-doc-examples: ['production-.*']
                   items:
                     type: string
                     minLength: 1
@@ -311,11 +340,11 @@ spec:
                         type: string
                         enum: [User, Group, ServiceAccount]
                         description: 'Type of user identification resource.'
-                        example: 'Group'
+                        x-doc-examples: ['Group']
                       name:
                         type: string
                         description: 'Resource name.'
-                        example: 'some-group-name'
+                        x-doc-examples: ['some-group-name']
                       namespace:
                         type: string
                         minLength: 1
@@ -329,16 +358,13 @@ spec:
 
                     This parameter is reserved for emergencies. Please, use the `accessLevel` parameter instead.
 
-                  x-doc-example: |
-                    ```yaml
-                    additionalRoles:
-                    - apiGroup: rbac.authorization.k8s.io
+                  x-doc-examples:
+                  - - apiGroup: rbac.authorization.k8s.io
                       kind: ClusterRole
                       name: cluster-write-all
                     - apiGroup: rbac.authorization.k8s.io
                       kind: ClusterRole
                       name: cluster-read-all
-                    ```
                   items:
                     type: object
                     required:
@@ -349,15 +375,15 @@ spec:
                       apiGroup:
                         type: string
                         description: 'apiGroup for users.'
-                        example: 'rbac.authorization.k8s.io'
+                        x-doc-examples: ['rbac.authorization.k8s.io']
                         minLength: 1
                       kind:
                         type: string
                         description: 'Kind of the role.'
                         enum: [ClusterRole]
-                        example: 'ClusterRole'
+                        x-doc-examples: ['ClusterRole']
                       name:
                         type: string
                         description: 'Name of the role.'
                         minLength: 1
-                        example: 'cluster-admin'
+                        x-doc-examples: ['cluster-admin']

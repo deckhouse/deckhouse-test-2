@@ -66,6 +66,14 @@ rules:
 - apiGroups:
     - deckhouse.io
   resources:
+    - nodegroups
+  verbs:
+    - get
+    - list
+    - watch
+- apiGroups:
+    - deckhouse.io
+  resources:
     - sshcredentials
   verbs:
     - get
@@ -90,6 +98,12 @@ rules:
     - patch
     - update
 - apiGroups:
+    - events.k8s.io
+  resources:
+    - events
+  verbs:
+    - create
+- apiGroups:
     - infrastructure.cluster.x-k8s.io
   resources:
     - staticclusters
@@ -103,24 +117,6 @@ rules:
     - infrastructure.cluster.x-k8s.io
   resources:
     - staticclusters/status
-  verbs:
-    - get
-    - patch
-    - update
-- apiGroups:
-    - infrastructure.cluster.x-k8s.io
-  resources:
-    - staticcontrolplanes
-  verbs:
-    - get
-    - list
-    - patch
-    - update
-    - watch
-- apiGroups:
-    - infrastructure.cluster.x-k8s.io
-  resources:
-    - staticcontrolplanes/status
   verbs:
     - get
     - patch

@@ -3,6 +3,18 @@ title: "Модуль linstor: FAQ"
 description: Диагностика проблем LINSTOR. Когда следует использовать LVM, а когда LVMThin? Производительность и надежность LINSTOR, сравнение с Ceph. Как добавить существующий LVM- или LVMThin-пул в LINSTOR. Как настроить Prometheus на использование хранилища LINSTOR.
 ---
 
+{% alert level="danger" %}
+Текущая версия модуля устарела и больше не поддерживается. Переключитесь на использование модуля [sds-drbd](https://deckhouse.ru/modules/sds-drbd/beta/).
+{% endalert %}
+
+{% alert level="warning" %}
+Работоспособность модуля гарантируется только в следующих случаях:
+- при использовании стоковых ядер, поставляемых вместе с [поддерживаемыми дистрибутивами](../../supported_versions.html#linux);
+- при использовании сети 10Gbps.
+
+Работоспособность модуля в других условиях возможна, но не гарантируется.
+{% endalert %}
+
 ## Когда следует использовать LVM, а когда — LVMThin?
 
 Если кратко, то:
@@ -94,7 +106,7 @@ kubectl annotate storageclass linstor-data-r2 storageclass.kubernetes.io/is-defa
 ## Как добавить существующий LVM- или LVMThin-пул?
 
 {% alert %}
-Основной метод описан на странице [конфигурации хранилища LINSTOR](configuration.html#конфигурация-хранилища-linstor).
+Основной метод описан на странице [конфигурации хранилища LINSTOR](usage.html#конфигурация-хранилища-linstor).
 В отличие от команд, перечисленных ниже, он также автоматически настроит StorageClass'ы.
 {% endalert %}
 
@@ -116,7 +128,7 @@ linstor storage-pool create lvmthin node01 lvmthin linstor_data/data
 
 Чтобы настроить Prometheus на использование хранилища LINSTOR, необходимо:
 
-- [Настроить](configuration.html#конфигурация-хранилища-linstor) пулы хранения и StorageClass.
+- [Настроить](usage.html#конфигурация-хранилища-linstor) пулы хранения и StorageClass.
 - Указать параметры [longtermStorageClass](../300-prometheus/configuration.html#parameters-longtermstorageclass) и [storageClass](../300-prometheus/configuration.html#parameters-storageclass) в конфигурации модуля [prometheus](../300-prometheus/).
 
   Пример:
@@ -138,13 +150,100 @@ linstor storage-pool create lvmthin node01 lvmthin linstor_data/data
 
 ## Как выгнать ресурсы с узла?
 
-Для этого достаточно выполнить команду:
+* Загрузите скрипт `evict.sh` на хост, имеющий доступ к API Kubernetes с правами администратора (для работы скрипта потребуются установленные `kubectl` и `jq`):
 
-```bash
-linstor node evacuate <имя_узла>
+  * Последнюю версию скрипта можно скачать с GitHub:
+
+    ```shell
+    curl -fsSL -o evict.sh https://raw.githubusercontent.com/deckhouse/deckhouse/main/modules/041-linstor/tools/evict.sh
+    chmod 700 evict.sh
+    ```
+
+  * Также скрипт можно скачать из пода `deckhouse`:
+
+    ```shell
+    kubectl -n d8-system cp -c deckhouse $(kubectl -n d8-system get po -l app=deckhouse -o jsonpath='{.items[0].metadata.name}'):/deckhouse/modules/041-linstor/tools/evict.sh ./evict.sh
+    chmod 700 evict.sh
+    ```
+
+* Исправьте все ошибочные ресурсы LINSTOR в кластере. Чтобы найти их, выполните следующую команду:
+
+  ```shell
+  kubectl -n d8-linstor exec -ti deploy/linstor-controller -- linstor resource list --faulty
+  ```
+
+* Убедитесь, что все поды в пространстве имен `d8-linstor` находятся в состоянии *Running*:
+
+  ```shell
+  kubectl -n d8-linstor get pods | grep -v Running
+  ```
+
+### Выгнать ресурсы с узла без удаления его из LINSTOR и Kubernetes
+
+Запустите скрипт `evict.sh` в интерактивном режиме, указав режим удаления `--delete-resources-only`:
+
+```shell
+./evict.sh --delete-resources-only
 ```
 
-Все ресурсы переедут на другие свободные узлы и будут реплицированы.
+Для запуска скрипта `evict.sh` в неинтерактивном режиме необходимо добавить флаг `--non-interactive` при его вызове, а так же имя узла, с которого необходимо выгнать ресурсы. В этом режиме скрипт выполнит все действия без запроса подтверждения от пользователя. Пример вызова:
+
+```shell
+./evict.sh --non-interactive --delete-resources-only --node-name "worker-1"
+```
+
+> **Важно!** После завершении работы скрипта узел в Kubernetes останется в статусе *SchedulingDisabled*, а в LINSTOR у данного узла будет выставлен параметр *AutoplaceTarget=false*, что запретит планировщику LINSTOR создавать на этом узле ресурсы.
+
+Если необходимо снова разрешить размещать ресурсы и поды на узле, то необходимо выполнить команды:
+
+```shell
+alias linstor='kubectl -n d8-linstor exec -ti deploy/linstor-controller -- linstor'
+linstor node set-property "worker-1" AutoplaceTarget
+kubectl uncordon "worker-1"
+```
+
+Проверить параметр *AutoplaceTarget* у всех узлов можно так (поле AutoplaceTarget будет пустым у тех узлов, на которых разрешено размещать ресурсы LINSTOR):
+
+```shell
+alias linstor='kubectl -n d8-linstor exec -ti deploy/linstor-controller -- linstor'
+linstor node list -s AutoplaceTarget
+```
+
+### Выгнать ресурсы с узла с последующим его удалением из LINSTOR и Kubernetes
+
+Запустите скрипт `evict.sh` в интерактивном режиме, указав режим удаления `--delete-node`:
+
+```shell
+./evict.sh --delete-node
+```
+
+Для запуска скрипта `evict.sh` в неинтерактивном режиме необходимо добавить флаг `--non-interactive` при его вызове, а так же имя узла, который необходимо удалить. В этом режиме скрипт выполнит все действия без запроса подтверждения от пользователя. Пример вызова:
+
+```shell
+./evict.sh --non-interactive --delete-node --node-name "worker-1"
+```
+
+  > **Важно!** В процессе выполнения скрипт удалит узел как из Kubernetes, так и из LINSTOR.
+
+В этом режиме ресурсы физически с узла не удаляются. Для зачистки узла необходимо зайти на нее и выполнить следующие действия:
+
+  > **Внимание!** Выполнение этих действий приведет к уничтожению всех ваших данных на узле.
+
+* Получите список групп томов (vg), которые использовались для LVM-пулов хранения LINSTOR, а затем удалите их с узла:
+
+  ```shell
+  vgs -o+tags | awk 'NR==1;$NF~/linstor-/'
+  vgremove -y <имена групп томов (vg) из вывода предыдущей команды>
+  ```
+
+* Получите список логических томов (lv), которые использовались для LVM_THIN пулов хранения LINSTOR, а затем удалите их с узла:
+
+  ```shell
+  lvs -o+tags | awk 'NR==1;$NF~/linstor-/'
+  lvremove -y /dev/<имя группы томов (vg) из вывода предыдущей команды>/<имя логического тома(lv) из вывода предыдущей команды>
+  ```
+
+* Следуйте [инструкции](../040-node-manager/faq.html#как-зачистить-узел-для-последующего-ввода-в-кластер), начиная со второго пункта для дальнейшей очистки узла.
 
 ## Диагностика проблем
 

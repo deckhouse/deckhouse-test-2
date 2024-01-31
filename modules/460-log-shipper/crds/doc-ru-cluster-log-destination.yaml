@@ -25,7 +25,6 @@ spec:
                         user:
                           description: Имя пользователя, используемое при Basic-аутентификации.
                     tenantID:
-                      type: string
                       description: |
                         ID тенанта.
 
@@ -148,14 +147,24 @@ spec:
                 kafka:
                   properties:
                     topic:
-                      type: string
                       description: |
                         Имя топика в Kafka для записи событий.
                         Этот параметр поддерживает синтаксис шаблонов, что дает возможность динамического создания топиков.
                     bootstrapServers:
-                      type: array
                       description: |
                         Список пар адресов (хост:порт) Kafka-брокеров в кластере Kafka, к которым должны подключиться клиенты для получения метаданных (топиков и партиций).
+                    encoding:
+                      description: |
+                        В каком формате закодировать сообщение.
+                    sasl:
+                      description: Конфигурация аутентификации SASL для взаимодействия с Kafka.
+                      properties:
+                        mechanism:
+                          description: Механизм аутентификации SASL. Поддерживаются только PLAIN и SCRAM-подобные механизмы.
+                        username:
+                          description: Имя пользователя.
+                        password:
+                          description: Пароль пользователя.
                     tls:
                       description: Настройки защищенного TLS-соединения.
                       properties:
@@ -185,7 +194,6 @@ spec:
                     endpoint:
                       description: Базовый URL для экземпляра Splunk.
                     token:
-                      type: string
                       description: Токен по умолчанию для Splunk HEC. Если токен не был передан через metadata, будет использовано значение из этого поля.
                     index:
                       description: Имя индекса, куда будут сохранены данные. Это поле можно задать динамически.
@@ -295,7 +303,6 @@ spec:
                   description: Параметры буфера.
                   properties:
                     type:
-                      type: string
                       description: Тип буфера для использования.
                     disk:
                       description:

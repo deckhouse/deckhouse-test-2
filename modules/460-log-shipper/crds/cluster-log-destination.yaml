@@ -371,6 +371,37 @@ spec:
                       items:
                         type: string
                         pattern: '^(.+)\:\d{1,5}$'
+                    encoding:
+                      type: object
+                      description: |
+                        How to encode the message.
+                      properties:
+                        codec:
+                          type: string
+                          enum: ["JSON", "CEF"]
+                          default: "JSON"
+                    sasl:
+                      type: object
+                      description: Configuration for SASL authentication when interacting with Kafka.
+                      required:
+                        - mechanism
+                        - username
+                        - password
+                      properties:
+                        mechanism:
+                          type: string
+                          description: The SASL mechanism to use. Only PLAIN and SCRAM-based mechanisms are supported.
+                          enum: ["PLAIN", "SCRAM-SHA-256", "SCRAM-SHA-512"]
+                        username:
+                          type: string
+                          description: The SASL username.
+                          x-doc-examples:
+                            - "username"
+                        password:
+                          type: string
+                          description: The SASL password.
+                          x-doc-examples:
+                            - "qwerty"
                     tls:
                       type: object
                       description: Configures the TLS options for outgoing connections.
@@ -419,7 +450,7 @@ spec:
                     endpoint:
                       type: string
                       description: Base URL of the Splunk instance.
-                      x-examples:
+                      x-doc-examples:
                       - "https://http-inputs-hec.splunkcloud.com"
                     token:
                       type: string
@@ -534,9 +565,7 @@ spec:
                         List of excludes for keyField.
 
                         Only NOT matched log entries would be rate limited.
-                      example: |
-                        ```yaml
-                        excludes:
+                      x-doc-examples:
                         - field: tier
                           operator: Exists
                         - field: foo
@@ -549,9 +578,8 @@ spec:
                         - field: bar
                           operator: Regex
                           values:
-                          - ^abc
-                          - ^\d.+$
-                        ```
+                          - '^abc'
+                          - '^\d.+$'
                       items:
                         type: object
                         required:
@@ -619,15 +647,12 @@ spec:
                     - pod_owner
 
                     [More about field path notation...](https://vector.dev/docs/reference/configuration/field-path-notation/)
-                  example: |
-                    ```yaml
-                    extraLabels:
-                      forwarder: vector
+                  x-doc-examples:
+                    - forwarder: vector
                       key: value
-                      app_info: "{{ app }}"
-                      array_member: "{{ array[0] }}"
-                      symbol_escating_value: "{{ pay\.day }}"
-                    ```
+                      app_info: '{{ app }}'
+                      array_member: '{{ array[0] }}'
+                      symbol_escating_value: '{{ pay\.day }}'
                   additionalProperties:
                     type: string
                     anyOf:

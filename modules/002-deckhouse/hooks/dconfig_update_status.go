@@ -29,9 +29,9 @@ import (
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/utils/pointer"
 
+	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/apis/deckhouse.io/v1alpha1"
 	d8config "github.com/deckhouse/deckhouse/go_lib/deckhouse-config"
 	"github.com/deckhouse/deckhouse/go_lib/deckhouse-config/conversion"
-	d8v1alpha1 "github.com/deckhouse/deckhouse/modules/002-deckhouse/hooks/pkg/apis/v1alpha1"
 )
 
 /*
@@ -57,6 +57,8 @@ ModuleConfig status consists of:
     * ModuleError: ... - problem during installing helm chart.
 */
 
+// TODO: get rid of this hook
+// replace with event model
 var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	Queue: "/modules/deckhouse/status-configs",
 	Kubernetes: []go_hook.KubernetesConfig{
@@ -65,7 +67,15 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 			ApiVersion:                   "deckhouse.io/v1alpha1",
 			Kind:                         "ModuleConfig",
 			FilterFunc:                   filterModuleConfigForStatus,
-			ExecuteHookOnSynchronization: pointer.Bool(true),
+			ExecuteHookOnSynchronization: pointer.Bool(false),
+			ExecuteHookOnEvents:          pointer.Bool(false),
+		},
+		{
+			Name:                         "modules",
+			ApiVersion:                   "deckhouse.io/v1alpha1",
+			Kind:                         "Module",
+			FilterFunc:                   filterModuleForState,
+			ExecuteHookOnSynchronization: pointer.Bool(false),
 			ExecuteHookOnEvents:          pointer.Bool(false),
 		},
 	},
@@ -80,9 +90,29 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	},
 }, updateModuleConfigStatuses)
 
+// filterModuleForState returns name and current state from Module object.
+func filterModuleForState(unstructured *unstructured.Unstructured) (go_hook.FilterResult, error) {
+	var module v1alpha1.Module
+
+	err := sdk.FromUnstructured(unstructured, &module)
+	if err != nil {
+		return nil, err
+	}
+
+	// Extract name, spec and status.
+	return &v1alpha1.Module{
+		ObjectMeta: metav1.ObjectMeta{
+			Name: module.Name,
+		},
+		Properties: v1alpha1.ModuleProperties{
+			State: module.Properties.State,
+		},
+	}, nil
+}
+
 // filterModuleConfigForStatus returns name, enabled flag and the current status from ModuleConfig object.
 func filterModuleConfigForStatus(unstructured *unstructured.Unstructured) (go_hook.FilterResult, error) {
-	var cfg d8v1alpha1.ModuleConfig
+	var cfg v1alpha1.ModuleConfig
 
 	err := sdk.FromUnstructured(unstructured, &cfg)
 	if err != nil {
@@ -90,11 +120,11 @@ func filterModuleConfigForStatus(unstructured *unstructured.Unstructured) (go_ho
 	}
 
 	// Extract name, spec and status.
-	return &d8v1alpha1.ModuleConfig{
+	return &v1alpha1.ModuleConfig{
 		ObjectMeta: metav1.ObjectMeta{
 			Name: cfg.Name,
 		},
-		Spec: d8v1alpha1.ModuleConfigSpec{
+		Spec: v1alpha1.ModuleConfigSpec{
 			Version:  cfg.Spec.Version,
 			Enabled:  cfg.Spec.Enabled,
 			Settings: cfg.Spec.Settings,
@@ -111,11 +141,21 @@ const (
 func updateModuleConfigStatuses(input *go_hook.HookInput) error {
 	allConfigs := snapshotToModuleConfigList(input.Snapshots["configs"])
 
+	enabledModules := make(map[string]struct{})
+	for _, item := range input.Snapshots["modules"] {
+		module := item.(*v1alpha1.Module)
+		if module.Properties.State == "Enabled" {
+			enabledModules[module.GetName()] = struct{}{}
+		}
+	}
+
 	bundleName := os.Getenv("DECKHOUSE_BUNDLE")
 
 	moduleNamesToSources := d8config.Service().ModuleToSourcesNames()
 	for _, cfg := range allConfigs {
-		moduleStatus := d8config.Service().StatusReporter().ForConfig(cfg, bundleName, moduleNamesToSources)
+		_, moduleEnabled := enabledModules[cfg.GetName()]
+
+		moduleStatus := d8config.Service().StatusReporter().ForConfig(cfg, bundleName, moduleNamesToSources, moduleEnabled)
 		sPatch := makeStatusPatch(cfg, moduleStatus)
 		if sPatch != nil {
 			input.LogEntry.Debugf(
@@ -145,7 +185,7 @@ func updateModuleConfigStatuses(input *go_hook.HookInput) error {
 	return nil
 }
 
-func makeStatusPatch(cfg *d8v1alpha1.ModuleConfig, moduleStatus d8config.Status) *statusPatch {
+func makeStatusPatch(cfg *v1alpha1.ModuleConfig, moduleStatus d8config.Status) *statusPatch {
 	if cfg == nil || !isStatusChanged(cfg.Status, moduleStatus) {
 		return nil
 	}
@@ -158,7 +198,7 @@ func makeStatusPatch(cfg *d8v1alpha1.ModuleConfig, moduleStatus d8config.Status)
 	}
 }
 
-func isStatusChanged(currentStatus d8v1alpha1.ModuleConfigStatus, moduleStatus d8config.Status) bool {
+func isStatusChanged(currentStatus v1alpha1.ModuleConfigStatus, moduleStatus d8config.Status) bool {
 	switch {
 	case currentStatus.State != moduleStatus.State:
 		return true
@@ -172,21 +212,21 @@ func isStatusChanged(currentStatus d8v1alpha1.ModuleConfigStatus, moduleStatus d
 	return false
 }
 
-type statusPatch d8v1alpha1.ModuleConfigStatus
+type statusPatch v1alpha1.ModuleConfigStatus
 
 func (sp statusPatch) MarshalJSON() ([]byte, error) {
 	m := map[string]interface{}{
-		"status": d8v1alpha1.ModuleConfigStatus(sp),
+		"status": v1alpha1.ModuleConfigStatus(sp),
 	}
 
 	return json.Marshal(m)
 }
 
 // snapshotToModuleConfigList returns a typed array of ModuleConfig items from untyped items in the snapshot.
-func snapshotToModuleConfigList(snapshot []go_hook.FilterResult) []*d8v1alpha1.ModuleConfig {
-	configs := make([]*d8v1alpha1.ModuleConfig, 0, len(snapshot))
+func snapshotToModuleConfigList(snapshot []go_hook.FilterResult) []*v1alpha1.ModuleConfig {
+	configs := make([]*v1alpha1.ModuleConfig, 0, len(snapshot))
 	for _, item := range snapshot {
-		cfg := item.(*d8v1alpha1.ModuleConfig)
+		cfg := item.(*v1alpha1.ModuleConfig)
 		configs = append(configs, cfg)
 	}
 	return configs

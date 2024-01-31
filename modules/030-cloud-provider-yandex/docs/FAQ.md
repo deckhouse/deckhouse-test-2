@@ -44,3 +44,29 @@ Pay attention to the following nuances:
 If the dhcpOptions parameter is set, all DNS are routed to the DNS servers specified. These DNS servers **must** serve DNS requests to the Internet and (if needed) resolve intranet resources.
 
 **Do not use** this option if the recursive DNSs specified cannot resolve the same list of zones that the recursive DNSs in the Yandex Cloud subnet can resolve.
+
+## How to set a custom StorageClass as default?
+
+Do the following to set a custom StorageClass as default:
+
+1. Add `storageclass.kubernetes.io/is-default-class='true'` annotation to the StorageClass:
+
+   ```shell
+   kubectl annotate sc $STORAGECLASS storageclass.kubernetes.io/is-default-class='true'
+   ```
+
+2. Specify the StorageClass name in the [storageClass.default](configuration.html#parameters-storageclass-default) parameter in the `cloud-provider-yandex` module settings. Note that after doing so, the `storageclass.kubernetes.io/is-default-class='true'` annotation will be removed from the StorageClass that was previously listed in the module settings as the default one.
+
+   ```shell
+   kubectl edit mc cloud-provider-yandex
+   ```
+
+## Adding CloudStatic nodes to a cluster
+
+For VMs that you want to add to the cluster as nodes, add the `node-network-cidr` key to the metadata (Edit VM -> Metadata) with a value equal to the cluster's `nodeNetworkCIDR`.
+
+You can find out the `nodeNetworkCIDR` of the cluster using the command below:
+
+```shell
+kubectl -n kube-system get secret d8-provider-cluster-configuration -o json | jq --raw-output '.data."cloud-provider-cluster-configuration.yaml"' | base64 -d | grep '^nodeNetworkCIDR'
+```

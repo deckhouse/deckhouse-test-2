@@ -36,7 +36,7 @@ spec:
 
   components:
     base:
-      enabled: true
+      enabled: false
 
     pilot:
       enabled: true
@@ -89,6 +89,7 @@ spec:
         CLOUD_PLATFORM: {{ $cloudPlatform }}
         ISTIO_META_DNS_CAPTURE: "true"
         PROXY_CONFIG_XDS_AGENT: "true"
+        ISTIO_META_IDLE_TIMEOUT: {{ $.Values.istio.proxyConfig.idleTimeout }}
       holdApplicationUntilProxyStarts: {{ $.Values.istio.proxyConfig.holdApplicationUntilProxyStarts }}
   {{- if $.Values.istio.tracing.enabled }}
       tracing:
@@ -106,6 +107,8 @@ spec:
 
   values:
     global:
+      configValidation: false      # to deploy the ValidatingWebhookConfiguration resources by D8
+      operatorManageWebhooks: true # to deploy the MutatingWebhookConfiguration resources by D8
       istioNamespace: d8-{{ $.Chart.Name }}
       meshID: d8-istio-mesh
       network: {{ include "istioNetworkName" $ }}

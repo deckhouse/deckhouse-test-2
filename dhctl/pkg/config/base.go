@@ -33,7 +33,9 @@ import (
 
 const (
 	candiDir                 = "/deckhouse/candi"
-	DefaultKubernetesVersion = "1.25"
+	modulesDir               = "/deckhouse/modules"
+	globalHooksModule        = "/deckhouse/global-hooks"
+	DefaultKubernetesVersion = "1.27"
 )
 
 const (
@@ -56,7 +58,12 @@ func LoadConfigFromFile(path string) (*MetaConfig, error) {
 		return nil, err
 	}
 
-	err = metaConfig.LoadimagesDigests(imagesDigestsJSON)
+	err = metaConfig.LoadImagesDigests(imagesDigestsJSON)
+	if err != nil {
+		return nil, err
+	}
+
+	err = metaConfig.LoadInstallerVersion()
 	if err != nil {
 		return nil, err
 	}
@@ -167,6 +174,60 @@ func parseConfigFromCluster(kubeCl *client.KubernetesClient) (*MetaConfig, error
 	return metaConfig.Prepare()
 }
 
+func parseDocument(doc string, metaConfig *MetaConfig, schemaStore *SchemaStore) error {
+	doc = strings.TrimSpace(doc)
+	if doc == "" {
+		return nil
+	}
+
+	docData := []byte(doc)
+
+	var index SchemaIndex
+	err := yaml.Unmarshal(docData, &index)
+	if err != nil {
+		return err
+	}
+
+	if index.Kind == ModuleConfigKind {
+		moduleConfig := ModuleConfig{}
+		err = yaml.Unmarshal(docData, &moduleConfig)
+		if err != nil {
+			return err
+		}
+
+		_, err = schemaStore.Validate(&docData)
+		if err != nil {
+			return fmt.Errorf("module config validation: %v\ndata: \n%s\n", err, numerateManifestLines(docData))
+		}
+
+		metaConfig.ModuleConfigs = append(metaConfig.ModuleConfigs, &moduleConfig)
+		return nil
+	}
+
+	_, err = schemaStore.Validate(&docData)
+	if err != nil {
+		return fmt.Errorf("config validation: %v\ndata: \n%s\n", err, numerateManifestLines(docData))
+	}
+
+	var data map[string]json.RawMessage
+	if err = yaml.Unmarshal(docData, &data); err != nil {
+		return fmt.Errorf("config unmarshal: %v\ndata: \n%s\n", err, numerateManifestLines(docData))
+	}
+
+	switch {
+	case index.Kind == "InitConfiguration":
+		metaConfig.InitClusterConfig = data
+	case index.Kind == "ClusterConfiguration":
+		metaConfig.ClusterConfig = data
+	case index.Kind == "StaticClusterConfiguration":
+		metaConfig.StaticClusterConfig = data
+	case strings.HasSuffix(index.Kind, "ClusterConfiguration"):
+		metaConfig.ProviderClusterConfig = data
+	}
+
+	return nil
+}
+
 func ParseConfigFromData(configData string) (*MetaConfig, error) {
 	schemaStore := NewSchemaStore()
 
@@ -175,32 +236,20 @@ func ParseConfigFromData(configData string) (*MetaConfig, error) {
 
 	metaConfig := MetaConfig{}
 	for _, doc := range docs {
-		doc = strings.TrimSpace(doc)
-		if doc == "" {
-			continue
+		if err := parseDocument(doc, &metaConfig, schemaStore); err != nil {
+			return nil, err
 		}
+	}
 
-		docData := []byte(doc)
-
-		index, err := schemaStore.Validate(&docData)
-		if err != nil {
-			return nil, fmt.Errorf("config validation: %v\ndata: \n%s\n", err, numerateManifestLines(docData))
-		}
-
-		var data map[string]json.RawMessage
-		if err = yaml.Unmarshal(docData, &data); err != nil {
-			return nil, fmt.Errorf("config unmarshal: %v\ndata: \n%s\n", err, numerateManifestLines(docData))
-		}
-
-		switch {
-		case index.Kind == "InitConfiguration":
-			metaConfig.InitClusterConfig = data
-		case index.Kind == "ClusterConfiguration":
-			metaConfig.ClusterConfig = data
-		case index.Kind == "StaticClusterConfiguration":
-			metaConfig.StaticClusterConfig = data
-		case strings.HasSuffix(index.Kind, "ClusterConfiguration"):
-			metaConfig.ProviderClusterConfig = data
+	// init configuration can be empty, but we need default from openapi spec
+	if len(metaConfig.InitClusterConfig) == 0 {
+		doc := `
+apiVersion: deckhouse.io/v1
+kind: InitConfiguration
+deckhouse: {}
+`
+		if err := parseDocument(doc, &metaConfig, schemaStore); err != nil {
+			return nil, err
 		}
 	}
 

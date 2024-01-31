@@ -190,6 +190,13 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 		return err
 	}
 
+	if app.ResourcesPath != "" {
+		err := template.OnlyModulesFromSourcesConfigsInResources(app.ResourcesPath)
+		if err != nil {
+			return err
+		}
+	}
+
 	// next init cache
 	cachePath := metaConfig.CachePath()
 	if err = cache.InitWithOptions(cachePath, cache.CacheOptions{InitialState: b.InitialState}); err != nil {
@@ -229,7 +236,7 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 	}
 	metaConfig.UUID = clusterUUID
 
-	deckhouseInstallConfig, err := deckhouse.PrepareDeckhouseInstallConfig(metaConfig)
+	deckhouseInstallConfig, err := config.PrepareDeckhouseInstallConfig(metaConfig)
 	if err != nil {
 		return err
 	}
@@ -238,7 +245,10 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 	deckhouseInstallConfig.KubeadmBootstrap = true
 	deckhouseInstallConfig.MasterNodeSelector = true
 
-	preflightCheck := preflight.NewPreflightCheck(sshClient, deckhouseInstallConfig)
+	preflightChecker := preflight.NewChecker(sshClient, deckhouseInstallConfig, metaConfig)
+	if err := preflightChecker.Global(); err != nil {
+		return err
+	}
 
 	bootstrapState := NewBootstrapState(stateCache)
 
@@ -253,7 +263,7 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 	var resourcesTemplateData map[string]interface{}
 
 	if metaConfig.ClusterType == config.CloudClusterType {
-		err = preflightCheck.CloudCheck()
+		err = preflightChecker.Cloud()
 		if err != nil {
 			return err
 		}
@@ -294,7 +304,7 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 			deckhouseInstallConfig.TerraformState = baseOutputs.TerraformState
 
 			if baseOutputs.BastionHost != "" {
-				setBastionHostFromCloudProvider(baseOutputs.BastionHost, sshClient)
+				setBastionHost(baseOutputs.BastionHost, sshClient)
 				SaveBastionHostToCache(baseOutputs.BastionHost)
 			}
 
@@ -315,7 +325,7 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 			return err
 		}
 	} else {
-		err = preflightCheck.StaticCheck()
+		err = preflightChecker.Static()
 		if err != nil {
 			return err
 		}
@@ -324,6 +334,14 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 		}
 		_ = json.Unmarshal(metaConfig.ClusterConfig["static"], &static)
 		nodeIP = static.NodeIP
+
+		if sshClient.Settings.BastionHost != "" {
+			SaveBastionHostToCache(sshClient.Settings.BastionHost)
+		}
+
+		SaveMasterHostsToCache(map[string]string{
+			"first-master": sshClient.Settings.Host(),
+		})
 	}
 
 	// next parse and check resources
@@ -411,6 +429,10 @@ func (b *ClusterBootstrapper) Bootstrap() error {
 		return err
 	} else if shouldStop {
 		return nil
+	}
+
+	if err := deckhouse.AddReleaseChannelToDeckhouseModuleConfig(kubeCl, deckhouseInstallConfig); err != nil {
+		return err
 	}
 
 	if !b.DisableBootstrapClearCache {
@@ -503,7 +525,7 @@ func bootstrapAdditionalNodesForCloudCluster(kubeCl *client.KubernetesClient, me
 	})
 }
 
-func setBastionHostFromCloudProvider(host string, sshClient *ssh.Client) {
+func setBastionHost(host string, sshClient *ssh.Client) {
 	app.SSHBastionHost = host
 
 	if app.SSHBastionUser == "" {

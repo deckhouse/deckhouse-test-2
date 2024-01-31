@@ -5,6 +5,7 @@ type:
 search: prometheus мониторинг, prometheus custom alert, prometheus кастомный алертинг
 ---
 
+{% raw %}
 
 ## Как собирать метрики с приложений, расположенных вне кластера?
 
@@ -429,28 +430,48 @@ spec:
 1. Завести получателя без параметров.
 1. Смаршрутизировать лишние алерты в этого получателя.
 
-В `alertmanager.yaml` это будет выглядеть так:
+Ниже приведены примеры настройки `CustomAlertmanager`.
+
+Чтобы получать только алерты с лейблами `service: foo|bar|baz`:
 
 ```yaml
 receivers:
-- name: blackhole
   # Получатель, определенный без параметров, будет работать как "/dev/null".
-- name: some-other-receiver
-  # ...
+  - name: blackhole
+  # Действующий получатель  
+  - name: some-other-receiver
+    # ...
 route:
   # receiver по умолчанию.
-  receiver: some-other-receiver
+  receiver: blackhole
   routes:
-    - matchers:
-        - matchType: =
-          name: alertname
-          value: DeadMansSwitch
-      receiver: blackhole
+    # Дочерний маршрут
     - matchers:
         - matchType: =~
           name: service
           value: ^(foo|bar|baz)$
       receiver: some-other-receiver
+```
+
+Чтобы получать все алерты, кроме `DeadMansSwitch`:
+
+```yaml
+receivers:
+  # Получатель, определенный без параметров, будет работать как "/dev/null".
+  - name: blackhole
+  # Действующий получатель.
+  - name: some-other-receiver
+  # ...
+route:
+  # receiver по умолчанию.
+  receiver: some-other-receiver
+  routes:
+    # Дочерний маршрут.
+    - matchers:
+        - matchType: =
+          name: alertname
+          value: DeadMansSwitch
+      receiver: blackhole
 ```
 
 С подробным описанием всех параметров можно ознакомиться [в официальной документации](https://prometheus.io/docs/alerting/latest/configuration/#configuration-file).
@@ -776,3 +797,45 @@ status:
 ```
 
 Помните о специальном алерте `DeadMansSwitch` — его присутствие в кластере говорит о работоспособности Prometheus.
+
+## Как добавить дополнительные эндпоинты в scrape config?
+
+Добавьте в namespace, в котором находится ScrapeConfig, лейбл `prometheus.deckhouse.io/scrape-configs-watcher-enabled: "true"`.
+
+Пример:
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    prometheus.deckhouse.io/scrape-configs-watcher-enabled: "true"
+```
+
+Добавьте ScrapeConfig, который имеет обязательный лейбл `prometheus: main`:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: example-scrape-config
+  namespace: frontend
+  labels:
+    prometheus: main
+spec:
+  honorLabels: true
+  staticConfigs:
+    - targets: ['example-app.frontend.svc.{{ .Values.global.discovery.clusterDomain }}.:8080']
+  relabelings:
+    - regex: endpoint|namespace|pod|service
+      action: labeldrop
+    - targetLabel: scrape_endpoint
+      replacement: main
+    - targetLabel: job
+      replacement: kube-state-metrics
+  metricsPath: '/metrics'
+```
+
+{% endraw %}

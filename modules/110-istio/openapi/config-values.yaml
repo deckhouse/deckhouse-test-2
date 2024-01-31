@@ -3,15 +3,15 @@ type: object
 properties:
   globalVersion:
     type: string
-    description: Specific version of Istio control-plane which handles unspecific versions of data plane (namespaces with `istio-injection=enabled` label, not `istio.io/rev=`). Must be in supported versions list (`kubectl -n d8-system exec deploy/deckhouse -- deckhouse-controller module values istio -o json | jq '.istio.internal.supportedVersions'`). By default — the latest version in supported versions list.
-    examples: ["1.12"]
-    default: "1.16"
+    description: Specific version of Istio control-plane which handles unspecific versions of data plane (namespaces with `istio-injection=enabled` label, not `istio.io/rev=`).
+    examples: ["1.16"]
+    default: "1.19"
   additionalVersions:
     type: array
     description: |
       Additional versions of Istio control plane to install. You can use specific namespace labels (`istio.io/rev=`) to switch between installed revisions.
     examples:
-    - ["1.13", "1.14"]
+    - ["1.13", "1.16"]
     default: []
     items:
       type: string
@@ -24,6 +24,13 @@ properties:
       - `AllowAny` — allow.
       - `RegistryOnly` — deny. In this case to work with external services you need to register them with ServiceEntry custom resource or to organize egressgateway.
     default: AllowAny
+  ingressClass:
+    type: string
+    pattern: '^[a-z0-9]([-a-z0-9]*[a-z0-9])?(\.[a-z0-9]([-a-z0-9]*[a-z0-9])?)*$'
+    description: |
+      The class of the Ingress controller used for Kiali, metadata-exporter and proxy-api.
+
+      Optional. By default, the `modules.ingressClass` global value is used.
   enableHTTP10:
     type: boolean
     default: false
@@ -356,6 +363,22 @@ properties:
           With this feature, the sidecar-injector injects the sidecar at the first place of Pod's container list and adds a postStart hook to be sure if the Envoy proxy is initialized before the application. So the Envoy is able to handle requests without application network errors.
 
           This global flag can be overriden per Pod by an annotation — `proxy.istio.io/config: '{ "holdApplicationUntilProxyStarts": true }'`.
+      idleTimeout:
+        type: string
+        pattern: '^[0-9]+(s|m|h)$'
+        x-examples: [24h]
+        default: 1h
+        description: |
+          Timeout for connections without application activity established between the client's istio-sidecar and the service. When the timeout expires, the connection between the sidecar and the service is closed, but the connection between the application and the sidecar is not closed. If set to `0s`, the timeout is disabled.
+
+          This global flag can be overriden per Pod by an annotation:
+            ```yaml
+              proxy.istio.io/config: |-
+                proxyMetadata:
+                  ISTIO_META_IDLE_TIMEOUT: "12h"
+            ```
+          > **Warning!** Disabling this timeout (setting the value to `0s`) is very likely to result in leaky connections due to TCP FIN packet loss, etc.
+          > **Warning!** After changing this setting, a restart of the client pods is required.
   controlPlane:
     type: object
     description: istiod specific settings.

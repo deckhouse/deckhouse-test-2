@@ -59,6 +59,7 @@ type DeckhouseUpdater struct {
 	skippedPatchesIndexes       []int
 	currentDeployedReleaseIndex int
 	forcedReleaseIndex          int
+	appliedNowReleaseIndex      int
 	predictedReleaseIsPatch     *bool
 
 	deckhousePodIsReady      bool
@@ -84,6 +85,7 @@ func NewDeckhouseUpdater(input *go_hook.HookInput, mode string, data DeckhouseRe
 		predictedReleaseIndex:       -1,
 		currentDeployedReleaseIndex: -1,
 		forcedReleaseIndex:          -1,
+		appliedNowReleaseIndex:      -1,
 		skippedPatchesIndexes:       make([]int, 0),
 		deckhousePodIsReady:         podIsReady,
 		deckhouseIsBootstrapping:    isBootstrapping,
@@ -205,7 +207,7 @@ func (du *DeckhouseUpdater) checkMinorReleaseConditions(predictedRelease *Deckho
 	}
 
 	// check: canary settings
-	if predictedRelease.ApplyAfter != nil {
+	if predictedRelease.ApplyAfter != nil && !du.inManualMode {
 		if du.now.Before(*predictedRelease.ApplyAfter) {
 			du.input.LogEntry.Infof("Release %s is postponed by canary process. Waiting", predictedRelease.Name)
 			du.updateStatus(predictedRelease, fmt.Sprintf("Release is postponed until: %s", predictedRelease.ApplyAfter.Format(time.RFC822)), v1alpha1.PhasePending)
@@ -397,6 +399,10 @@ func (du *DeckhouseUpdater) PredictNextRelease() {
 		if release.AnnotationFlags.Force {
 			du.forcedReleaseIndex = i
 		}
+
+		if release.AnnotationFlags.ApplyNow {
+			du.appliedNowReleaseIndex = i
+		}
 	}
 }
 
@@ -444,6 +450,45 @@ func (du *DeckhouseUpdater) ApplyForcedRelease() {
 	}
 }
 
+func (du *DeckhouseUpdater) HasAppliedNowRelease() bool {
+	return du.appliedNowReleaseIndex != -1
+}
+
+func (du *DeckhouseUpdater) ApplyAppliedNowRelease() {
+	appliedNowRelease := &(du.releases[du.appliedNowReleaseIndex])
+	var currentRelease *DeckhouseRelease
+
+	if !du.checkAppliedNowConditions(appliedNowRelease) {
+		return
+	}
+
+	if du.currentDeployedReleaseIndex != -1 {
+		currentRelease = &(du.releases[du.currentDeployedReleaseIndex])
+	}
+
+	du.input.LogEntry.Warnf("Applying release %s", appliedNowRelease.Name)
+
+	// all checks are passed, deploy release
+	du.runReleaseDeploy(appliedNowRelease, currentRelease)
+
+	annotationsPatch := map[string]interface{}{
+		"metadata": map[string]interface{}{
+			"annotations": map[string]interface{}{
+				"release.deckhouse.io/apply-now": nil,
+			},
+		},
+	}
+	// remove annotation
+	du.input.PatchCollector.MergePatch(annotationsPatch, "deckhouse.io/v1alpha1", "DeckhouseRelease", "", appliedNowRelease.Name)
+
+	// Outdate all previous releases
+	for i, release := range du.releases {
+		if i < du.appliedNowReleaseIndex {
+			du.updateStatus(&release, "", v1alpha1.PhaseSuperseded)
+		}
+	}
+}
+
 // PredictedReleaseIsPatch shows if the predicted release is a patch with respect to the Deployed one
 func (du *DeckhouseUpdater) PredictedReleaseIsPatch() bool {
 	if du.predictedReleaseIsPatch != nil {
@@ -451,12 +496,12 @@ func (du *DeckhouseUpdater) PredictedReleaseIsPatch() bool {
 	}
 
 	if du.currentDeployedReleaseIndex == -1 {
-		du.predictedReleaseIsPatch = pointer.BoolPtr(false)
+		du.predictedReleaseIsPatch = pointer.Bool(false)
 		return false
 	}
 
 	if du.predictedReleaseIndex == -1 {
-		du.predictedReleaseIsPatch = pointer.BoolPtr(false)
+		du.predictedReleaseIsPatch = pointer.Bool(false)
 		return false
 	}
 
@@ -464,16 +509,16 @@ func (du *DeckhouseUpdater) PredictedReleaseIsPatch() bool {
 	predicted := du.releases[du.predictedReleaseIndex]
 
 	if current.Version.Major() != predicted.Version.Major() {
-		du.predictedReleaseIsPatch = pointer.BoolPtr(false)
+		du.predictedReleaseIsPatch = pointer.Bool(false)
 		return false
 	}
 
 	if current.Version.Minor() != predicted.Version.Minor() {
-		du.predictedReleaseIsPatch = pointer.BoolPtr(false)
+		du.predictedReleaseIsPatch = pointer.Bool(false)
 		return false
 	}
 
-	du.predictedReleaseIsPatch = pointer.BoolPtr(true)
+	du.predictedReleaseIsPatch = pointer.Bool(true)
 	return true
 }
 
@@ -548,11 +593,9 @@ func (du *DeckhouseUpdater) patchManualRelease(release DeckhouseRelease) Deckhou
 
 	if !release.ManuallyApproved {
 		release.Status.Approved = false
-		release.Status.Message = waitingManualApprovalMsg
 		du.totalPendingManualReleases++
 	} else {
 		release.Status.Approved = true
-		release.Status.Message = ""
 	}
 
 	return release
@@ -663,4 +706,35 @@ func (du *DeckhouseUpdater) createReleaseDataCM() {
 	}
 
 	du.input.PatchCollector.Create(cm, object_patch.UpdateIfExists())
+}
+
+// for applied now we check less conditions, then for minor release
+// - Release requirements
+// - Disruptions
+// - Deckhouse pod is ready
+func (du *DeckhouseUpdater) checkAppliedNowConditions(appliedNowRelease *DeckhouseRelease) bool {
+	// check: release requirements (hard lock)
+	passed := du.checkReleaseRequirements(appliedNowRelease)
+	if !passed {
+		du.input.MetricsCollector.Set("d8_release_blocked", 1, map[string]string{"name": appliedNowRelease.Name, "reason": "requirement"}, metrics.WithGroup(metricReleasesGroup))
+		du.input.LogEntry.Warnf("Release %s requirements are not met", appliedNowRelease.Name)
+		return false
+	}
+
+	// check: release disruptions (hard lock)
+	passed = du.checkReleaseDisruptions(appliedNowRelease)
+	if !passed {
+		du.input.MetricsCollector.Set("d8_release_blocked", 1, map[string]string{"name": appliedNowRelease.Name, "reason": "disruption"}, metrics.WithGroup(metricReleasesGroup))
+		du.input.LogEntry.Warnf("Release %s disruption approval required", appliedNowRelease.Name)
+		return false
+	}
+
+	// check: Deckhouse pod is ready
+	if !du.deckhousePodIsReady {
+		du.input.LogEntry.Info("Deckhouse is not ready. Skipping upgrade")
+		du.updateStatus(appliedNowRelease, "Waiting for Deckhouse pod to be ready", v1alpha1.PhasePending)
+		return false
+	}
+
+	return true
 }

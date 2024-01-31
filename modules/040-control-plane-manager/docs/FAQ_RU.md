@@ -2,13 +2,13 @@
 title: "Управление control plane: FAQ"
 ---
 
-<div id="как-добавить-master-узел"></div>
+<div id='как-добавить-master-узел'></div>
 
-## Как добавить master-узел в статичном или гибридном кластере?
+## Как добавить master-узел в статическом или гибридном кластере?
 
 > Важно иметь нечетное количество master-узлов для обеспечения кворума.
 
-Добавление master-узла в статичный или гибридный кластер ничем не отличается от добавления обычного узла в кластер. Воспользуйтесь для этого соответствующей [инструкцией](../040-node-manager/faq.html#как-добавить-статичный-узел-в-кластер). Все необходимые действия по настройке компонентов control plane кластера на новом узле будут выполнены автоматически, дождитесь их завершения — появления master-узлов в статусе `Ready`.
+Добавление master-узла в статический или гибридный кластер ничем не отличается от добавления обычного узла в кластер. Воспользуйтесь для этого соответствующими [примерами](../040-node-manager/examples.html#добавление-статического-узла-в-кластер). Все необходимые действия по настройке компонентов control plane кластера на новом узле будут выполнены автоматически, дождитесь их завершения — появления master-узлов в статусе `Ready`.
 
 ## Как добавить master-узлы в облачном кластере (single-master в multi-master)?
 
@@ -55,7 +55,7 @@ title: "Управление control plane: FAQ"
    kubectl -n kube-system wait pod --timeout=10m --for=condition=ContainersReady -l app=d8-control-plane-manager
    ```
 
-<div id="как-удалить-master-узел"></div>
+<div id='как-удалить-master-узел'></div>
 
 ## Как уменьшить число master-узлов в облачном кластере (multi-master в single-master)?
 
@@ -470,18 +470,12 @@ spec:
 ```bash
 #!/usr/bin/env bash
 
-for pod in $(kubectl get pod -n kube-system -l component=etcd,tier=control-plane -o name); do
-  if kubectl -n kube-system exec "$pod" -- sh -c "ETCDCTL_API=3 /usr/bin/etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/ca.key --endpoints https://127.0.0.1:2379/ snapshot save /tmp/${pod##*/}.snapshot" && \
-  kubectl -n kube-system exec "$pod" -- gzip -c /tmp/${pod##*/}.snapshot | zcat > "${pod##*/}.snapshot" && \
-  kubectl -n kube-system exec "$pod" -- sh -c "cd /tmp && sha256sum ${pod##*/}.snapshot" | sha256sum -c && \
-  kubectl -n kube-system exec "$pod" -- rm "/tmp/${pod##*/}.snapshot"; then
-    mv "${pod##*/}.snapshot" etcd-backup.snapshot
-    break
-  fi
-done
-cp -r /etc/kubernetes/ ./
+pod=etcd-`hostname`
+kubectl -n kube-system exec "$pod" -- /usr/bin/etcdctl --cacert /etc/kubernetes/pki/etcd/ca.crt --cert /etc/kubernetes/pki/etcd/ca.crt --key /etc/kubernetes/pki/etcd/ca.key --endpoints https://127.0.0.1:2379/ snapshot save /var/lib/etcd/${pod##*/}.snapshot && \
+mv /var/lib/etcd/"${pod##*/}.snapshot" etcd-backup.snapshot && \
+cp -r /etc/kubernetes/ ./ && \
 tar -cvzf kube-backup.tar.gz ./etcd-backup.snapshot ./kubernetes/
-rm -r ./kubernetes
+rm -r ./kubernetes ./etcd-backup.snapshot
 ```
 
 В текущей директории будет создан файл `etcd-backup.snapshot` со снимком базы etcd одного из членов etcd-кластера.

@@ -3,9 +3,16 @@ title: "The linstor module: configuration examples"
 description: Example of configuring the linstor Deckhouse module. LINSTOR storage configuration. Placing the application near the data (data locality). Migration of the application in case of problems with the node (storage-based fencing).
 ---
 
-{% alert %}
-The functionality of the module is guaranteed only for stock kernels for distributions listed in the [list of supported OS](../../supported_versions.html#linux).
-The functionality of the module with other kernels is possible but not guaranteed.
+{% alert level="danger" %}
+This version of the module is deprecated and is no longer supported. Use the [sds-drbd](https://deckhouse.io/modules/sds-drbd/beta/) module instead.
+{% endalert %}
+
+{% alert level="warning" %}
+The module is guaranteed to work only in the following cases:
+- when using the stock kernels that come with [supported distributions](../../supported_versions.html#linux);
+- when using a 10 Gbps network.
+
+In all other cases, the module may work, but its full functionality is not guaranteed.
 {% endalert %}
 
 After enabling the module, the cluster is automatically configured to use LINSTOR, and all that remains is to configure the storage.

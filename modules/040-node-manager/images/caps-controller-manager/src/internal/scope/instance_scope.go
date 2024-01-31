@@ -25,9 +25,11 @@ import (
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 	"sigs.k8s.io/cluster-api/util/conditions"
 	"sigs.k8s.io/cluster-api/util/patch"
+	k8sClient "sigs.k8s.io/controller-runtime/pkg/client"
 
 	deckhousev1 "caps-controller-manager/api/deckhouse.io/v1alpha1"
 	infrav1 "caps-controller-manager/api/infrastructure/v1alpha1"
+	"caps-controller-manager/internal/event"
 )
 
 // InstanceScope defines a scope defined around an instance and its machine.
@@ -62,6 +64,31 @@ func NewInstanceScope(
 		Scope:    scope,
 		Instance: staticInstance,
 	}, nil
+}
+
+// LoadSSHCredentials loads the SSHCredentials for the InstanceScope.
+func (i *InstanceScope) LoadSSHCredentials(ctx context.Context, recorder *event.Recorder) error {
+	credentials := &deckhousev1.SSHCredentials{}
+	credentialsKey := k8sClient.ObjectKey{
+		Name: i.Instance.Spec.CredentialsRef.Name,
+	}
+
+	err := i.Client.Get(ctx, credentialsKey, credentials)
+	if err != nil {
+		var nodeGroup string
+
+		if i.MachineScope != nil {
+			nodeGroup = i.MachineScope.StaticMachine.Labels["node-group"]
+		}
+
+		recorder.SendWarningEvent(i.Instance, nodeGroup, "StaticInstanceCredentialsUnavailable", "Credentials are unavailable")
+
+		return errors.Wrap(err, "failed to get StaticInstance credentials")
+	}
+
+	i.Credentials = credentials
+
+	return nil
 }
 
 // GetPhase returns the current phase of the static instance.
@@ -104,6 +131,23 @@ func (i *InstanceScope) Patch(ctx context.Context) error {
 		}})
 	if err != nil {
 		return errors.Wrap(err, "failed to patch StaticInstance")
+	}
+
+	return nil
+}
+
+func (i *InstanceScope) ToPending(ctx context.Context) error {
+	i.Instance.Status.MachineRef = nil
+	i.Instance.Status.NodeRef = nil
+	i.Instance.Status.CurrentStatus = nil
+
+	conditions.MarkFalse(i.Instance, infrav1.StaticInstanceBootstrapSucceededCondition, infrav1.StaticInstanceWaitingForNodeRefReason, clusterv1.ConditionSeverityInfo, "")
+
+	i.SetPhase(deckhousev1.StaticInstanceStatusCurrentStatusPhasePending)
+
+	err := i.Patch(ctx)
+	if err != nil {
+		return errors.Wrap(err, "failed to set StaticInstance to Pending phase")
 	}
 
 	return nil

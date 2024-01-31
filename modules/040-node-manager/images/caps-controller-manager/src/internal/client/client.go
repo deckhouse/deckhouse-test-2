@@ -17,56 +17,23 @@ limitations under the License.
 package client
 
 import (
-	"sync"
-
-	"caps-controller-manager/internal/providerid"
+	"caps-controller-manager/internal/event"
 )
 
 // Client is a client that executes commands on hosts using the OpenSSH client.
 // It spawns tasks and stores their results by providerID.
 type Client struct {
-	tasksMutex sync.Mutex
-	tasks      map[providerid.ProviderID]*bool
+	bootstrapTaskManager *taskManager
+	cleanupTaskManager   *taskManager
+
+	recorder *event.Recorder
 }
 
 // NewClient creates a new Client.
-func NewClient() *Client {
+func NewClient(recorder *event.Recorder) *Client {
 	return &Client{
-		tasks: make(map[providerid.ProviderID]*bool),
+		bootstrapTaskManager: newTaskManager(),
+		cleanupTaskManager:   newTaskManager(),
+		recorder:             recorder,
 	}
-}
-
-// spawn spawns a new task if it doesn't exist yet.
-func (c *Client) spawn(providerID providerid.ProviderID, task func() bool) bool {
-	c.tasksMutex.Lock()
-	defer c.tasksMutex.Unlock()
-
-	// Avoid spawning multiple tasks for the same providerID.
-	done, ok := c.tasks[providerID]
-	if ok {
-		if done == nil {
-			return false
-		}
-
-		delete(c.tasks, providerID)
-
-		return *done
-	}
-
-	c.tasks[providerID] = nil
-
-	go func() {
-		var done bool
-
-		defer func() {
-			c.tasksMutex.Lock()
-			defer c.tasksMutex.Unlock()
-
-			c.tasks[providerID] = &done
-		}()
-
-		done = task()
-	}()
-
-	return false
 }

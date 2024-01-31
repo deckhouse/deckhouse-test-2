@@ -20,11 +20,6 @@ module Jekyll
         item['linkAnchor'] = linkAnchor
         item['resourceType'] = resourceType
         item['title'] = %Q(#{if resourceType == 'crd' and  resourceName then resourceName + ":&nbsp;" end}#{parameterName})
-        if resourceType == 'moduleConfig' then
-          puts %Q(moduleName - #{moduleName},
-          resourceName - #{resourceName},
-          parameterName - #{parameterName})
-        end
         if get_hash_value(@context.registers[:site].data['modules'], 'modules', moduleName, %Q(parameters-#{revision})) == nil then
           @context.registers[:site].data['modules']['modules'][moduleName][%Q(parameters-#{revision})] = Hash.new
         end
@@ -191,7 +186,9 @@ module Jekyll
         exampleObject = nil
 
         begin
-          if attributes.has_key?('x-doc-example')
+          if attributes.has_key?('x-doc-examples')
+              exampleKeyToUse = 'x-doc-examples'
+          elsif attributes.has_key?('x-doc-example')
               exampleKeyToUse = 'x-doc-example'
           elsif attributes.has_key?('example')
               exampleKeyToUse = 'example'
@@ -206,7 +203,7 @@ module Jekyll
 
         if exampleObject != nil
             exampleObjectIsArrayOfExamples =  false
-            if exampleKeyToUse == 'x-examples' then
+            if exampleKeyToUse == 'x-examples' or exampleKeyToUse == 'x-doc-examples' then
                 exampleObjectIsArrayOfExamples =  true
             end
             if exampleKeyToUse == 'x-doc-example' then
@@ -328,6 +325,8 @@ module Jekyll
             result.push(CONVERTER.convert('**' + @context.registers[:site].data['i18n']['features']['proprietaryOkmeter'][lang].capitalize + '**'))
           when "experimental"
             result.push(CONVERTER.convert('**' + @context.registers[:site].data['i18n']['features']['experimental'][lang].capitalize + '**'))
+          when "temporaryDeprecated"
+            result.push(CONVERTER.convert('**' + @context.registers[:site].data['i18n']['features']['temporaryDeprecated'][lang].capitalize + '**'))
           end
         end
 
@@ -371,7 +370,7 @@ module Jekyll
                 lengthValue = "#{attributes['maxLength'].to_json}"
             end
             unless attributes['type'] == 'string' && caption == 'min_length'
-                description = %Q(<p class="resources__attrs"><span class="resources__attrs_name">#{get_i18n_term(caption).capitalize}</span>: <span class="resources__attrs_content"><code>#{lengthValue}</code></span></p>)
+                description = %Q(<p class="resources__attrs"><span class="resources__attrs_name">#{get_i18n_term(caption).capitalize}:</span> <span class="resources__attrs_content"><code>#{lengthValue}</code></span></p>)
                 result.push(CONVERTER.convert(description.to_s))
             end
         end
@@ -475,7 +474,7 @@ module Jekyll
 
         result.push(format_attribute(name, attributes, parent, primaryLanguage, fallbackLanguage)) if attributes.is_a?(Hash)
 
-        if attributes.has_key?('x-doc-d8Revision')
+        if (@moduleName != '') and attributes.has_key?('x-doc-d8Revision')
           case attributes['x-doc-d8Revision']
           when "ee"
             addRevisionParameter(@moduleName, 'ee', @resourceType, resourceName, name, linkAnchor)
@@ -499,7 +498,7 @@ module Jekyll
                 result.push('</ul>')
             else
                 # Array of non-objects (string, integer, etc.)
-                keysToShow = ['description', 'example', 'x-examples', 'x-doc-example', 'enum', 'default', 'x-doc-default', 'minimum', 'maximum', 'pattern', 'minLength', 'maxLength']
+                keysToShow = ['description', 'example', 'x-examples', 'x-doc-example', 'x-doc-examples', 'enum', 'default', 'x-doc-default', 'minimum', 'maximum', 'pattern', 'minLength', 'maxLength']
                 if (attributes['items'].keys & keysToShow).length > 0
                     lang = @context.registers[:page]["lang"]
                     i18n = @context.registers[:site].data["i18n"]["common"]
@@ -675,6 +674,14 @@ module Jekyll
                                           item['name'],
                                           searchKeywords)
 
+                    if item["schema"]["openAPIV3Schema"].has_key?('x-doc-examples') or item["schema"]["openAPIV3Schema"].has_key?('x-doc-example') or
+                       item["schema"]["openAPIV3Schema"].has_key?('example') or item["schema"]["openAPIV3Schema"].has_key?('x-examples')
+                    then
+                        result.push('<div markdown="0">')
+                        result.push(format_examples(nil, item["schema"]["openAPIV3Schema"]))
+                        result.push('</div>')
+                    end
+
                     if get_hash_value(item,'schema','openAPIV3Schema','properties')
                         header = '<ul class="resources">'
                         item['schema']['openAPIV3Schema']['properties'].each do |key, value|
@@ -756,12 +763,17 @@ module Jekyll
             result.push('</font></p>')
         end
 
-        result.push('<div markdown="0">')
-        result.push(format_examples(nil, input))
-        result.push('</div>')
+        if input.has_key?('x-doc-examples') or input.has_key?('x-doc-example') or
+           input.has_key?('example') or input.has_key?('x-examples')
+        then
+            result.push('<div markdown="0">')
+            result.push(format_examples(nil, input))
+            result.push('</div>')
+        end
+
 
         if ( get_hash_value(input, "properties") )
-           then
+        then
             result.push('<ul class="resources">')
             input['properties'].sort.to_h.each do |key, value|
                 _primaryLanguage = nil

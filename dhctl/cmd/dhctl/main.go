@@ -15,7 +15,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"runtime/trace"
 
@@ -50,6 +52,20 @@ func main() {
 		fmt.Printf("%s %s\n", app.AppName, app.AppVersion)
 		return nil
 	})
+
+	runningInContainer, err := isRunningInContainer()
+	if err != nil {
+		log.ErrorLn(err.Error())
+		return
+	}
+
+	commands.DefineMirrorCommand(kpApp)
+	commands.DefineMirrorModulesCommand(kpApp)
+	if !runningInContainer {
+		// We only allow mirror functions to be used outside of container environments.
+		runApplication(kpApp)
+		return
+	}
 
 	bootstrap.DefineBootstrapCommand(kpApp)
 	bootstrapPhaseCmd := kpApp.Command("bootstrap-phase", "Commands to run a single phase of the bootstrap process.")
@@ -121,6 +137,10 @@ func main() {
 		commands.DefineWaitDeploymentReadyCommand(deckhouseCmd)
 	}
 
+	runApplication(kpApp)
+}
+
+func runApplication(kpApp *kingpin.Application) {
 	kpApp.Action(func(c *kingpin.ParseContext) error {
 		log.InitLogger(app.LoggerType)
 		return nil
@@ -142,6 +162,21 @@ func main() {
 	// Block "main" function until teardown callbacks are finished.
 	exitCode := tomb.WaitShutdown()
 	os.Exit(exitCode)
+}
+
+func isRunningInContainer() (bool, error) {
+	_, err := os.Stat(app.VersionFile)
+	_, inClusterEnvExists := os.LookupEnv("DHCTL_CLI_KUBE_CLIENT_FROM_CLUSTER")
+	switch {
+	case inClusterEnvExists:
+		return true, nil
+	case errors.Is(err, fs.ErrNotExist):
+		return false, nil
+	case err != nil:
+		return false, err
+	default:
+		return true, nil
+	}
 }
 
 func EnableTrace() func() {

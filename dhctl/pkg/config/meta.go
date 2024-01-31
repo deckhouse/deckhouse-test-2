@@ -25,9 +25,9 @@ import (
 	"strings"
 
 	"github.com/iancoleman/strcase"
-	"github.com/peterbourgon/mergemap"
 	"sigs.k8s.io/yaml"
 
+	"github.com/deckhouse/deckhouse/dhctl/pkg/app"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 )
 
@@ -44,14 +44,16 @@ type MetaConfig struct {
 
 	ClusterConfig     map[string]json.RawMessage `json:"clusterConfiguration"`
 	InitClusterConfig map[string]json.RawMessage `json:"-"`
+	ModuleConfigs     []*ModuleConfig            `json:"-"`
 
 	ProviderClusterConfig map[string]json.RawMessage `json:"providerClusterConfiguration,omitempty"`
 	StaticClusterConfig   map[string]json.RawMessage `json:"staticClusterConfiguration,omitempty"`
 
-	VersionMap map[string]interface{} `json:"-"`
-	Images     imagesDigests          `json:"-"`
-	Registry   RegistryData           `json:"-"`
-	UUID       string                 `json:"clusterUUID,omitempty"`
+	VersionMap       map[string]interface{} `json:"-"`
+	Images           imagesDigests          `json:"-"`
+	Registry         RegistryData           `json:"-"`
+	UUID             string                 `json:"clusterUUID,omitempty"`
+	InstallerVersion string                 `json:"-"`
 }
 
 type imagesDigests map[string]map[string]interface{}
@@ -181,38 +183,6 @@ func validateRegistryDockerCfg(cfg string) error {
 	}
 
 	return nil
-}
-
-// MergeDeckhouseConfig returns deckhouse config merged from different sources
-func (m *MetaConfig) MergeDeckhouseConfig(configs ...[]byte) map[string]interface{} {
-	deckhouseModuleConfig := map[string]interface{}{
-		"logLevel": m.DeckhouseConfig.LogLevel,
-		"bundle":   m.DeckhouseConfig.Bundle,
-	}
-
-	if m.DeckhouseConfig.ReleaseChannel != "" {
-		deckhouseModuleConfig["releaseChannel"] = m.DeckhouseConfig.ReleaseChannel
-	}
-
-	baseDeckhouseConfig := map[string]interface{}{"deckhouse": deckhouseModuleConfig}
-	if len(configs) == 0 {
-		return mergemap.Merge(baseDeckhouseConfig, m.DeckhouseConfig.ConfigOverrides)
-	}
-
-	var firstConfig map[string]interface{}
-	_ = json.Unmarshal(configs[0], &firstConfig)
-
-	for _, configRaw := range configs[1:] {
-		var config map[string]interface{}
-		_ = json.Unmarshal(configRaw, &config)
-
-		firstConfig = mergemap.Merge(firstConfig, config)
-	}
-
-	firstConfig = mergemap.Merge(firstConfig, m.DeckhouseConfig.ConfigOverrides)
-	firstConfig = mergemap.Merge(firstConfig, baseDeckhouseConfig)
-
-	return firstConfig
 }
 
 func (m *MetaConfig) GetTerraNodeGroups() []TerraNodeGroupSpec {
@@ -616,7 +586,7 @@ func (m *MetaConfig) EnrichProxyData() (map[string]interface{}, error) {
 		return nil, err
 	}
 
-	p.NoProxy = append(p.NoProxy, "127.0.0.1", "169.254.169.254", string(clusterDomain), string(podSubnetCIDR), string(serviceSubnetCIDR))
+	p.NoProxy = append(p.NoProxy, "127.0.0.1", "169.254.169.254", clusterDomain, podSubnetCIDR, serviceSubnetCIDR)
 
 	ret := make(map[string]interface{})
 	if p.HttpProxy != "" {
@@ -630,7 +600,7 @@ func (m *MetaConfig) EnrichProxyData() (map[string]interface{}, error) {
 	return ret, nil
 }
 
-func (m *MetaConfig) LoadimagesDigests(filename string) error {
+func (m *MetaConfig) LoadImagesDigests(filename string) error {
 	var imagesDigests imagesDigests
 
 	imagesDigestsJSONFile, err := os.ReadFile(filename)
@@ -644,6 +614,17 @@ func (m *MetaConfig) LoadimagesDigests(filename string) error {
 	}
 
 	m.Images = imagesDigests
+
+	return nil
+}
+
+func (m *MetaConfig) LoadInstallerVersion() error {
+	rawFile, err := os.ReadFile(app.VersionFile)
+	if err != nil {
+		return err
+	}
+
+	m.InstallerVersion = strings.TrimSpace(string(rawFile))
 
 	return nil
 }

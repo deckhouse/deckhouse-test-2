@@ -2,20 +2,19 @@
 
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-from: {{ $.Images.BASE_ALPINE }}
-shell:
-  beforeInstall:
-  - apk add --no-cache ca-certificates e2fsprogs findmnt xfsprogs blkid e2fsprogs-extra
+fromImage: common/distroless
+fromCacheVersion: "2023-10-30.1"
 import:
   - artifact: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
     add: /local-path-provisioner
     to: /usr/bin/local-path-provisioner
-    before: setup
+    after: install
 docker:
   ENTRYPOINT: ["/usr/bin/local-path-provisioner"]
 ---
 artifact: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
-from: {{ $.Images.BASE_GOLANG_16_ALPINE }}
+from: {{ $.Images.BASE_GOLANG_20_ALPINE }}
+fromCacheVersion: "2023-10-30.1"
 git:
   - add: /{{ $.ModulePath }}modules/031-{{ $.ModuleName }}/images/{{ $.ImageName }}/patches
     to: /patches
@@ -26,13 +25,19 @@ mount:
   - fromPath: ~/go-pkg-cache
     to: /go/pkg
 shell:
-  beforeInstall:
+  install:
     - apk add --no-cache git
-    - export GOPROXY={{ $.GOPROXY }}
     - mkdir /src
     - git clone --depth 1 --branch v{{$localPathProvisionerVersion}} {{ $.SOURCE_REPO }}/rancher/local-path-provisioner.git /src
     - cd /src
     - for ifile in $(ls /patches/*.patch); do git apply $ifile; done
-    - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.VERSION={{$localPathProvisionerVersion}} -extldflags -static -s -w" -o /local-path-provisioner
+    - go mod edit -go 1.20
+    - go mod edit -dropreplace golang.org/x/crypto
+    - go get -u golang.org/x/crypto@v0.14.0
+    - go get -u golang.org/x/net@v0.17.0
+    - go get -u github.com/prometheus/client_golang@v1.17.0
+    - go mod tidy
+    - go mod vendor
+    - GOPROXY={{ $.GOPROXY }} CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-X main.VERSION={{$localPathProvisionerVersion}} -extldflags -static -s -w" -o /local-path-provisioner
     - chown -R 64535:64535 /local-path-provisioner
     - chmod 0700 /local-path-provisioner

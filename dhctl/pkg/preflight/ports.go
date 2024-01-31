@@ -24,7 +24,7 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/template"
 )
 
-func (pc *PreflightCheck) CheckAvailabilityPorts() error {
+func (pc *Checker) CheckAvailabilityPorts() error {
 	if app.PreflightSkipAvailabilityPorts {
 		log.InfoLn("Availability ports preflight check was skipped")
 		return nil
@@ -42,12 +42,11 @@ func (pc *PreflightCheck) CheckAvailabilityPorts() error {
 	if err != nil {
 		log.ErrorLn(strings.Trim(string(out), "\n"))
 		if ee, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf("check_ports.sh: %w, %s", err, string(ee.Stderr))
+			return fmt.Errorf("Required ports check failed: %w, %s", err, string(ee.Stderr))
 		}
-		return fmt.Errorf("check_ports.sh: %w", err)
+		return fmt.Errorf("Could not execute a script to check if all necessary ports are open on the node: %w", err)
 	}
 
 	log.DebugLn(string(out))
-	log.InfoLn("Checking availability ports success")
 	return nil
 }

@@ -21,13 +21,12 @@ import (
 
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	"k8s.io/client-go/tools/clientcmd/api"
 )
 
 // New creates a new Kubeconfig using the cluster name and specified endpoint.
-func New(clusterName, endpoint string, caCert []byte, token string) (*api.Config, error) {
-	userName := fmt.Sprintf("%s-admin", clusterName)
+func New(clusterName, endpoint string, caCert []byte, clientKey []byte, clientCert []byte) (*api.Config, error) {
+	userName := "capi-controller-manager"
 	contextName := fmt.Sprintf("%s@%s", userName, clusterName)
 
 	return &api.Config{
@@ -45,7 +44,8 @@ func New(clusterName, endpoint string, caCert []byte, token string) (*api.Config
 		},
 		AuthInfos: map[string]*api.AuthInfo{
 			userName: {
-				Token: token,
+				ClientKeyData:         clientKey,
+				ClientCertificateData: clientCert,
 			},
 		},
 		CurrentContext: contextName,
@@ -53,67 +53,22 @@ func New(clusterName, endpoint string, caCert []byte, token string) (*api.Config
 }
 
 // GenerateSecret returns a Kubernetes secret for the given Cluster and kubeconfig data.
-func GenerateSecret(cluster *unstructured.Unstructured, data []byte) *corev1.Secret {
-	return GenerateSecretWithOwner(cluster, data, metav1.OwnerReference{
-		APIVersion: cluster.GetAPIVersion(),
-		Kind:       "Cluster",
-		Name:       cluster.GetName(),
-		UID:        cluster.GetUID(),
-	})
-}
-
-// GenerateSecretWithOwner returns a Kubernetes secret for the given Cluster name, namespace, kubeconfig data, and ownerReference.
-func GenerateSecretWithOwner(cluster *unstructured.Unstructured, data []byte, owner metav1.OwnerReference) *corev1.Secret {
+func GenerateSecret(clusterName string, namespace string, data []byte) *corev1.Secret {
 	return &corev1.Secret{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
 			Kind:       "Secret",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-kubeconfig", cluster.GetName()),
-			Namespace: cluster.GetNamespace(),
+			Name:      fmt.Sprintf("%s-kubeconfig", clusterName),
+			Namespace: namespace,
 			Labels: map[string]string{
-				"cluster.x-k8s.io/cluster-name": cluster.GetName(),
-			},
-			OwnerReferences: []metav1.OwnerReference{
-				owner,
+				"cluster.x-k8s.io/cluster-name": clusterName,
 			},
 		},
 		Data: map[string][]byte{
 			"value": data,
 		},
 		Type: "cluster.x-k8s.io/secret",
-	}
-}
-
-func GenerateSecretForServiceAccountToken(cluster *unstructured.Unstructured, serviceAccountName string) *corev1.Secret {
-	return generateSecretForServiceAccountToken(cluster, serviceAccountName, metav1.OwnerReference{
-		APIVersion: cluster.GetAPIVersion(),
-		Kind:       "Cluster",
-		Name:       cluster.GetName(),
-		UID:        cluster.GetUID(),
-	})
-}
-
-func generateSecretForServiceAccountToken(cluster *unstructured.Unstructured, serviceAccountName string, owner metav1.OwnerReference) *corev1.Secret {
-	return &corev1.Secret{
-		TypeMeta: metav1.TypeMeta{
-			APIVersion: "v1",
-			Kind:       "Secret",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("%s-kubeconfig-token", cluster.GetName()),
-			Namespace: cluster.GetNamespace(),
-			Labels: map[string]string{
-				"cluster.x-k8s.io/cluster-name": cluster.GetName(),
-			},
-			Annotations: map[string]string{
-				"kubernetes.io/service-account.name": serviceAccountName,
-			},
-			OwnerReferences: []metav1.OwnerReference{
-				owner,
-			},
-		},
-		Type: "kubernetes.io/service-account-token",
 	}
 }

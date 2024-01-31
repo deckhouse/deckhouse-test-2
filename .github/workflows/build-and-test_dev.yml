@@ -39,6 +39,7 @@ env:
   SOURCE_REPO: "${{secrets.SOURCE_REPO}}"
   GOPROXY: "${{secrets.GOPROXY}}"
   CRATESPROXY: "${{secrets.CRATESPROXY}}"
+  NPMPROXY: "${{secrets.NPMPROXY}}"
   # </template: git_source_envs>
 
 # Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
@@ -197,8 +198,16 @@ jobs:
             const defaultEdition = process.env.WERF_ENV ? process.env.WERF_ENV : 'FE';
             const hasEE = pr.labels.some((l) => l.name === 'edition/ee');
             const hasCE = pr.labels.some((l) => l.name === 'edition/ce');
-            const edition = hasCE ? 'CE' : (hasEE ? 'EE' : defaultEdition);
-            core.info(`Edition labels: 'edition/ce':${hasCE}, 'edition/ee':${hasEE}`);
+            const hasBE = pr.labels.some((l) => l.name === 'edition/be');
+            let edition = defaultEdition;
+            if (hasCE) {
+              edition = 'CE';
+            } else if (hasEE) {
+              edition = 'EE';
+            } else if (hasBE) {
+              edition = 'BE';
+            }
+            core.info(`Edition labels: 'edition/ce':${hasCE}, 'edition/ee':${hasEE}, 'edition/be':${hasBE}`);
             core.notice(`Enable '${edition}' edition for '${context.eventName}' trigger.`);
 
             // Construct head commit ref using pr number.
@@ -378,6 +387,16 @@ jobs:
       - run: |
           echo Enable ${{ needs.pull_request_info.outputs.edition }}
 
+  enable_be:
+    if: ${{ needs.pull_request_info.outputs.edition == 'BE' }}
+    name: Enable BE
+    needs:
+      - pull_request_info
+    runs-on: ubuntu-latest
+    steps:
+      - run: |
+          echo Enable ${{ needs.pull_request_info.outputs.edition }}
+
   go_generate:
     name: Go Generate
     needs:
@@ -430,10 +449,10 @@ jobs:
           channel: ${{env.WERF_CHANNEL}}
       # </template: werf_install_step>
 
-      - name: Set up Go 1.20
+      - name: Set up Go 1.21
         uses: actions/setup-go@v3
         with:
-          go-version: '1.20'
+          go-version: '1.21'
 
       - name: Run go generate
         run: |
@@ -921,14 +940,14 @@ jobs:
       # </template: login_rw_registry_step>
       - name: Run tests
         env:
-          TESTS_IMAGE_NAME: "registry.deckhouse.io/base_images/golang:1.18.5-buster@sha256:eb4b3bd59da4604b0ab27d3837e39dacfba4a48cdd289419a3c49993c0eadba4"
+          TESTS_IMAGE_NAME: "registry.deckhouse.io/base_images/golang:1.21.6-bullseye@sha256:a363973b58d4d5a91d6e8f700c847e87c1143459e55464fefca9e6135358af98"
         run: |
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           echo "⚓️ 📥 [$(date -u)] Pull 'tests' image..."
           docker pull ${TESTS_IMAGE_NAME}
           echo "⚓️ 🏎 [$(date -u)] Run tests..."
-          docker run -w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -v ~/go-pkg-cache:/go/pkg ${TESTS_IMAGE_NAME} make tests-modules
+          docker run -w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -v ~/go-pkg-cache:/go/pkg ${TESTS_IMAGE_NAME} make tests-controller tests-modules
     # </template: tests_before_build_template>
 
   matrix_tests:
@@ -1007,7 +1026,7 @@ jobs:
       # </template: login_rw_registry_step>
       - name: Run tests
         env:
-          TESTS_IMAGE_NAME: "registry.deckhouse.io/base_images/golang:1.18.5-buster@sha256:eb4b3bd59da4604b0ab27d3837e39dacfba4a48cdd289419a3c49993c0eadba4"
+          TESTS_IMAGE_NAME: "registry.deckhouse.io/base_images/golang:1.21.6-bullseye@sha256:a363973b58d4d5a91d6e8f700c847e87c1143459e55464fefca9e6135358af98"
         run: |
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
@@ -1204,7 +1223,7 @@ jobs:
           echo "⚓️ 📥 [$(date -u)] Pull 'tests' image..."
           docker pull ${TESTS_IMAGE_NAME}
           echo "⚓️ 🏎 [$(date -u)] Run tests..."
-          docker run -w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -v ~/go-pkg-cache:/go/pkg ${TESTS_IMAGE_NAME} sh -c "go generate tools/register.go && golangci-lint run"
+          docker run -w /deckhouse -v ${{github.workspace}}:/deckhouse -e "TERM=xterm-256color" -v ~/go-pkg-cache:/go/pkg ${TESTS_IMAGE_NAME} sh -c "go generate tools/register.go && GOGC=50 GOFLAGS=\"-buildvcs=false\" golangci-lint run"
     # </template: tests_template>
 
   openapi_test_cases:
@@ -1361,6 +1380,8 @@ jobs:
 
       - name: Prepare site structure
         env:
+          DOC_API_KEY: "${{secrets.DOC_API_KEY}}"
+          DOC_API_URL: "${{vars.DOC_API_URL}}"
 
           WEB_REGISTRY_PATH: ${{steps.check_dev_registry.outputs.web_registry_path}}
         run: |
@@ -1408,14 +1429,14 @@ jobs:
           echo "Create site structure in '${_TMPDIR}/site_en/'"
           mkdir -p ${_TMPDIR}/site_en/ ${_TMPDIR}/site_ru/
           touch ${_TMPDIR}/site_en/index.html ${_TMPDIR}/site_ru/index.html
-          rsync -a --exclude='ru' --exclude='en' --exclude='compare' ${_TMPDIR}/frontend/ ${_TMPDIR}/site_en/
-          rsync -a --exclude='ru' --exclude='en' --exclude='compare' ${_TMPDIR}/frontend/ ${_TMPDIR}/site_ru/
+          rsync -a --exclude='ru' --exclude='en' --exclude='compare' --exclude='includes/header.html' ${_TMPDIR}/frontend/ ${_TMPDIR}/site_en/
+          rsync -a --exclude='ru' --exclude='en' --exclude='compare' --exclude='includes/header.html' ${_TMPDIR}/frontend/ ${_TMPDIR}/site_ru/
           #
           rsync -a ${_TMPDIR}/frontend/en/ ${_TMPDIR}/site_en/
           rsync -a ${_TMPDIR}/frontend/ru/ ${_TMPDIR}/site_ru/
           #
-          rsync -a ${_TMPDIR}/backend/en/ ${_TMPDIR}/site_en/
-          rsync -a ${_TMPDIR}/backend/ru/ ${_TMPDIR}/site_ru/
+          rsync -a --exclude='includes/header.html' ${_TMPDIR}/backend/en/ ${_TMPDIR}/site_en/
+          rsync -a --exclude='includes/header.html' ${_TMPDIR}/backend/ru/ ${_TMPDIR}/site_ru/
           #
           rsync -a --exclude='ru' --exclude='en' --exclude='compare' ${_TMPDIR}/documentation/ ${_TMPDIR}/site_en/documentation/
           rsync -a --exclude='ru' --exclude='en' --exclude='compare' ${_TMPDIR}/documentation/ ${_TMPDIR}/site_ru/documentation/
@@ -1430,10 +1451,11 @@ jobs:
           # Do not exit on html-proofer error.
           set +e
           # Checking EN site
-          docker run --rm -v "${_TMPDIR}/site_en:/src:ro" klakegg/html-proofer:3.19.1 \
+          docker run --rm -v "${_TMPDIR}/site_en:/src:ro" klakegg/html-proofer:3.19.2 \
             --allow-hash-href --check-html --empty-alt-ignore \
-            --url-ignore "/localhost/,/https\:\/\/t.me/,/docs-prv\.pcisecuritystandards\.org/,/gitlab.com\/profile/,/dash.cloudflare.com\/profile/,/example.com/,/vmware.com/,/.slack.com/,/habr.com/,/flant.ru/,/bcrypt-generator.com/,/candi\/bashible\/bashbooster/,/..\/..\/compare\//,/compare\/ru\//,/compare\/en\//,/\.yml$/,/\.yaml$/,/\.tmpl$/,/\.tpl$/" \
+            --url-ignore "/^\/(?!(gs\/|documentation\/|guides\/))/,/localhost/,/https\:\/\/t.me/,/docs-prv\.pcisecuritystandards\.org/,/gitlab.com\/profile/,/dash.cloudflare.com\/profile/,/example.com/,/vmware.com/,/.slack.com/,/habr.com/,/flant.ru/,/bcrypt-generator.com/,/candi\/bashible\/bashbooster/,/..\/..\/compare\//,/compare\/ru\//,/compare\/en\//,/\.yml$/,/\.yaml$/,/\.tmpl$/,/\.tpl$/" \
             --url-swap "https\:\/\/deckhouse.io\/:/,\/documentation\/v1\/:/documentation/,\/documentation\/latest\/:/documentation/" \
+            --file_ignore "404.html" \
             --http-status-ignore "0,429" ${1}
           # Emulate 'allow_failure: true' from Gitlab. Github has only two state: success and failure.
           exit 0
@@ -1443,10 +1465,11 @@ jobs:
           # Do not exit on html-proofer error.
           set +e
           # Checking RU site
-          docker run --rm -v "${_TMPDIR}/site_ru:/src:ro" klakegg/html-proofer:3.19.1 \
+          docker run --rm -v "${_TMPDIR}/site_ru:/src:ro" klakegg/html-proofer:3.19.2 \
             --allow-hash-href --check-html --empty-alt-ignore \
-            --url-ignore "/localhost/,/https\:\/\/t.me/,/docs-prv\.pcisecuritystandards\.org/,/gitlab.com\/profile/,/dash.cloudflare.com\/profile/,/example.com/,/vmware.com/,/.slack.com/,/habr.com/,/flant.ru/,/bcrypt-generator.com/,/candi\/bashible\/bashbooster/,/..\/..\/compare\//,/compare\/ru\//,/compare\/en\//,/\.yml$/,/\.yaml$/,/\.tmpl$/,/\.tpl$/" \
+            --url-ignore "/^\/(?!(gs\/|documentation\/|guides\/))/,/localhost/,/https\:\/\/t.me/,/docs-prv\.pcisecuritystandards\.org/,/gitlab.com\/profile/,/dash.cloudflare.com\/profile/,/example.com/,/vmware.com/,/.slack.com/,/habr.com/,/flant.ru/,/bcrypt-generator.com/,/candi\/bashible\/bashbooster/,/..\/..\/compare\//,/compare\/ru\//,/compare\/en\//,/\.yml$/,/\.yaml$/,/\.tmpl$/,/\.tpl$/" \
             --url-swap "https\:\/\/deckhouse.io\/:/,\/documentation\/v1\/:/documentation/,\/documentation\/latest\/:/documentation/" \
+            --file_ignore "404.html" \
             --http-status-ignore "0,429" ${1}
           # Emulate 'allow_failure: true' from Gitlab. Github has only two state: success and failure.
           exit 0

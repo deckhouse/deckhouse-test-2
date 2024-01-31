@@ -25,6 +25,8 @@ import (
 	"time"
 
 	log "github.com/sirupsen/logrus"
+
+	"github.com/prometheus/common/model"
 )
 
 func main() {
@@ -93,9 +95,11 @@ func reconcile(ctx context.Context, s *storeStruct) {
 
 	// Add or update CRs
 	alertSet := make(map[string]struct{}, len(s.memStore.alerts))
+	alertsToRemove := make([]model.Fingerprint, 0, len(s.memStore.alerts))
+	s.memStore.RLock()
 	for fingerprint, alert := range s.memStore.alerts {
 		if alert.Resolved() {
-			s.memStore.removeAlert(fingerprint)
+			alertsToRemove = append(alertsToRemove, fingerprint)
 			continue
 		}
 
@@ -115,6 +119,9 @@ func reconcile(ctx context.Context, s *storeStruct) {
 			log.Error(err)
 		}
 	}
+	s.memStore.RUnlock()
+
+	s.memStore.removeAlerts(alertsToRemove)
 
 	// Remove CRs which do not have corresponding alerts
 	for k := range crSet {

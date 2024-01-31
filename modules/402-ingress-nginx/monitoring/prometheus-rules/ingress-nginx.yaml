@@ -121,9 +121,7 @@
         This command might help figuring out problematic nodes given you are aware where the DaemonSet should be scheduled in the first place (using label selector for pods might be of help, too):
 
         ```
-        comm -13 \
-          <(kubectl -n {{$labels.namespace}} get po -o'custom-columns=NODE:.spec.nodeName' --no-headers --sort-by=.spec.nodeName) \
-          <(kubectl get no -o'custom-columns=NAME:.metadata.name' --no-headers)
+        kubectl -n {{$labels.namespace}} get pod -ojson | jq -r '.items[] | select(.metadata.ownerReferences[] | select(.name =="{{$labels.daemonset}}")) | select(.status.phase != "Running" or ([ .status.conditions[] | select(.type == "Ready" and .status == "False") ] | length ) == 1 ) | .spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[].matchFields[].values[]'
         ```
 
   - alert: NginxIngressDaemonSetReplicasUnavailable
@@ -142,6 +140,12 @@
         Count of available replicas in NGINX Ingress DaemonSet {{$labels.namespace}}/{{$labels.daemonset}} is at zero.
 
         List of unavailable Pod(s): {{range $index, $result := (printf "(max by (namespace, pod) (kube_pod_status_ready{namespace=\"%s\", condition!=\"true\"} == 1)) * on (namespace, pod) kube_controller_pod{namespace=\"%s\", controller_type=\"DaemonSet\", controller_name=\"%s\"}" $labels.namespace $labels.namespace $labels.daemonset | query)}}{{if not (eq $index 0)}}, {{ end }}{{ $result.Labels.pod }}{{ end }}
+
+        This command might help figuring out problematic nodes given you are aware where the DaemonSet should be scheduled in the first place (using label selector for pods might be of help, too):
+
+        ```
+        kubectl -n {{$labels.namespace}} get pod -ojson | jq -r '.items[] | select(.metadata.ownerReferences[] | select(.name =="{{$labels.daemonset}}")) | select(.status.phase != "Running" or ([ .status.conditions[] | select(.type == "Ready" and .status == "False") ] | length ) == 1 ) | .spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[].matchFields[].values[]'
+        ```
 
   - alert: NginxIngressDaemonSetNotUpToDate
     expr: |
@@ -165,3 +169,19 @@
         3. If the `Number of Nodes Scheduled with Up-to-date Pods` parameter does not match
         `Current Number of Nodes Scheduled`, check the pertinent Ingress Nginx Controller's 'nodeSelector' and 'toleration' settings,
         and compare them to the relevant nodes' 'labels' and 'taints' settings
+  - alert: NginxIngressDeprecatedVersion
+    expr: count(d8_ingress_nginx_controller{controller_version="1.1"}) > 0
+    labels:
+      severity_level: "4"
+    annotations:
+      plk_markup_format: "markdown"
+      plk_protocol_version: "1"
+      plk_ignore_labels: "name"
+      summary: |-
+        Ingress version 1.1 will be disabled in Deckhouse release 1.57
+      description: |-
+        There is at least one ingress nginx controller with deprecated version 1.1. Ingress nginx version 1.1 will be disabled in upcoming Deckhouse releases. Consider upgrading to a newer version of Ingress nginx controller (all the pods of the affected Ingress Nginx controllers will be consequently recreated during upgrade).
+        Use the following command to list the affected Ingress nginx controllers:
+        `kubectl  get ingressnginxcontrollers.deckhouse.io -o json | jq '.items[] | select(.spec.controllerVersion == "1.1") | .metadata.name'`
+
+

@@ -61,12 +61,15 @@ unset HTTP_PROXY http_proxy HTTPS_PROXY https_proxy NO_PROXY no_proxy
 # Install necessary packages.
 basic_bootstrap_${BUNDLE}
 
-bootstrap_job_log_pid=""
-
-  {{- if eq .nodeGroup.nodeType "CloudEphemeral" }}
-# Put bootstrap log information to Machine resource status
+{{- if or (eq .nodeGroup.nodeType "CloudEphemeral") (hasKey .nodeGroup "staticInstances") }}
+# Put bootstrap log information to Machine resource status if it is a cloud installation or cluster-api static machine
 patch_pending=true
 output_log_port=8000
+# Skip this step after multiple failures.
+# This step puts information "how to get bootstrap logs" into Instance resource.
+# It's not critical, and waiting for it indefinitely, breaking bootstrap, is not reasonable.
+failure_count=0
+failure_limit=3
 while [ "$patch_pending" = true ] ; do
   for server in {{ .normal.apiserverEndpoints | join " " }} ; do
     server_addr=$(echo $server | cut -f1 -d":")
@@ -74,6 +77,11 @@ while [ "$patch_pending" = true ] ; do
       echo "The network is not ready for connecting to apiserver yet, waiting..."
       sleep 1
     done
+
+    machine_name="$(hostname -s)"
+    if [ -f ${BOOTSTRAP_DIR}/machine-name ]; then
+      machine_name="$(<${BOOTSTRAP_DIR}/machine-name)"
+    fi
 
     if curl -sS --fail -x "" \
       --max-time 10 \
@@ -83,30 +91,28 @@ while [ "$patch_pending" = true ] ; do
       -H "Content-Type: application/json-patch+json" \
       --cacert "$BOOTSTRAP_DIR/ca.crt" \
       --data "[{\"op\":\"add\",\"path\":\"/status/bootstrapStatus\", \"value\": {\"description\": \"Use 'nc ${tcp_endpoint} ${output_log_port}' to get bootstrap logs.\", \"logsEndpoint\": \"${tcp_endpoint}:${output_log_port}\"} }]" \
-      "https://$server/apis/deckhouse.io/v1alpha1/instances/$(hostname -s)/status" ; then
+      "https://$server/apis/deckhouse.io/v1alpha1/instances/${machine_name}/status" ; then
 
-      echo "Successfully patched machine $(hostname -s) status."
+      echo "Successfully patched instance ${machine_name} status."
       patch_pending=false
 
       break
     else
-      >&2 echo "Failed to patch machine $(hostname -s) status."
+      failure_count=$((failure_count + 1))
+
+      if [[ $failure_count -eq $failure_limit ]]; then
+        >&2 echo "Failed to patch instance ${machine_name} status. Number of attempts exceeded. Status patch will be skipped."
+        patch_pending=false
+        break
+      fi
+
+      >&2 echo "Failed to patch instance ${machine_name} status. ${failure_count} of ${failure_limit} attempts..."
       sleep 10
       continue
     fi
   done
 done
-
-# Start output bootstrap logs
-if type socat >/dev/null 2>&1; then
-  socat -u FILE:/var/log/cloud-init-output.log,ignoreeof TCP4-LISTEN:8000,fork,reuseaddr &
-  bootstrap_job_log_pid=$!
-else
-  while true; do cat /var/log/cloud-init-output.log | nc -l "$tcp_endpoint" "$output_log_port"; done &
-  bootstrap_job_log_pid=$!
-fi
-
-  {{- end }}
+{{- end }}
 
 # IMPORTANT !!! Centos/Redhat put jq in /usr/local/bin but it is not in PATH.
 export PATH="/opt/deckhouse/bin:$PATH"
@@ -118,9 +124,4 @@ chmod +x $BOOTSTRAP_DIR/bashible.sh
 until /var/lib/bashible/bashible.sh; do
   echo "Error running bashible script. Retry in 10 seconds."
   sleep 10
-done;
-
-# Stop output bootstrap logs
-if [ -n "${bootstrap_job_log_pid-}" ] && kill -s 0 "${bootstrap_job_log_pid-}" 2>/dev/null; then
-  kill -9 "${bootstrap_job_log_pid-}"
-fi
+done

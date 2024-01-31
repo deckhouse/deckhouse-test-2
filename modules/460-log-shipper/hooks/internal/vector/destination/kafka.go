@@ -35,6 +35,16 @@ type Kafka struct {
 	Compression string `json:"compression,omitempty"`
 
 	TLS CommonTLS `json:"tls,omitempty"`
+
+	SASL KafkaSASL `json:"sasl,omitempty"`
+}
+
+type KafkaSASL struct {
+	Username  string `json:"username,omitempty"`
+	Password  string `json:"password,omitempty"`
+	Mechanism string `json:"mechanism,omitempty"`
+
+	Enabled bool `json:"enabled,omitempty"`
 }
 
 func NewKafka(name string, cspec v1alpha1.ClusterLogDestinationSpec) *Kafka {
@@ -58,6 +68,45 @@ func NewKafka(name string, cspec v1alpha1.ClusterLogDestinationSpec) *Kafka {
 		tls.Enabled = true
 	}
 
+	sasl := KafkaSASL{
+		Enabled:   false,
+		Username:  spec.SASL.Username,
+		Password:  spec.SASL.Password,
+		Mechanism: string(spec.SASL.Mechanism),
+	}
+	if sasl.Mechanism != "" && sasl.Username != "" && sasl.Password != "" {
+		sasl.Enabled = true
+	}
+
+	encoding := Encoding{
+		Codec:           "json",
+		TimestampFormat: "rfc3339",
+	}
+	if spec.Encoding.Codec == v1alpha1.EncodingCodecCEF {
+		encoding.Codec = "cef"
+		encoding.CEF = CEFEncoding{
+			Version:            "V1",
+			DeviceVendor:       "Deckhouse",
+			DeviceProduct:      "log-shipper-agent",
+			DeviceVersion:      "1",
+			DeviceEventClassID: "Log event",
+			Name:               "cef.name",
+			Severity:           "cef.severity",
+			Extensions: map[string]string{
+				"message":   "message",
+				"timestamp": "timestamp",
+				"node":      "node",
+				"host":      "host",
+				"pod":       "pod",
+				"podip":     "pod_ip",
+				"namespace": "namespace",
+				"image":     "image",
+				"container": "container",
+				"podowner":  "pod_owner",
+			},
+		}
+	}
+
 	return &Kafka{
 		CommonSettings: CommonSettings{
 			Name:   ComposeName(name),
@@ -65,12 +114,10 @@ func NewKafka(name string, cspec v1alpha1.ClusterLogDestinationSpec) *Kafka {
 			Inputs: set.New(),
 			Buffer: buildVectorBuffer(cspec.Buffer),
 		},
-		TLS:   tls,
-		Topic: spec.Topic,
-		Encoding: Encoding{
-			Codec:           "json",
-			TimestampFormat: "rfc3339",
-		},
+		TLS:              tls,
+		Topic:            spec.Topic,
+		Encoding:         encoding,
+		SASL:             sasl,
 		Compression:      "gzip",
 		BootstrapServers: strings.Join(spec.BootstrapServers, ","),
 	}

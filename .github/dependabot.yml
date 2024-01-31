@@ -25,6 +25,24 @@ updates:
   open-pull-requests-limit: 0
 
 - package-ecosystem: "gomod"
+  directory: "/docs/site/backends/docs-builder"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "gomod"
+  directory: "/docs/site/backends/registry-modules-watcher"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "gomod"
   directory: "/ee/modules/015-admission-policy-engine/images/trivy-provider"
   labels:
   - "type/dependencies"
@@ -161,6 +179,15 @@ updates:
 
 - package-ecosystem: "gomod"
   directory: "/modules/030-cloud-provider-yandex/images/cloud-metrics-exporter"
+  labels:
+  - "type/dependencies"
+  - "status/ok-to-test"
+  schedule:
+    interval: "daily"
+  open-pull-requests-limit: 0
+
+- package-ecosystem: "gomod"
+  directory: "/modules/031-local-path-provisioner/images/helper/dir-manager"
   labels:
   - "type/dependencies"
   - "status/ok-to-test"
@@ -403,7 +430,7 @@ updates:
   open-pull-requests-limit: 0
 
 - package-ecosystem: "gomod"
-  directory: "/modules/490-virtualization/images/vmi-router"
+  directory: "/modules/470-chrony/images/chrony"
   labels:
   - "type/dependencies"
   - "status/ok-to-test"

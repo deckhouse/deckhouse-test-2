@@ -5,6 +5,7 @@ type:
 search: prometheus monitoring, prometheus custom alert, prometheus custom alerting
 ---
 
+{% raw %}
 
 ## How do I collect metrics from applications running outside of the cluster?
 
@@ -432,28 +433,48 @@ You will need to:
 1. Create a parameterless receiver.
 1. Route unwanted alerts to this receiver.
 
-Below is the sample `alertmanager.yaml` for this kind of a situation:
+Below are samples for configuring `CustomAlertmanager`.
+
+Receive all alerts with labels `service: foo|bar|baz`:
 
 ```yaml
 receivers:
-- name: blackhole
-  # the parameterless receiver is similar to "/dev/null".
-- name: some-other-receiver
-  # ...
+  # The parameterless receiver is similar to "/dev/null".
+  - name: blackhole
+  # Your valid receiver.
+  - name: some-other-receiver
+    # ...
 route:
-  # default receiver
-  receiver: some-other-receiver
+  # Default receiver.
+  receiver: blackhole
   routes:
-    - matchers:
-        - matchType: =
-          name: alertname
-          value: DeadMansSwitch
-      receiver: blackhole
+    # Child receiver.
     - matchers:
         - matchType: =~
           name: service
           value: ^(foo|bar|baz)$
       receiver: some-other-receiver
+```
+
+Receive all alerts except for `DeadMansSwitch`:
+
+```yaml
+receivers:
+  # The parameterless receiver is similar to "/dev/null".
+  - name: blackhole
+  # Your valid receiver.
+  - name: some-other-receiver
+    # ...
+route:
+  # default receiver
+  receiver: some-other-receiver
+  routes:
+    # Child receiver.
+    - matchers:
+        - matchType: =
+          name: alertname
+          value: DeadMansSwitch
+      receiver: blackhole
 ```
 
 A detailed description of all parameters can be found in the [official documentation](https://prometheus.io/docs/alerting/latest/configuration/#configuration-file).
@@ -779,3 +800,45 @@ status:
 ```
 
 Remember the special alert `DeadMansSwitch` — its presence in the cluster indicates that Prometheus is working.
+
+## How do I add additional endpoints to a scrape config?
+
+Add the label `prometheus.deckhouse.io/scrape-configs-watcher-enabled: "true"` to the namespace where the ScrapeConfig was created.
+
+Example:
+
+```yaml
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: frontend
+  labels:
+    prometheus.deckhouse.io/scrape-configs-watcher-enabled: "true"
+```
+
+Add the ScrapeConfig with the required label `prometheus: main`:
+
+```yaml
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: example-scrape-config
+  namespace: frontend
+  labels:
+    prometheus: main
+spec:
+  honorLabels: true
+  staticConfigs:
+    - targets: ['example-app.frontend.svc.{{ .Values.global.discovery.clusterDomain }}.:8080']
+  relabelings:
+    - regex: endpoint|namespace|pod|service
+      action: labeldrop
+    - targetLabel: scrape_endpoint
+      replacement: main
+    - targetLabel: job
+      replacement: kube-state-metrics
+  metricsPath: '/metrics'
+```
+
+{% endraw %}

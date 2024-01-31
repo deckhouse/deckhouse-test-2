@@ -2,7 +2,7 @@
 <script type="text/javascript" src='{{ assets["getting-started-access.js"].digest_path }}'></script>
 <script type="text/javascript" src='{{ assets["bcrypt.js"].digest_path }}'></script>
 
-At this point, you have created a cluster that consists of a **single** master node. Since only a limited set of system components run on the master node by default, <a href="/documentation/v1/modules/040-node-manager/faq.html#how-do-i-add-a-static-node-to-a-cluster">you have to add</a> at least one worker node to the cluster for the cluster to work properly.
+At this point, you have created a cluster that consists of a **single** master node. Since only a limited set of system components run on the master node by default, <a href="/documentation/latest/modules/040-node-manager/examples.html#adding-a-static-node-to-a-cluster">you have to add</a> at least one worker node to the cluster for the cluster to work properly.
 
 {% offtopic title="If a single master node is all you need…" %}
 <div>
@@ -27,9 +27,34 @@ Add a new node to the cluster:
     Start a <strong>new virtual machine</strong> that will become the cluster node.
   </li>
   <li>
+  Configure the StorageClass for the <a href="/documentation/v1/modules/031-local-path-provisioner/cr.html#localpathprovisioner">local storage</a> by running the following command on the <strong>master node</strong>:
+{% snippetcut %}
+```shell
+sudo /opt/deckhouse/bin/kubectl create -f - << EOF
+apiVersion: deckhouse.io/v1alpha1
+kind: LocalPathProvisioner
+metadata:
+  name: localpath-deckhouse
+spec:
+  nodeGroups:
+  - worker
+  path: "/opt/local-path-provisioner"
+EOF
+```
+{% endsnippetcut %}
+  </li>
+  <li>
+  Make the created StorageClass as the default one by adding the <code>storageclass.kubernetes.io/is-default-class='true'</code> annotation:
+{% snippetcut %}
+```shell
+sudo /opt/deckhouse/bin/kubectl annotate sc localpath-deckhouse storageclass.kubernetes.io/is-default-class='true'
+```
+{% endsnippetcut %}
+  </li>
+  <li>
     Create a <a href="/documentation/v1/modules/040-node-manager/cr.html#nodegroup">NodeGroup</a> <code>worker</code>. To do so, run the following command on the <strong>master node</strong>:
-    {% snippetcut %}
-  ```bash
+{% snippetcut %}
+```bash
 sudo /opt/deckhouse/bin/kubectl create -f - << EOF
 apiVersion: deckhouse.io/v1
 kind: NodeGroup
@@ -38,24 +63,24 @@ metadata:
 spec:
   nodeType: Static
 EOF
-  ```
-    {% endsnippetcut %}
+```
+{% endsnippetcut %}
   </li>
   <li>
     Deckhouse will generate the script needed to configure the prospective node and include it in the cluster. Print its contents in Base64 format (you will need them at the next step):
-    {% snippetcut %}
-  ```bash
-kubectl -n d8-cloud-instance-manager get secret manual-bootstrap-for-worker -o json | jq '.data."bootstrap.sh"' -r
-  ```
-  {% endsnippetcut %}
+{% snippetcut %}
+```bash
+sudo /opt/deckhouse/bin/kubectl -n d8-cloud-instance-manager get secret manual-bootstrap-for-worker -o json | jq '.data."bootstrap.sh"' -r
+```
+{% endsnippetcut %}
   </li>
   <li>
     On the <strong>virtual machine you have started</strong>, run the following command by pasting the script code from the previous step:    
-  {% snippetcut %}
-  ```bash
+{% snippetcut %}
+```bash
 echo <Base64-SCRIPT-CODE> | base64 -d | sudo bash
-  ```
-  {% endsnippetcut %}
+```
+{% endsnippetcut %}
   </li>
 </ul>
 
@@ -128,46 +153,6 @@ NAME                                       READY   STATUS    RESTARTS   AGE
 controller-nginx-r6hxc                     3/3     Running   0          5m
 ```
 {%- endofftopic %}
-</li>
-<li><p><strong>Creating a StorageClass</strong></p>
-<p>Configure the StorageClass for the <a href="/documentation/v1/modules/031-local-path-provisioner/cr.html#localpathprovisioner">local storage</a> by running the following command on the <strong>master node</strong>:</p>
-{% snippetcut %}
-```shell
-sudo /opt/deckhouse/bin/kubectl create -f - << EOF
-apiVersion: deckhouse.io/v1alpha1
-kind: LocalPathProvisioner
-metadata:
-  name: localpath-monitoring
-spec:
-  nodeGroups:
-  - worker
-  path: "/opt/local-path-provisioner"
-EOF
-```
-{% endsnippetcut %}
-
-<li><p><strong>Configuring Prometheus</strong></p>
-
-Configure Prometheus to use the created StorageClass (this will prevent data loss if Prometheus gets restarted). Run the following command on the <strong>master node</strong>:
-
-{% snippetcut %}
-```shell
-sudo /opt/deckhouse/bin/kubectl create -f - << EOF
-apiVersion: deckhouse.io/v1alpha1
-kind: ModuleConfig
-metadata:
-  name: prometheus
-spec:
-  enabled: true
-  settings:
-    longtermStorageClass: localpath-system
-    storageClass: localpath-monitoring
-  version: 2
-EOF
-```
-{% endsnippetcut %}
-</li>
-
 </li>
 <li><p><strong>Create a user</strong> to access the cluster web interfaces</p>
 <p>Create on the <strong>master node</strong> the <code>user.yml</code> file containing the user account data and access rights:</p>

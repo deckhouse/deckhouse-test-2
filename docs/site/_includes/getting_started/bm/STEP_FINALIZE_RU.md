@@ -2,7 +2,7 @@
 <script type="text/javascript" src='{{ assets["getting-started-access.js"].digest_path }}'></script>
 <script type="text/javascript" src='{{ assets["bcrypt.js"].digest_path }}'></script>
 
-На данном этапе вы создали кластер, который состоит из **единственного** узла — master-узла. Так как на master-узле по умолчанию работает только ограниченный набор системных компонентов, для полноценной работы кластера необходимо <a href="/documentation/v1/modules/040-node-manager/faq.html#как-добавить-статичный-узел-в-кластер">добавить в кластер</a> хотя бы один worker-узел.
+На данном этапе вы создали кластер, который состоит из **единственного** узла — master-узла. Так как на master-узле по умолчанию работает только ограниченный набор системных компонентов, для полноценной работы кластера необходимо <a href="/documentation/latest/modules/040-node-manager/examples.html#добавление-статического-узла-в-кластер">добавить в кластер</a> хотя бы один worker-узел.
 
 {% offtopic title="Если вам достаточно одного master-узла..." %}
 <div>
@@ -27,9 +27,34 @@ sudo /opt/deckhouse/bin/kubectl patch nodegroup master --type json -p '[{"op": "
     Подготовьте <strong>чистую</strong> виртуальную машину, которая будет узлом кластера.
   </li>
   <li>
+  Настройте StorageClass <a href="/documentation/v1/modules/031-local-path-provisioner/cr.html#localpathprovisioner">локального хранилища</a>, выполнив на <strong>master-узле</strong> следующую команду:
+{% snippetcut %}
+```shell
+sudo /opt/deckhouse/bin/kubectl create -f - << EOF
+apiVersion: deckhouse.io/v1alpha1
+kind: LocalPathProvisioner
+metadata:
+  name: localpath-deckhouse
+spec:
+  nodeGroups:
+  - worker
+  path: "/opt/local-path-provisioner"
+EOF
+```
+{% endsnippetcut %}
+  </li>
+  <li>
+  Укажите что созданный StorageClass должен использоваться как StorageClass по умолчанию, добавив аннотацию <code>storageclass.kubernetes.io/is-default-class='true'</code>:
+{% snippetcut %}
+```shell
+sudo /opt/deckhouse/bin/kubectl annotate sc localpath-deckhouse storageclass.kubernetes.io/is-default-class='true'
+```
+{% endsnippetcut %}
+  </li>
+  <li>
     Создайте <a href="/documentation/v1/modules/040-node-manager/cr.html#nodegroup">NodeGroup</a> <code>worker</code>. Для этого выполните на <strong>master-узле</strong> следующую команду:
-    {% snippetcut %}
-  ```bash
+{% snippetcut %}
+```bash
 sudo /opt/deckhouse/bin/kubectl create -f - << EOF
 apiVersion: deckhouse.io/v1
 kind: NodeGroup
@@ -38,24 +63,24 @@ metadata:
 spec:
   nodeType: Static
 EOF
-  ```
-    {% endsnippetcut %}
+```
+{% endsnippetcut %}
   </li>
   <li>
     Deckhouse подготовит скрипт, необходимый для настройки будущего узла и включения его в кластер. Выведите его содержимое в формате Base64 (оно понадобится на следующем шаге):
-    {% snippetcut %}
-  ```bash
-kubectl -n d8-cloud-instance-manager get secret manual-bootstrap-for-worker -o json | jq '.data."bootstrap.sh"' -r
-  ```
-  {% endsnippetcut %}
+{% snippetcut %}
+```bash
+sudo /opt/deckhouse/bin/kubectl -n d8-cloud-instance-manager get secret manual-bootstrap-for-worker -o json | jq '.data."bootstrap.sh"' -r
+```
+{% endsnippetcut %}
   </li>
   <li>
     <strong> На подготовленной виртуальной машине</strong> выполните следующую команду, вставив код скрипта, полученный на предыдущем шаге:
-  {% snippetcut %}
-  ```bash
+{% snippetcut %}
+```bash
 echo <Base64-КОД-СКРИПТА> | base64 -d | sudo bash
-  ```
-  {% endsnippetcut %}
+```
+{% endsnippetcut %}
   </li>
 </ul>
 
@@ -128,46 +153,6 @@ NAME                                       READY   STATUS    RESTARTS   AGE
 controller-nginx-r6hxc                     3/3     Running   0          5m
 ```
 {%- endofftopic %}
-</li>
-<li><p><strong>Создание StorageClass</strong></p>
-<p>Настройте StorageClass <a href="/documentation/v1/modules/031-local-path-provisioner/cr.html#localpathprovisioner">локального хранилища</a>, выполнив на <strong>master-узле</strong> следующую команду:</p>
-{% snippetcut %}
-```shell
-sudo /opt/deckhouse/bin/kubectl create -f - << EOF
-apiVersion: deckhouse.io/v1alpha1
-kind: LocalPathProvisioner
-metadata:
-  name: localpath-monitoring
-spec:
-  nodeGroups:
-  - worker
-  path: "/opt/local-path-provisioner"
-EOF
-```
-{% endsnippetcut %}
-
-<li><p><strong>Настройка Prometheus</strong></p>
-
-Настройте Prometheus на использование созданного StorageClass'а (это позволит не терять данные при перезапуске Prometheus). Выполните на <strong>master-узле</strong> следующую команду:
-
-{% snippetcut %}
-```shell
-sudo /opt/deckhouse/bin/kubectl create -f - << EOF
-apiVersion: deckhouse.io/v1alpha1
-kind: ModuleConfig
-metadata:
-  name: prometheus
-spec:
-  enabled: true
-  settings:
-    longtermStorageClass: localpath-system
-    storageClass: localpath-monitoring
-  version: 2
-EOF
-```
-{% endsnippetcut %}
-</li>
-
 </li>
 <li><p><strong>Создание пользователя</strong> для доступа в веб-интерфейсы кластера</p>
 <p>Создайте на <strong>master-узле</strong> файл <code>user.yml</code> содержащий описание учетной записи пользователя и прав доступа:</p>

@@ -24,7 +24,7 @@ import (
 func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolescence_Success_ReleaseChannel() {
 	t := s.Require()
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 
@@ -51,9 +51,8 @@ func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolesc
 	t := s.Require()
 
 	s.checker.installConfig.DevBranch = "pr1234"
-	s.checker.installConfig.ReleaseChannel = ""
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 
@@ -79,7 +78,7 @@ func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolesc
 func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolescence_VersionMismatch_ReleaseChannel() {
 	t := s.Require()
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 
@@ -106,9 +105,8 @@ func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolesc
 	t := s.Require()
 
 	s.checker.installConfig.DevBranch = "pr1234"
-	s.checker.installConfig.ReleaseChannel = ""
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 
@@ -136,7 +134,7 @@ func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolesc
 
 	app.PreflightSkipDeckhouseVersionCheck = true
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 
@@ -161,9 +159,8 @@ func (s *PreflightChecksTestSuite) Test_PreflightCheck_CheckDhctlVersionObsolesc
 
 	app.PreflightSkipDeckhouseVersionCheck = true
 	s.checker.installConfig.DevBranch = "pr1234"
-	s.checker.installConfig.ReleaseChannel = ""
 
-	image := s.checker.installConfig.GetImage()
+	image := s.checker.installConfig.GetImage(false)
 	ref, err := name.ParseReference(image)
 	t.NoError(err)
 

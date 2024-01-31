@@ -3,8 +3,23 @@ properties:
   podSecurityStandards:
     type: object
     default: {}
-    description: "Pod Security Standards policy settings."
+    description: "Pod Security Standards policy settings (PSS)."
     properties:
+      defaultPolicy:
+        type: string
+        description: |
+          Sets the default [Pod Security Standards](https://kubernetes.io/docs/concepts/security/pod-security-standards/) policy for all **non-system** namespaces:
+          - `Privileged` — an unrestricted policy. Privilege escalation is possible with this policy;
+          - `Baseline` — a policy with minimum restrictions that prevents privilege escalation;
+          - `Restricted` — a policy with maximum restrictions that conforms to current best practices for securely running applications in a cluster.
+
+          By default:
+          - `Baseline` — if a Deckhouse version starting with v1.55 is being installed;
+          - `Privileged` — if a Deckhouse version lower than v1.55 is being installed (upgrading Deckhouse in a cluster to v1.55+ does not automatically result in a default policy change).
+        enum:
+          - Privileged
+          - Baseline
+          - Restricted
       enforcementAction:
         type: string
         default: "Deny"
@@ -19,6 +34,8 @@ properties:
           - Dryrun
       policies:
         type: object
+        description: |
+          Sets additional policy parameters.
         properties:
           hostPorts:
             type: object
@@ -39,13 +56,13 @@ properties:
   denyVulnerableImages:
     type: object
     default: {}
+    x-doc-d8Revision: ee
     description: |
       Trivy provider will deny creation of the `Pod`/`Deployment`/`StatefulSet`/`DaemonSet` with vulnerable images in namespaces with `security.deckhouse.io/trivy-provider: ""` label.
     properties:
       enabled:
         type: boolean
         default: false
-        x-doc-d8Revision: ee
         description: "Enable trivy provider."
       registrySecrets:
         type: array

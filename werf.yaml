@@ -4,6 +4,28 @@ configVersion: 1
 gitWorktree:
   forceShallowClone: true
 ---
+# revisions settings
+{{- $editionsSettings := (.Files.Get "editions.yaml" | fromYaml) }}
+{{- $_ := set . "Editions" $editionsSettings.editions }}
+
+# checks redactions list
+{{- if not $.Editions }}
+  {{ fail "Editions list is empty" }}
+{{- end }}
+
+{{- $editionsDict := dict }}
+{{- range $_, $edition := $.Editions }}
+  {{- if not $edition.name }}
+     {{ fail printf "Editions name is empty" }}
+  {{- end }}
+  {{- $_ := set $editionsDict $edition.name "" }}
+{{- end }}
+
+{{- if not (hasKey $editionsDict .Env) }}
+  {{ fail (printf "Editions name not found %v" .Env) }}
+{{- end }}
+
+---
 # Base Images
 {{- $_ := set . "Images" (.Files.Get "candi/image_versions.yml" | fromYaml) }}
   {{- range $k, $v := .Images }}
@@ -14,11 +36,17 @@ gitWorktree:
   {{- end }}
 ---
 # Version Map
-{{- if or (eq $.Env "EE") (eq $.Env "FE") }}
-  {{- $_ := set . "CandiVersionMap" (merge (.Files.Get "candi/version_map.yml" | fromYaml) (.Files.Get "ee/candi/version_map.yml" | fromYaml)) }}
-{{- else }}
-  {{- $_ := set . "CandiVersionMap" ( .Files.Get "candi/version_map.yml" | fromYaml ) }}
+{{- $versionMap := dict }}
+{{- range $_, $edition := $.Editions }}
+ {{- if $edition.versionMapFile }}
+   {{- $versionMap = (merge $versionMap ($.Files.Get $edition.versionMapFile | fromYaml) )}}
+ {{- end }}
+ {{- if eq $.Env $edition.name }}
+   {{- break -}}
+ {{- end }}
 {{- end }}
+
+{{- $_ := set . "CandiVersionMap" $versionMap }}
 ---
 # Terraform Versions
 {{- $_ := set . "TF" (.Files.Get "candi/terraform_versions.yml" | fromYaml) }}
@@ -33,8 +61,17 @@ gitWorktree:
 # rust proxy settings
 {{- $_ := set . "CRATESPROXY" (env "CRATESPROXY") }}
 
+# npm proxy settings
+{{- $_ := set . "NPMPROXY" (env "NPMPROXY") }}
+
 ---
 {{- define "base components" }}
+  - name: "Install openssl"
+    apk:
+      name:
+      - openssl
+      update_cache: yes
+
   - name: "Install jo"
     apk:
       name:
@@ -57,7 +94,7 @@ gitWorktree:
 
   - name: "Install kubectl"
     shell: |
-{{- range $k8sVersion := tuple "1.24" "1.27" }}
+{{- range $k8sVersion := tuple "1.25" "1.28" }}
       curl -L https://dl.k8s.io/release/v{{ $k8sVersion }}.{{ index $.CandiVersionMap "k8s" $k8sVersion "patch" }}/bin/linux/amd64/kubectl -o /usr/local/bin/kubectl-{{ $k8sVersion }}
       chmod +x /usr/local/bin/kubectl-{{ $k8sVersion }}
 {{- end }}
@@ -143,7 +180,7 @@ ansible:
 
 ---
 image: base-for-go
-from: {{ .Images.BASE_GOLANG_19_ALPINE }}
+from: {{ .Images.BASE_GOLANG_21_ALPINE }}
 ansible:
   beforeInstall:
   - name: "Install dependencies"
@@ -180,9 +217,28 @@ docker:
   ENV:
     PATH: /usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/go/bin
 ---
+{{- define "exclude_modules_dir_from_images" }}
+- docs
+- modules/*/docs
+- modules/*/README.md
+- modules/*/images
+- modules/*/hooks/**/*.go
+- modules/*/template_tests
+- modules/*/.namespace
+- modules/*/values_matrix_test.yaml
+- modules/*/apis/**/*.go
+- modules/*/requirements/**/*.go
+- modules/*/settings-conversion/**/*.go
+- modules/*/hack/**/*.go
+- global-hooks/**/*.go
+- candi/cloud-providers/*/layouts
+- candi/cloud-providers/*/terraform-modules
+- '**/testdata'
+{{- end}}
+---
 image: dev-prebuild
 fromImage: common-base
-fromCacheVersion: "2023-02-16.0"
+fromCacheVersion: "2023-11-01.0"
 git:
 - add: /
   to: /deckhouse
@@ -193,26 +249,12 @@ git:
   - shell_lib.sh
   - shell_lib
   - deckhouse-controller/entrypoint.sh
+  - deckhouse-controller/crds/*.yaml
   - jq_lib
   - helm_lib
   - python_lib
   excludePaths:
-  - docs
-  - modules/*/docs
-  - modules/*/README.md
-  - modules/*/images
-  - modules/*/hooks/**/*.go
-  - modules/*/template_tests
-  - modules/*/.namespace
-  - modules/*/values_matrix_test.yaml
-  - modules/*/apis/**/*.go
-  - modules/*/requirements/**/*.go
-  - modules/*/settings-conversion/**/*.go
-  - modules/*/hack/**/*.go
-  - global-hooks/**/*.go
-  - candi/cloud-providers/*/layouts
-  - candi/cloud-providers/*/terraform-modules
-  - '**/testdata'
+{{- include "exclude_modules_dir_from_images" .  | nindent 2}}
 - url: https://github.com/flant/shell-operator
   tag: v1.1.3
   add: /frameworks/shell
@@ -241,14 +283,12 @@ ansible:
   - name: "Add bundle {{ $key }}"
     copy:
       content: |
-        {{- $.Files.Get (printf "modules/values-%s.yaml" $key ) | nindent 8 }}
-{{- if eq $.Env "EE" }}
-        {{- $.Files.Get (printf "ee/modules/values-%s.yaml" $key ) | nindent 8 }}
-{{- end }}
-{{- if eq $.Env "FE" }}
-        {{- $.Files.Get (printf "ee/modules/values-%s.yaml" $key ) | nindent 8 }}
-        {{- $.Files.Get (printf "ee/fe/modules/values-%s.yaml" $key ) | nindent 8 }}
-{{- end }}
+      {{- range $_, $edition := $.Editions }}
+        {{- $.Files.Get (printf "%s/values-%s.yaml" $edition.modulesDir $key ) | nindent 8 }}
+        {{- if eq $.Env $edition.name }}
+           {{- break -}}
+        {{- end }}
+     {{- end }}
       dest: /deckhouse/modules/values-{{ $key }}.yaml
 {{- end }}
 
@@ -269,13 +309,32 @@ ansible:
       echo -e "#!/bin/bash\nexec tini -- /deckhouse/deckhouse-controller/entrypoint.sh" > /deckhouse/deckhouse
       chmod +x /deckhouse/deckhouse
 
-  - name: "Run deckhouse from nobody"
+  - name: "Create symlink to grant entrypoint.sh write permission"
+    shell: |
+      ln -fs /tmp/values.yaml /deckhouse/modules/values.yaml
+
+  - name: "Create deckhouse group"
+    group:
+      name: deckhouse
+      gid: 64535
+
+  - name: "Create deckhouse user"
+    user:
+      name: deckhouse
+      password: "!"
+      uid: 64535
+      group: deckhouse
+      comment: deckhouse
+      home: /
+      shell: /sbin/nologin
+
+  - name: "Run deckhouse from dedicated user"
     file:
       path: /deckhouse/
       state: directory
       recurse: yes
-      owner: 65534
-      group: 65534
+      owner: 64535
+      group: 64535
 
 docker:
   ENV:
@@ -355,15 +414,18 @@ ansible:
   - name: "Install GolangCI linter"
     shell: |
       curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-        | sh -s -- -b $(go env GOPATH)/bin v1.48.0
+        | sh -s -- -b $(go env GOPATH)/bin v1.55.2
 
   - raw: rm -rf /var/cache/apk/*
 
   setup:
-  - name: "Migrate ee/fe internal packages imports"
+  - name: "Migrate internal packages imports"
     shell: |
-      find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/ee/modules|github.com/deckhouse/deckhouse/modules|g' {} +
-      find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/ee/fe/modules|github.com/deckhouse/deckhouse/modules|g' {} +
+      {{- range $_, $edition := $.Editions }}
+        {{- if not $edition.skipFixingImports }}
+      find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/{{ $edition.modulesDir }}|github.com/deckhouse/deckhouse/modules|g' {} +
+        {{- end }}
+      {{- end }}
 
 docker:
   ENV:
@@ -421,11 +483,14 @@ shell:
   - mkdir /deckhouse /out
 
   setup:
-  # Migrate ee/fe internal packages imports
-  - find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/ee/modules|github.com/deckhouse/deckhouse/modules|g' {} +
-  - find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/ee/fe/modules|github.com/deckhouse/deckhouse/modules|g' {} +
+  # Migrate internal packages imports
+{{- range $_, $edition := $.Editions }}
+  {{- if not $edition.skipFixingImports }}
+  - find /deckhouse/modules/* -type f -name '*.go' -exec sed -E -i 's|github.com/deckhouse/deckhouse/{{ $edition.modulesDir }}|github.com/deckhouse/deckhouse/modules|g' {} +
+  {{- end }}
+{{- end }}
   - cd /deckhouse
-  # Generate hooks imports for particular edition (CE/EE/FE)
+  # Generate hooks imports for particular edition
   - go generate ./tools/register.go
   # Go modules depend on `register-go-hooks.go` file, hence we cannot split downloading dependencies and building
   # into separate phases.
@@ -503,7 +568,7 @@ ansible:
 ---
 image: dev/install
 from: {{ .Images.BASE_ALPINE }}
-fromCacheVersion: "20230315"
+fromCacheVersion: "20231025.3"
 git:
 - add: /
   to: /deckhouse
@@ -515,6 +580,13 @@ import:
   add: /dhctl/bin/dhctl
   to: /usr/bin/dhctl
   after: setup
+- image: dev-prebuild
+  add: /deckhouse
+  to: /deckhouse
+  includePaths:
+  - modules/*/openapi/config-values.yaml
+  - global-hooks/openapi/config-values.yaml
+  after: setup
 - artifact: terraform # from modules/040-terraform-manager/images/terraform-manager-base/werf.inc.yaml
   add: /terraform/terraform
   to: /bin/terraform
@@ -523,31 +595,21 @@ import:
   add: /root/.terraformrc
   to: /etc/terraformrc
   before: setup
-- artifact: terraform-provider-aws # from modules/040-terraform-manager/images/terraform-manager-aws/werf.inc.yaml
-  add: /terraform-provider-aws
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.aws.namespace }}/{{ .TF.aws.type }}/{{ .TF.aws.version }}/linux_amd64
+{{- range $_, $edition := $.Editions }}
+  {{- if $edition.terraformProviders }}
+    {{- range $_, $tfProvider := $edition.terraformProviders }}
+      {{- $tf := index $.TF $tfProvider }}
+
+- artifact: {{ $tf.artifact }} # from modules/040-terraform-manager/images/terraform-manager-{PROVIDER}/werf.inc.yaml
+  add: /{{ $tf.artifactBinary }}
+  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ $tf.namespace }}/{{ $tf.type }}/{{ $tf.version }}/linux_amd64/{{ $tf.destinationBinary }}
   before: setup
-- artifact: terraform-provider-azure # from modules/040-terraform-manager/images/terraform-manager-azure/werf.inc.yaml
-  add: /terraform-provider-azure
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.azure.namespace }}/{{ .TF.azure.type }}/{{ .TF.azure.version }}/linux_amd64
-  before: setup
-- artifact: terraform-provider-gcp # from modules/040-terraform-manager/images/terraform-manager-gcp/werf.inc.yaml
-  add: /terraform-provider-gcp/terraform-provider-gcp
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.gcp.namespace }}/{{ .TF.gcp.type }}/{{ .TF.gcp.version }}/linux_amd64/terraform-provider-google
-  after: setup
-- artifact: terraform-provider-yandex # from modules/040-terraform-manager/images/terraform-manager-yandex/werf.inc.yaml
-  add: /terraform-provider-yandex
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.yandex.namespace }}/{{ .TF.yandex.type }}/{{ .TF.yandex.version }}/linux_amd64
-  before: setup
-{{- if ne .Env "CE" }}
-- artifact: terraform-provider-openstack # from ee/modules/040-terraform-manager/images/terraform-manager-openstack/werf.inc.yaml
-  add: /terraform-provider-openstack
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.openstack.namespace }}/{{ .TF.openstack.type }}/{{ .TF.openstack.version }}/linux_amd64
-  before: setup
-- artifact: terraform-provider-vsphere # from modules/040-terraform-manager/images/terraform-manager-vsphere/werf.inc.yaml
-  add: /terraform-provider-vsphere/terraform-provider-vsphere
-  to: /usr/local/share/terraform/plugins/registry.terraform.io/{{ .TF.vsphere.namespace }}/{{ .TF.vsphere.type }}/{{ .TF.vsphere.version }}/linux_amd64/terraform-provider-vsphere
-  after: setup
+
+    {{- end }}
+  {{- end }}
+  {{- if eq $.Env $edition.name }}
+    {{- break -}}
+  {{- end }}
 {{- end }}
 - image: images-digests
   add: /images_digests.json
@@ -643,6 +705,7 @@ context: {{ .ModulePath }}modules/{{ .ModulePriority }}-{{ .ModuleName }}/images
 dockerfile: Dockerfile
 args:
   BASE_ALPINE: {{ .Images.BASE_ALPINE }}
+  BASE_ALT_P101: {{ .Images.BASE_ALT_P101 }}
   BASE_RUST: {{ .Images.BASE_RUST }}
   BASE_GOLANG_ALPINE: {{ .Images.BASE_GOLANG_ALPINE }}
   BASE_GOLANG_16_ALPINE: {{ .Images.BASE_GOLANG_16_ALPINE }}
@@ -658,6 +721,8 @@ args:
   BASE_GOLANG_20_ALPINE: {{ .Images.BASE_GOLANG_20_ALPINE }}
   BASE_GOLANG_20_BULLSEYE: {{ .Images.BASE_GOLANG_20_BULLSEYE }}
   BASE_GOLANG_20_BUSTER: {{ .Images.BASE_GOLANG_20_BUSTER }}
+  BASE_GOLANG_21_ALPINE: {{ .Images.BASE_GOLANG_21_ALPINE }}
+  BASE_GOLANG_21_BULLSEYE: {{ .Images.BASE_GOLANG_21_BULLSEYE }}
   BASE_NGINX_ALPINE:  {{ .Images.BASE_NGINX_ALPINE }}
   BASE_NODE_16_ALPINE: {{ .Images.BASE_NODE_16_ALPINE }}
   BASE_PYTHON_ALPINE:  {{ .Images.BASE_PYTHON_ALPINE }}
@@ -669,6 +734,7 @@ args:
   SOURCE_REPO: {{ .SOURCE_REPO }}
   GOPROXY: {{ .GOPROXY }}
   CRATESPROXY: {{ .CRATESPROXY }}
+  NPMPROXY: {{ .NPMPROXY }}
   {{- if not (has (list .ModuleName .ImageName | join "/") (list "common/distroless")) }}
 dependencies:
 - image: common/distroless
@@ -688,14 +754,16 @@ dependencies:
 {{- $Root := . }}
 {{- $ModulesImagesDigestList := list }}
 
-# Collect EE and FE images if desired
-{{ $ModulesImagesBuildFiles := .Files.Glob "modules/*/images/*/{Dockerfile,werf.inc.yaml}" }}
-{{- if eq .Env "EE" }}
-  {{ $ModulesImagesBuildFiles = merge $ModulesImagesBuildFiles (.Files.Glob "ee/modules/*/images/*/{Dockerfile,werf.inc.yaml}") }}
-{{- end }}
-{{- if eq .Env "FE" }}
-  {{ $ModulesImagesBuildFiles = merge $ModulesImagesBuildFiles (.Files.Glob "ee/modules/*/images/*/{Dockerfile,werf.inc.yaml}") }}
-  {{ $ModulesImagesBuildFiles = merge $ModulesImagesBuildFiles (.Files.Glob "ee/fe/modules/*/images/*/{Dockerfile,werf.inc.yaml}") }}
+# Collect images if desired for editions
+{{- $ModulesImagesBuildFiles := dict }}
+{{- range $_, $edition := $.Editions }}
+  {{- if not $edition.skipCollectImages }}
+    {{ $ModulesImagesBuildFiles = merge $ModulesImagesBuildFiles ($.Files.Glob (printf "%s/*/images/*/{Dockerfile,werf.inc.yaml}" $edition.modulesDir)) }}
+  {{- end }}
+
+  {{- if eq $.Env $edition.name }}
+    {{- break -}}
+  {{- end }}
 {{- end }}
 
 {{- range $path, $content := $ModulesImagesBuildFiles  }}
@@ -721,7 +789,7 @@ dependencies:
   {{- $_ := set $ctx "SOURCE_REPO" $Root.SOURCE_REPO }}
   {{- $_ := set $ctx "GOPROXY" $Root.GOPROXY }}
   {{- $_ := set $ctx "CRATESPROXY" $Root.CRATESPROXY }}
-
+  {{- $_ := set $ctx "NPMPROXY" $Root.NPMPROXY }}
 ---
 {{ include "module_image_template" $ctx }}
   {{- range $ImageYamlMainfest := regexSplit "\n?---[ \t]*\n" (include "module_image_template" $ctx) -1 }}
@@ -816,20 +884,48 @@ git:
   to: /
   stageDependencies:
     setup:
-      - candi/version_map.yml
-      - ee/candi/version_map.yml
+    {{- range $_, $edition := $.Editions }}
+      {{- if $edition.versionMapFile }}
+      - {{ $edition.versionMapFile }}
+      {{- end }}
+    {{- end }}
   includePaths:
-  - candi/version_map.yml
-  - ee/candi/version_map.yml
+{{- range $_, $edition := $.Editions }}
+  {{- if $edition.versionMapFile }}
+  - {{ $edition.versionMapFile }}
+  {{- end }}
+{{- end }}
 shell:
   install:
   - apk add --no-cache curl
   - curl -sfL https://github.com/mikefarah/yq/releases/download/2.4.1/yq_linux_amd64 --output /usr/local/bin/yq
   - chmod +x /usr/local/bin/yq
   setup:
-  - cp candi/version_map.yml /version_map_CE.yml
-  - yq m candi/version_map.yml ee/candi/version_map.yml > /version_map_EE.yml
-  - cp /version_map_EE.yml /version_map_FE.yml
+{{- $previousEditionFile := "" }}
+{{- range $_, $edition := $.Editions }}
+  {{- $curEditionFile := printf "/version_map_%s.yml" $edition.name }}
+  {{- if $edition.versionMapFile }}
+    {{- $tmpEditionFile := printf "%s.tmp" $curEditionFile }}
+
+     {{- if $previousEditionFile }}
+  - cp {{ $edition.versionMapFile }} {{ $tmpEditionFile }}
+  - yq m {{ $previousEditionFile }} {{ $tmpEditionFile }} > {{ $curEditionFile }}
+
+      {{- else }}
+
+  - cp {{ $edition.versionMapFile }} {{ $curEditionFile }}
+
+      {{- end }}
+
+  {{- else }}
+
+  - cp {{ $previousEditionFile }} {{ $curEditionFile }}
+
+  {{- end }}
+
+  {{- $previousEditionFile = $curEditionFile }}
+{{- end }}
+
 ---
 # use image for actual terraform version for infra deployment in e2e
 image: e2e-terraform

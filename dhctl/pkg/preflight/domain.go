@@ -24,13 +24,13 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/template"
 )
 
-func (pc *PreflightCheck) CheckLocalhostDomain() error {
+func (pc *Checker) CheckLocalhostDomain() error {
 	if app.PreflightSkipResolvingLocalhost {
 		log.InfoLn("Resolving the localhost domain preflight check was skipped")
 		return nil
 	}
 
-	log.DebugLn("Checking resolving the localhost domain")
+	log.DebugLn("Checking if localhost domain resolves correctly")
 
 	file, err := template.RenderAndSavePreflightCheckLocalhostScript()
 	if err != nil {
@@ -42,12 +42,11 @@ func (pc *PreflightCheck) CheckLocalhostDomain() error {
 	if err != nil {
 		log.ErrorLn(strings.Trim(string(out), "\n"))
 		if ee, ok := err.(*exec.ExitError); ok {
-			return fmt.Errorf("check_localhost.sh: %w, %s", err, string(ee.Stderr))
+			return fmt.Errorf("Localhost domain resolving check failed: %w, %s", err, string(ee.Stderr))
 		}
-		return fmt.Errorf("check_localhost.sh: %w", err)
+		return fmt.Errorf("Could not execute a script to check for localhost domain resolution: %w", err)
 	}
 
 	log.DebugLn(string(out))
-	log.InfoLn("Checking resolving the localhost domain success")
 	return nil
 }

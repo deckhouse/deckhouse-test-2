@@ -57,12 +57,25 @@ spec:
     {{- end }}
 {{- end }}
 ---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: controller-{{ $name }}
+  namespace: d8-ingress-nginx
+  {{ include "helm_lib_module_labels" (list $context (dict "app" "controller" "name" $name "init" (now | date "20060102150405"))) | nindent 2 }}
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: controller
+      name: {{ $name }}
+---
 apiVersion: apps.kruise.io/v1alpha1
 kind: DaemonSet
 metadata:
   name: controller-{{ $name }}
   namespace: d8-ingress-nginx
-  {{- include "helm_lib_module_labels" (list $context (dict "app" "controller" "name" $name )) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list $context (dict "app" "controller" "name" $name)) | nindent 2 }}
   {{- if eq $crd.spec.inlet "HostWithFailover" }}
     {{- if $failover }}
     ingress-nginx-failover: ""
@@ -202,6 +215,9 @@ spec:
         {{- if eq "nginx" $crd.spec.ingressClass }}
         - --watch-ingress-without-class=true
         {{- end }}
+        {{- if and $crd.spec.annotationValidationEnabled (eq $controllerVersion "1.9") }}
+        - --enable-annotation-validation=true
+        {{- end }}
   {{- if $crd.spec.customErrors }}
         - --default-backend-service={{ $crd.spec.customErrors.namespace }}/{{ $crd.spec.customErrors.serviceName }}
   {{- end }}
@@ -258,6 +274,25 @@ spec:
           name: webhook
   {{- end }}
         volumeMounts:
+  {{- if eq $controllerVersion "1.9" }}
+        - mountPath: /chroot/var/lib/nginx/body
+          name: client-body-temp-path
+        - mountPath: /chroot/var/lib/nginx/fastcgi
+          name: fastcgi-temp-path
+        - mountPath: /chroot/var/lib/nginx/proxy
+          name: proxy-temp-path
+        - mountPath: /chroot/var/lib/nginx/scgi
+          name: scgi-temp-path
+        - mountPath: /chroot/var/lib/nginx/uwsgi
+          name: uwsgi-temp-path
+        - mountPath: /chroot/etc/nginx/ssl/
+          name: secret-nginx-auth-tls
+        - mountPath: /chroot/tmp/nginx/
+          name: tmp-nginx
+        - mountPath: /chroot/etc/nginx/webhook-ssl/
+          name: webhook-cert
+          readOnly: true
+  {{- else }}
         - mountPath: /var/lib/nginx/body
           name: client-body-temp-path
         - mountPath: /var/lib/nginx/fastcgi
@@ -275,6 +310,7 @@ spec:
         - mountPath: /etc/nginx/webhook-ssl/
           name: webhook-cert
           readOnly: true
+  {{- end }}
       - image: {{ include "helm_lib_module_image" (list $context "protobufExporter") }}
         name: protobuf-exporter
         resources:
