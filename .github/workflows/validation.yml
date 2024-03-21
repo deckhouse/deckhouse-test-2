@@ -499,7 +499,7 @@ jobs:
           make lint-markdown
 
   release_requirements_validation:
-    name: Release requirements
+    name: Release Requirements Validation
 
     needs:
       - discover
