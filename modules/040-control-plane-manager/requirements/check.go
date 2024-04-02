@@ -49,4 +49,5 @@ func init() {
 	}
 
 	requirements.RegisterCheck("k8s", f)
+	requirements.RegisterCheck("newControlPlane", f)
 }

@@ -30,6 +30,7 @@ const (
 	minVersionValuesKey               = "istio:minimalVersion"
 	isK8sVersionAutomaticKey          = "istio:isK8sVersionAutomatic"
 	istioToK8sCompatibilityMapKey     = "istio:istioToK8sCompatibilityMap"
+	newRequirement                    = "newIstioVer"
 )
 
 func init() {
@@ -98,4 +99,5 @@ func init() {
 
 	requirements.RegisterCheck(requirementIstioMinimalVersionKey, checkMinimalIstioVersionFunc)
 	requirements.RegisterCheck(requirementDefaultK8sKey, checkIstioAndK8sVersionsCompatibilityFunc)
+	requirements.RegisterCheck(newRequirement, checkIstioAndK8sVersionsCompatibilityFunc)
 }

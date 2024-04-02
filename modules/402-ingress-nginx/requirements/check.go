@@ -29,6 +29,8 @@ const (
 	incompatibleVersionsKey = "ingressNginx:hasIncompatibleIngressClass"
 )
 
+var ingressRequirement = "testRequirement"
+
 func init() {
 	checkRequirementFunc := func(requirementValue string, getter requirements.ValueGetter) (bool, error) {
 		hasIncompatibleCtrlsRaw, exists := getter.Get(incompatibleVersionsKey)
@@ -61,5 +63,7 @@ func init() {
 		return true, nil
 	}
 
-	requirements.RegisterCheck("ingressNginx", checkRequirementFunc)
+	ingressRequirement := "newIngressNginx"
+
+	requirements.RegisterCheck(ingressRequirement, checkRequirementFunc)
 }
