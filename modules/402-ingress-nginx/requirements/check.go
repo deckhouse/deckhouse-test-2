@@ -63,7 +63,7 @@ func init() {
 		return true, nil
 	}
 
-	ingressRequirement := "newIngressNginx"
+	ingressRequirement := "newIngressNginxx"
 
 	requirements.RegisterCheck(ingressRequirement, checkRequirementFunc)
 }
