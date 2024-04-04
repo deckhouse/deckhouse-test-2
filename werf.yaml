@@ -293,7 +293,6 @@ git:
   - jq_lib
   - helm_lib
   - python_lib
-
   excludePaths:
 {{- include "exclude_modules_dir_from_images" .  | nindent 2}}
 {{ .Files.Get (printf "tools/build_includes/modules-excluded-%s.yaml" .Env) | nindent 2}}
