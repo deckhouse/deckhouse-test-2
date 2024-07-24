@@ -456,7 +456,7 @@ function test_requirements() {
   >&2 echo "Variable initialized ..."
   >&2 echo "Run script ... "
 
-  if $ssh_command -i "$ssh_private_key_path" $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<"END_SCRIPT"; then
+  if $ssh_command -i "$ssh_private_key_path" $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<ENDSC; then
 export PATH="/opt/deckhouse/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 export LANG=C
 set -Eeuo pipefail
@@ -496,7 +496,8 @@ rm /tmp/releaseFile.yaml
 >&2 echo "Release status: $(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
 
 [[ "$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')" == "Deployed" ]]
-END_SCRIPT
+ENDSC
+
   return 0
   fi
 
