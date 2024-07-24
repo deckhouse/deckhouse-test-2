@@ -493,9 +493,9 @@ spec:
 
 rm /tmp/releaseFile.yaml
 
->&2 echo "Release status: $(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
+>&2 echo "Release status: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
 
-[[ "$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')" == "Deployed" ]]
+[[ "\$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')" == "Deployed" ]]
 ENDSC
 )
 
