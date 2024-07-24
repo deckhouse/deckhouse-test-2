@@ -444,10 +444,13 @@ function run-test() {
 
 function test_requirements() {
   >&2 echo "Start check requirements ..."
-  if [ ! -f "release.yaml" ]; then
+  if [ ! -f /deckhouse/release.yaml ]; then
+      >&2 echo $(pwd)
+      ls -lh
+      >&2 echo "File /deckhouse/release.yaml not found"
       return 1
   fi
-  releaseFile=$(< "release.yaml")
+  releaseFile=$(< /deckhouse/release.yaml)
   export releaseFile
 
   testScript=$(cat <<"END_SCRIPT"
