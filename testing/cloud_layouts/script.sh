@@ -461,7 +461,7 @@ wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_386 -O
 
 command -v yq >/dev/null 2>&1 || return 1
 
-echo "$(cat /deckhouse/release.yaml)" > /tmp/releaseFile.yaml
+echo '$(cat /deckhouse/release.yaml)' > /tmp/releaseFile.yaml
 
 echo 'apiVersion: deckhouse.io/v1alpha1
 kind: ModuleConfig
