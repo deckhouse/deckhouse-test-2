@@ -500,9 +500,6 @@ ENDSC
 )
 
   if $ssh_command -i "$ssh_private_key_path" $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<$testScript; then
-
-ENDSC
-
   return 0
   fi
 
