@@ -489,7 +489,7 @@ metadata:
  name: v1.96.3
 spec:
  version: v1.96.3
- requirements:' | yq '. | load("/tmp/releaseFile.yaml") as $d1 | .spec.requirements=$d1.requirements' | kubectl apply -f -
+ requirements:' | yq '. | load("/tmp/releaseFile.yaml") as \$d1 | .spec.requirements=\$d1.requirements' | kubectl apply -f -
 
 rm /tmp/releaseFile.yaml
 
