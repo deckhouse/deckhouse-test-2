@@ -445,15 +445,10 @@ function run-test() {
 function test_requirements() {
   >&2 echo "Start check requirements ..."
   if [ ! -f /deckhouse/release.yaml ]; then
-      pwd
-      ls -lh
       >&2 echo "File /deckhouse/release.yaml not found"
       return 1
   fi
-  releaseFile=$(< /deckhouse/release.yaml)
-  export releaseFile
 
-  >&2 echo "Variable initialized ..."
   >&2 echo "Run script ... "
 
   testScript=$(cat <<ENDSC
@@ -461,14 +456,12 @@ export PATH="/opt/deckhouse/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bi
 export LANG=C
 set -Eeuo pipefail
 
-if [ -z ${releaseFile+x} ]; then >&2 echo "releaseFile variable is unset"; return 1; fi
-
 wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_386 -O /usr/bin/yq &&\
  chmod +x /usr/bin/yq
 
 command -v yq >/dev/null 2>&1 || return 1
 
-echo $releaseFile > /tmp/releaseFile.yaml
+echo "$(cat /deckhouse/release.yaml)" > /tmp/releaseFile.yaml
 
 echo 'apiVersion: deckhouse.io/v1alpha1
 kind: ModuleConfig
