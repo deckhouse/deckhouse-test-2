@@ -527,7 +527,6 @@ check_e2e_labels:
 {!{- end }!}
 
     - name: Cleanup bootstrapped cluster
-      if: {!{ coll.Has $ctx "manualRun" | test.Ternary "success()" "always()" }!}
       id: cleanup_cluster
       timeout-minutes: 60
       env:
@@ -701,7 +700,6 @@ check_e2e_labels:
         path: ${{ steps.setup.outputs.tmp-dir-path}}
 
     - name: Cleanup bootstrapped cluster
-      if: ${{ success() }}
       id: cleanup_cluster
       env:
         PROVIDER: {!{ $ctx.providerName }!}

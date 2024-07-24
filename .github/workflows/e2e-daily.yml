@@ -404,7 +404,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -852,7 +851,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1298,7 +1296,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1742,7 +1739,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2186,7 +2182,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2628,7 +2623,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -3078,7 +3072,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -3526,7 +3519,6 @@ jobs:
         # </template: e2e_run_template>
 
       - name: Cleanup bootstrapped cluster
-        if: always()
         id: cleanup_cluster
         timeout-minutes: 60
         env:

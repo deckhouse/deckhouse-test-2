@@ -527,7 +527,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1012,7 +1011,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1497,7 +1495,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -1982,7 +1979,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2467,7 +2463,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
@@ -2952,7 +2947,6 @@ jobs:
           labels: "e2e/cluster/failed"
 
       - name: Cleanup bootstrapped cluster
-        if: success()
         id: cleanup_cluster
         timeout-minutes: 60
         env:
