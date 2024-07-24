@@ -478,20 +478,29 @@ spec:
  settings:
    releaseChannel: Stable
    update:
-     mode: Auto' | kubectl apply -f -
+     mode: Auto' > /tmp/module-config.yaml
+
+cat /tmp/module-config.yaml
+kubectl apply -f /tmp/module-config.yaml
 
 echo 'apiVersion: deckhouse.io/v1alpha1
 approved: false
 kind: DeckhouseRelease
 metadata:
- annotations:
-   dryrun: "true"
- name: v1.96.3
+  annotations:
+    dryrun: "true"
+  name: v1.96.3
 spec:
- version: v1.96.3
- requirements:' | yq '. | load("/tmp/releaseFile.yaml") as \$d1 | .spec.requirements=\$d1.requirements' | kubectl apply -f -
+  version: v1.96.3
+  requirements:
+' | yq '. | load("/tmp/releaseFile.yaml") as \$d1 | .spec.requirements=\$d1.requirements' > /tmp/dh-release.yaml
+
+cat /tmp/dh-release.yaml
+kubectl apply -f /tmp/dh-release.yaml
 
 rm /tmp/releaseFile.yaml
+rm /tmp/module-config.yaml
+rm /tmp/dh-release.yaml
 
 >&2 echo "Release status: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
 
