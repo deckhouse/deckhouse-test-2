@@ -494,6 +494,7 @@ rm /tmp/releaseFile.yaml
 sleep 5
 
 >&2 echo "Release status: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
+>&2 echo "Release message: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.message}')"
 
 [[ "\$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')" == "Deployed" ]]
 ENDSC
