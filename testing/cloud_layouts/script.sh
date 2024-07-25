@@ -449,7 +449,7 @@ function test_requirements() {
       return 1
   fi
 
-  release=$(< release.yaml)
+  release=$(< /deckhouse/release.yaml)
   release=${release//\"/\\\"}
 
   >&2 echo "Run script ... "
