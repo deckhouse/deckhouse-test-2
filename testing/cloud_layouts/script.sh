@@ -449,6 +449,9 @@ function test_requirements() {
       return 1
   fi
 
+  release=$(< release.yaml)
+  release=${release//\"/\\\"}
+
   >&2 echo "Run script ... "
 
   testScript=$(cat <<ENDSC
@@ -461,7 +464,7 @@ wget -q https://github.com/mikefarah/yq/releases/latest/download/yq_linux_386 -O
 
 command -v yq >/dev/null 2>&1 || return 1
 
-echo "$(cat /deckhouse/release.yaml)" > /tmp/releaseFile.yaml
+echo "$release" > /tmp/releaseFile.yaml
 
 echo 'apiVersion: deckhouse.io/v1alpha1
 kind: ModuleConfig
@@ -471,10 +474,7 @@ spec:
  settings:
    releaseChannel: Stable
    update:
-     mode: Auto' > /tmp/module-config.yaml
-
-cat /tmp/module-config.yaml
-kubectl apply -f /tmp/module-config.yaml
+     mode: Auto' | kubectl apply -f -
 
 echo 'apiVersion: deckhouse.io/v1alpha1
 approved: false
@@ -486,14 +486,11 @@ metadata:
 spec:
   version: v1.96.3
   requirements:
-' | yq '. | load("/tmp/releaseFile.yaml") as \$d1 | .spec.requirements=\$d1.requirements' > /tmp/dh-release.yaml
-
-cat /tmp/dh-release.yaml
-kubectl apply -f /tmp/dh-release.yaml
+' | yq '. | load("/tmp/releaseFile.yaml") as \$d1 | .spec.requirements=\$d1.requirements' | kubectl apply -f -
 
 rm /tmp/releaseFile.yaml
-rm /tmp/module-config.yaml
-rm /tmp/dh-release.yaml
+
+sleep 5
 
 >&2 echo "Release status: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
 
