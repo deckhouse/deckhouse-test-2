@@ -43,7 +43,7 @@ runs:
 
     - name: Collect Changelog
       id: changelog
-      uses: deckhouse/changelog-action@v2
+      uses: deckhouse/changelog-action@feature/several-sections
       with:
         token: ${{ inputs.token }}
         repo: ${{ github.repository }}
@@ -76,23 +76,3 @@ runs:
         cat > "$filename" <<"EOF"
         ${{ steps.changelog.outputs.branch_markdown }}
         EOF
-
-    # Patch-version markdown changelog + malformed and impact digest
-    - name: Create Pull Request
-      uses: peter-evans/create-pull-request@v3.10.1
-      with:
-        commit-message: |
-          Re-generate changelog ${{ steps.args.outputs.milestone_title }}
-
-          Signed-off-by: deckhouse-BOaTswain <89150800+deckhouse-boatswain@users.noreply.github.com>
-        base: main
-        branch: changelog/${{ steps.args.outputs.milestone_title }}
-        milestone: ${{ steps.args.outputs.milestone_number }}
-        title: Changelog ${{ steps.args.outputs.milestone_title }}
-        body: |
-          ${{ steps.changelog.outputs.release_markdown }}
-
-          For more information, see the [changelog](https://github.com/deckhouse/deckhouse/blob/main/CHANGELOG/CHANGELOG-${{ steps.changelog.outputs.minor_version }}.md) and minor version [release changes](https://github.com/deckhouse/deckhouse/releases/tag/${{ steps.changelog.outputs.minor_version }}.0).
-        labels: changelog, auto
-        token: ${{ inputs.token }}
-        delete-branch: true
