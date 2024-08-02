@@ -1,0 +1,23 @@
+candi:
+  features:
+    - summary: fake commit
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/354
+ci:
+  fixes:
+    - summary: fix docs
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/355
+dhctl:
+  features:
+    - summary: fake commit
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/354
+  fixes:
+    - summary: fix docs
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/355
+docs:
+  features:
+    - summary: fake commit
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/354
+  fixes:
+    - summary: fix docs
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/355
+
