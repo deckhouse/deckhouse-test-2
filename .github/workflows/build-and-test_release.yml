@@ -371,7 +371,7 @@ jobs:
     env:
       WERF_ENV: "FE"
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
@@ -688,7 +688,7 @@ jobs:
     env:
       WERF_ENV: "EE"
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
@@ -1005,7 +1005,7 @@ jobs:
     env:
       WERF_ENV: "SE"
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
@@ -1322,7 +1322,7 @@ jobs:
     env:
       WERF_ENV: "BE"
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
@@ -1639,7 +1639,7 @@ jobs:
     env:
       WERF_ENV: "CE"
     # <template: build_template>
-    runs-on: [self-hosted, regular, selectel]
+    runs-on: [selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
