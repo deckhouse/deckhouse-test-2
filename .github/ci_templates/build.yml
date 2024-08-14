@@ -1,6 +1,6 @@
 {!{ define "go_generate_template" }!}
 # <template: go_generate_template>
-runs-on: [self-hosted, regular, selectel]
+runs-on: [self-hosted, regular]
 steps:
   {!{ tmpl.Exec "started_at_output"            . | strings.Indent 2 }!}
   {!{ tmpl.Exec "checkout_step"                . | strings.Indent 2 }!}
@@ -26,7 +26,7 @@ steps:
 
 {!{ define "workflow_render_template" }!}
 # <template: workflow_render_template>
-runs-on: [self-hosted, regular, selectel]
+runs-on: [self-hosted, regular]
 steps:
   {!{ tmpl.Exec "started_at_output"            . | strings.Indent 2 }!}
   {!{ tmpl.Exec "checkout_step"                . | strings.Indent 2 }!}
@@ -47,7 +47,7 @@ steps:
 {!{- $ctx := index . 0 -}!}
 {!{- $buildType := index . 1 -}!}
 # <template: build_template>
-runs-on: [self-hosted, regular, selectel]
+runs-on: [self-hosted, regular]
 outputs:
   tests_image_name: ${{ steps.build.outputs.tests_image_name }}
 steps:
