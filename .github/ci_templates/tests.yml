@@ -48,7 +48,7 @@ docker_options: '-w /deckhouse -v ~/go-pkg-cache:/go/pkg'
 {!{- $args_tmpl := printf "%s_run_args" $args_name }!}
 {!{- $default   := dict "image" "tests" "args" "echo no args" "docker_options" "" }!}
 {!{- $run       := coll.Merge (tmpl.Exec $args_tmpl | yaml) $default }!}
-runs-on: [self-hosted, regular]
+runs-on: [self-hosted, regular, selectel]
 steps:
 {!{ tmpl.Exec "started_at_output"       $ctx | strings.Indent 2 }!}
 {!{ tmpl.Exec "checkout_full_step"      $ctx | strings.Indent 2 }!}
@@ -83,7 +83,7 @@ steps:
 {!{- $args_tmpl := printf "%s_run_args" $args_name }!}
 {!{- $default   := dict "image" "tests" "args" "echo no args" "docker_options" "" }!}
 {!{- $run       := coll.Merge (tmpl.Exec $args_tmpl | yaml) $default }!}
-runs-on: [self-hosted, regular]
+runs-on: [self-hosted, regular, selectel]
 steps:
 {!{ tmpl.Exec "started_at_output"       $ctx | strings.Indent 2 }!}
 {!{ tmpl.Exec "checkout_full_step"      $ctx | strings.Indent 2 }!}

@@ -183,7 +183,7 @@ jobs:
       - git_info
 
     # <template: go_generate_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -282,7 +282,7 @@ jobs:
       - git_info
 
     # <template: workflow_render_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -1953,7 +1953,7 @@ jobs:
     needs:
       - git_info
     # <template: web_build_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2072,7 +2072,7 @@ jobs:
     needs:
       - git_info
     # <template: web_build_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2192,7 +2192,7 @@ jobs:
       - git_info
 
     # <template: tests_before_build_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2307,7 +2307,7 @@ jobs:
       - git_info
 
     # <template: tests_before_build_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2423,7 +2423,7 @@ jobs:
       - build_fe
 
     # <template: tests_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2547,7 +2547,7 @@ jobs:
       - build_fe
 
     # <template: tests_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2671,7 +2671,7 @@ jobs:
       - build_fe
 
     # <template: tests_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2796,7 +2796,7 @@ jobs:
       - doc_web_build
       - main_web_build
     # <template: web_links_test_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
@@ -2991,7 +2991,7 @@ jobs:
       - build_fe
 
     # <template: tests_template>
-    runs-on: [self-hosted, regular]
+    runs-on: [self-hosted, regular, selectel]
     steps:
 
       # <template: started_at_output>
