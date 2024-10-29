@@ -292,7 +292,7 @@ shell:
   beforeInstall:
 {{/*  TODO: Move it to the dev image */}}
   - rm -rf /usr/local/go
-  - curl -sSfL https://go.dev/dl/go1.22.2.linux-amd64.tar.gz -o - | tar -C /usr/local -zxvf -
+  - curl -sSfL https://go.dev/dl/go1.23.2.linux-amd64.tar.gz -o - | tar -C /usr/local -zxvf -
   {{- include "base components" . | nindent 2 }}
 
 ---
