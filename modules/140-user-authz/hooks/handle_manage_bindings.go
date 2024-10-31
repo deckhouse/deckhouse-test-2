@@ -79,7 +79,7 @@ func filterUseBinding(obj *unstructured.Unstructured) (go_hook.FilterResult, err
 	if err := sdk.FromUnstructured(obj, &binding); err != nil {
 		return nil, err
 	}
-	if binding.Labels == nil || len(binding.Labels) == 0 {
+	if len(binding.Labels) == 0 {
 		return nil, nil
 	}
 	relatedWith, ok := binding.Labels["rbac.deckhouse.io/related-with"]
