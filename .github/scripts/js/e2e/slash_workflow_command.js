@@ -9,7 +9,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-const {abortFailedE2eCommand} = require("../constants");
+const { abortFailedE2eCommand } = require("../constants");
 
 /**
  * Try parse e2e abort arguments
@@ -19,7 +19,7 @@ const {abortFailedE2eCommand} = require("../constants");
  * @param {string[]} inputs.argv - array of slash command argv[0] is commnad
  * @return {object}
  */
-function tryParseAbortE2eCluster({argv, context, core}){
+function tryParseAbortE2eCluster({ argv, context, core }) {
   const command = argv[0];
   if (command !== abortFailedE2eCommand) {
     return null;
@@ -36,12 +36,12 @@ function tryParseAbortE2eCluster({argv, context, core}){
   // user@127.0.0.1 - [additional] connection string, needs for fully bootstrapped cluster, but e2e was failed.
   //                  we  need it for destroy
   if (argv.length < 5) {
-    return {err: 'clean failed e2e cluster should have 4 arguments'};
+    return { err: 'clean failed e2e cluster should have 4 arguments' };
   }
 
   const ranForSplit = argv[1].split(';').map(v => v.trim()).filter(v => !!v);
   if (ranForSplit.length !== 5) {
-    return {err: '"ran parameters" argument should split on 5 parts'};
+    return { err: '"ran parameters" argument should split on 5 parts' };
   }
 
   const run_id = argv[2];
@@ -54,7 +54,7 @@ function tryParseAbortE2eCluster({argv, context, core}){
 
   const prNumber = context.payload.issue.number;
 
-  core.debug(`pull request info: ${JSON.stringify({prNumber, installer_image_path})}`);
+  core.debug(`pull request info: ${JSON.stringify({ prNumber, installer_image_path })}`);
 
   const provider = ranForSplit[0];
   const layout = ranForSplit[1];
@@ -86,6 +86,7 @@ function tryParseAbortE2eCluster({argv, context, core}){
     inputs,
   }
 }
+
 
 
 module.exports = {
