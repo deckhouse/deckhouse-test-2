@@ -151,7 +151,7 @@ jobs:
           reactions: hooray
           body: "Cherry pick PR [${{ env.cherry_pr_number }}](${{ env.cherry_pr_url }}) to the branch [${{ env.release_branch }}](https://github.com/${{github.repository}}/tree/${{ env.release_branch }}) successful!"
       - name: Remove backport label
-        if: always()
+        if: cancelled()
         uses: actions-ecosystem/action-remove-labels@v1
         with:
           github_token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
