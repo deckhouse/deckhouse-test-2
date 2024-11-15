@@ -26,6 +26,24 @@ on:
       - created
 
 jobs:
+  conditions:
+    name: Check conditions
+    runs-on: ubuntu-latest
+    outputs:
+      trigger_by_label: ${{steps.check.outputs.trigger_by_label}}
+      trigger_by_comment: ${{steps.check.outputs.trigger_by_comment}}
+    steps:
+      - name: Check conditions for backport
+        id: check
+        uses: {!{ index (ds "actions") "actions/github-script" }!}
+        with:
+          script: |
+            console.log(context);
+            if (!context.payload.comment.body.startsWith('/')) {
+              core.notice(`Ignore regular comment.`);
+              return;
+            }
+
   detect_pr_by_label:
     concurrency: source_pr
     if: ${{ github.event_name == 'pull_request' && github.event.pull_request.merged == true && github.event.pull_request.milestone != null && contains(github.event.pull_request.labels.*.name, 'status/backport') }}
@@ -128,7 +146,7 @@ jobs:
           committer: "deckhouse-BOaTswain <89150800+deckhouse-boatswain@users.noreply.github.com>"
           branch: ${{ env.RELEASE_BRANCH }}
           commit: ${{ env.COMMIT_SHA }}
-          labels: auto,status/backport/success
+          labels: auto,backported
           automerge: true
           merge_method: squash
       - name: Add success label
