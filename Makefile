@@ -153,9 +153,8 @@ tests-openapi: ## Run tests against modules openapi values schemas.
 tests-controller: ## Run deckhouse-controller unit tests.
 	go test ./deckhouse-controller/... -v
 
-tests-webhooks: bin/jq ## Run deckhouse-controller unit tests.
-
-
+tests-webhooks: bin/jq ## Run python webhooks unit tests.
+	./testing/webhooks/run.sh
 
 .PHONY: validate
 validate: ## Check common patterns through all modules.

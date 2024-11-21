@@ -15,4 +15,13 @@
 # limitations under the License.
 
 
+from group import main
+from deckhouse import hook
 
+def test_node_metrics():
+    #out = hook.testrun(main, binding_context)
+
+    assert True == False
+
+
+test_node_metrics()
