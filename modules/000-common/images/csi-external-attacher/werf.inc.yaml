@@ -38,4 +38,4 @@ shell:
   - chown 64535:64535 /csi-attacher
   - chmod 0755 /csi-attacher
   {{- end }}
-  {{- end }}
+{{- end }}

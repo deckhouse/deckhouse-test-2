@@ -38,4 +38,4 @@ shell:
   - chown 64535:64535 /snapshot-controller /csi-snapshotter /snapshot-validation-webhook
   - chmod 0755 /snapshot-controller /csi-snapshotter /snapshot-validation-webhook
   {{- end }}
-  {{- end }}
+{{- end }}

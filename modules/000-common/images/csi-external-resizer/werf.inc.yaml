@@ -38,4 +38,4 @@ shell:
   - chown 64535:64535 /csi-resizer
   - chmod 0755 /csi-resizer
   {{- end }}
-  {{- end }}
+{{- end }}

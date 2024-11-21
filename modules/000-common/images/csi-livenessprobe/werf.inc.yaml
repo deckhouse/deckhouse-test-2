@@ -38,4 +38,4 @@ shell:
   - chown 64535:64535 /livenessprobe
   - chmod 0755 /livenessprobe
   {{- end }}
-  {{- end }}
+{{- end }}

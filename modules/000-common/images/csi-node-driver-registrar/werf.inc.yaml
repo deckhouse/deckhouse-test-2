@@ -38,4 +38,4 @@ shell:
   - chown 64535:64535 /csi-node-driver-registrar
   - chmod 0755 /csi-node-driver-registrar
   {{- end }}
-  {{- end }}
+{{- end }}
