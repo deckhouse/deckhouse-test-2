@@ -19,4 +19,10 @@ apt-get update && apt-get install -y python3 python3-module-pip-run
 
 pip3 install -r /requirements.txt
 
-python3 /src/modules/150-user-authn/webhooks/validating/group_test.py
+mkdir /tests
+
+find /src -wholename '*/webhooks/*.py' -exec sh -c 'module="$(echo "$1" | cut -d / -f 3)"; mkdir -p "/tests/${module}"; cp "$1" "/tests/${module}"' sh {}  \;
+
+cd /tests
+
+find . -wholename '*_test.py' -exec python3 {} \;
