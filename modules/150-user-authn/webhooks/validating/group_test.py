@@ -16,22 +16,34 @@
 
 import unittest
 import json
+import typing
 
 from group import main
 from deckhouse import hook, validations
+from dotmap import DotMap
 
-def assert_validation_allowed(t: unittest.TestCase, v: validations.ValidationsCollector, msg: str | None):
+def _assert_validation(t: unittest.TestCase, v: validations.ValidationsCollector, allowed: bool, msg: typing.Tuple[str, ...] | str | None):
     t.assertEqual(len(v.data), 1)
-    t.assertTrue(v.data[0]["allowed"])
+    a = t.assertFalse
+    if allowed:
+        a = t.assertTrue
+    a(v.data[0]["allowed"])
     if not msg is None:
-        t.assertEqual(len(v.data[0]["warnings"]), 1)
-        t.assertEqual(v.data[0]["warnings"][0], msg)
+        if isinstance(msg, str):
+            t.assertEqual(len(v.data[0]["warnings"]), 1)
+            t.assertEqual(v.data[0]["warnings"][0], msg)
+        elif isinstance(msg, tuple):
+            t.assertEqual(v.data[0]["warnings"], msg)
+        else:
+            t.fail("Incorrect msg type")
 
 
-class TestGroupValidationWebhook(unittest.TestCase):
-    def test_update_group_with_new_group_member_none_exists_group(self):
-        binding_context_json = """
-[
+def assert_validation_allowed(t: unittest.TestCase, v: validations.ValidationsCollector, msg: typing.Tuple[str, ...] | str | None ):
+    _assert_validation(t, v, True, msg)
+
+
+def _prepare_update_binding_context(new_spec: dict) -> DotMap:
+    binding_context_json = """
 {
     "binding": "groups-unique.deckhouse.io",
     "review": {
@@ -223,12 +235,70 @@ class TestGroupValidationWebhook(unittest.TestCase):
     },
     "type": "Validating"
 }
-]
 """
-        binding_context = json.loads(binding_context_json)
-        out = hook.testrun(main, binding_context)
+    ctx_dict = json.loads(binding_context_json)
+    ctx = DotMap(ctx_dict)
+    ctx.review.request.object.spec = new_spec
+    return ctx
+
+class TestGroupValidationWebhook(unittest.TestCase):
+    def test_update_group_with_new_group_member_none_exists_group(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "Group",
+                    "name": "none-exists-2"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
         assert_validation_allowed(self, out.validations, 'groups.deckhouse.io "none-exists-2" not exist')
 
+    def test_update_group_with_new_group_member_none_exists_user(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "User",
+                    "name": "not-exists"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out.validations, 'users.deckhouse.io "not-exists" not exist')
+
+    def test_update_group_with_new_group_member_none_exists_user_and_group(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "Group",
+                    "name": "none-exists-2"
+                },
+                {
+                    "kind": "User",
+                    "name": "not-exists"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out.validations, (
+            'groups.deckhouse.io "none-exists-2" not exist',
+            'users.deckhouse.io "not-exists" not exist'
+        ))
 
 if __name__ == '__main__':
     unittest.main()
