@@ -22,25 +22,188 @@ from group import main
 from deckhouse import hook, validations
 from dotmap import DotMap
 
-def _assert_validation(t: unittest.TestCase, v: validations.ValidationsCollector, allowed: bool, msg: typing.Tuple[str, ...] | str | None):
+def _assert_validation(t: unittest.TestCase, o: hook.Output, allowed: bool, msg: typing.Tuple[str, ...] | str | None):
+    v = o.validations
+
     t.assertEqual(len(v.data), 1)
-    a = t.assertFalse
+
     if allowed:
-        a = t.assertTrue
-    a(v.data[0]["allowed"])
-    if not msg is None:
+        t.assertTrue(v.data[0]["allowed"])
+
+        if not msg:
+            return
+
         if isinstance(msg, str):
-            t.assertEqual(len(v.data[0]["warnings"]), 1)
-            t.assertEqual(v.data[0]["warnings"][0], msg)
+            if allowed:
+                t.assertEqual(len(v.data[0]["warnings"]), 1)
+                t.assertEqual(v.data[0]["warnings"][0], msg)
+
         elif isinstance(msg, tuple):
             t.assertEqual(v.data[0]["warnings"], msg)
         else:
             t.fail("Incorrect msg type")
+    else:
+        if not isinstance(msg, str):
+            t.fail("Incorrect msg type")
 
+        t.assertIsNotNone(msg)
+        t.assertIsInstance(msg, str)
+        t.assertFalse(v.data[0]["allowed"])
+        t.assertEqual(v.data[0]["message"], msg)
 
-def assert_validation_allowed(t: unittest.TestCase, v: validations.ValidationsCollector, msg: typing.Tuple[str, ...] | str | None ):
-    _assert_validation(t, v, True, msg)
+def assert_validation_allowed(t: unittest.TestCase, o: hook.Output, msg: typing.Tuple[str, ...] | str | None ):
+    _assert_validation(t, o, True, msg)
 
+def assert_validation_deny(t: unittest.TestCase, o: hook.Output, msg: str):
+    _assert_validation(t, o, False, msg)
+
+def _prepare_validation_binding_context(binding_context_json, new_spec: dict) -> DotMap:
+    ctx_dict = json.loads(binding_context_json)
+    ctx = DotMap(ctx_dict)
+    ctx.review.request.object.spec = new_spec
+    return ctx
+
+class TestGroupValidationWebhook(unittest.TestCase):
+    def test_should_update(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "test"
+                },
+                {
+                    "kind": "Group",
+                    "name": "candi-admins"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, None)
+
+    def test_should_update_with_warning_with_new_group_member_not_exists_group(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "Group",
+                    "name": "none-exists-2"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, 'groups.deckhouse.io "none-exists-2" not exist')
+
+    def test_should_update_with_warning_new_group_member_not_exists_user(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "User",
+                    "name": "not-exists"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, 'users.deckhouse.io "not-exists" not exist')
+
+    def test_should_update_with_warning_new_group_member_not_exists_user_and_group(self):
+        ctx = _prepare_update_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "Group",
+                    "name": "none-exists-2"
+                },
+                {
+                    "kind": "User",
+                    "name": "not-exists"
+                }
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, (
+            'groups.deckhouse.io "none-exists-2" not exist',
+            'users.deckhouse.io "not-exists" not exist'
+        ))
+
+    def test_should_create_group(self):
+        ctx = _prepare_create_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+            ],
+            "name": "new-group"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, None)
+
+    def test_create_group_with_not_exists_user_and_group(self):
+        ctx = _prepare_create_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+                {
+                    "kind": "Group",
+                    "name": "none-exists-2"
+                },
+                {
+                    "kind": "User",
+                    "name": "not-exists"
+                }
+            ],
+            "name": "new-group"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, (
+            'groups.deckhouse.io "none-exists-2" not exist',
+            'users.deckhouse.io "not-exists" not exist'
+        ))
+
+    def test_create_should_fail_with_already_exist_group(self):
+        ctx = _prepare_create_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+            ],
+            "name": "candi-admins"
+        })
+        out = hook.testrun(main, [ctx])
+        assert_validation_deny(self, out, 'groups.deckhouse.io "candi-admins" already exists')
+
+    def test_create_should_fail_with_system_group(self):
+        ctx = _prepare_create_binding_context({
+                "members": [
+                    {
+                        "kind": "User",
+                        "name": "superadmin"
+                    },
+                ],
+                "name": "system:new-group"
+            })
+        out = hook.testrun(main, [ctx])
+        assert_validation_deny(self, out, 'groups.deckhouse.io "system:new-group" must not start with the "system:" prefix')
+
+if __name__ == '__main__':
+    unittest.main()
 
 def _prepare_update_binding_context(new_spec: dict) -> DotMap:
     binding_context_json = """
@@ -198,10 +361,6 @@ def _prepare_update_binding_context(new_spec: dict) -> DotMap:
                         {
                             "kind": "User",
                             "name": "superadmin"
-                        },
-                        {
-                            "kind": "Group",
-                            "name": "none-exists"
                         }
                     ],
                     "name": "candi-admins"
@@ -236,69 +395,134 @@ def _prepare_update_binding_context(new_spec: dict) -> DotMap:
     "type": "Validating"
 }
 """
-    ctx_dict = json.loads(binding_context_json)
-    ctx = DotMap(ctx_dict)
-    ctx.review.request.object.spec = new_spec
-    return ctx
+    return _prepare_validation_binding_context(binding_context_json, new_spec)
 
-class TestGroupValidationWebhook(unittest.TestCase):
-    def test_update_group_with_new_group_member_none_exists_group(self):
-        ctx = _prepare_update_binding_context({
-            "members": [
-                {
-                    "kind": "User",
-                    "name": "superadmin"
+def _prepare_create_binding_context(new_spec: dict) -> DotMap:
+    binding_context_json = """
+{
+    "binding": "groups-unique.deckhouse.io",
+    "review": {
+        "request": {
+            "uid": "adedd292-0be9-476b-b2fa-8286053a1b1b",
+            "kind": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "kind": "Group"
+            },
+            "resource": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "resource": "groups"
+            },
+            "requestKind": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "kind": "Group"
+            },
+            "requestResource": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "resource": "groups"
+            },
+            "name": "new",
+            "operation": "CREATE",
+            "userInfo": {
+                "username": "kubernetes-admin",
+                "groups": [
+                    "system:masters",
+                    "system:authenticated"
+                ]
+            },
+            "object": {
+                "apiVersion": "deckhouse.io/v1alpha1",
+                "kind": "Group",
+                "metadata": {
+                    "creationTimestamp": "2024-11-22T08:00:33Z",
+                    "generation": 1,
+                    "managedFields": [
+                        {
+                            "apiVersion": "deckhouse.io/v1alpha1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:spec": {
+                                    ".": {},
+                                    "f:members": {},
+                                    "f:name": {}
+                                }
+                            },
+                            "manager": "kubectl-create",
+                            "operation": "Update",
+                            "time": "2024-11-22T08:00:33Z"
+                        }
+                    ],
+                    "name": "new",
+                    "uid": "f43bdc3f-61a2-4957-ae5a-241972717118"
                 },
-                {
-                    "kind": "Group",
-                    "name": "none-exists-2"
+                "spec": {
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "superadmin"
+                        }
+                    ],
+                    "name": "new-group"
                 }
-            ],
-            "name": "candi-admins"
-        })
-        out = hook.testrun(main, [ctx])
-        assert_validation_allowed(self, out.validations, 'groups.deckhouse.io "none-exists-2" not exist')
-
-    def test_update_group_with_new_group_member_none_exists_user(self):
-        ctx = _prepare_update_binding_context({
-            "members": [
-                {
-                    "kind": "User",
-                    "name": "superadmin"
-                },
-                {
-                    "kind": "User",
-                    "name": "not-exists"
+            },
+            "oldObject": null,
+            "dryRun": false,
+            "options": {
+                "kind": "CreateOptions",
+                "apiVersion": "meta.k8s.io/v1",
+                "fieldManager": "kubectl-create",
+                "fieldValidation": "Strict"
+            }
+        }
+    },
+    "snapshots": {
+        "groups": [
+            {
+                "filterResult": {
+                    "groupName": "candi-admins",
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "superadmin"
+                        },
+                        {
+                            "kind": "Group",
+                            "name": "none-exists-2"
+                        }
+                    ],
+                    "name": "candi-admins"
                 }
-            ],
-            "name": "candi-admins"
-        })
-        out = hook.testrun(main, [ctx])
-        assert_validation_allowed(self, out.validations, 'users.deckhouse.io "not-exists" not exist')
-
-    def test_update_group_with_new_group_member_none_exists_user_and_group(self):
-        ctx = _prepare_update_binding_context({
-            "members": [
-                {
-                    "kind": "User",
-                    "name": "superadmin"
-                },
-                {
-                    "kind": "Group",
-                    "name": "none-exists-2"
-                },
-                {
-                    "kind": "User",
-                    "name": "not-exists"
+            },
+            {
+                "filterResult": {
+                    "groupName": "crowd-supplier-calendar-ro",
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "test"
+                        }
+                    ],
+                    "name": "crowd-supplier-calendar-ro"
                 }
-            ],
-            "name": "candi-admins"
-        })
-        out = hook.testrun(main, [ctx])
-        assert_validation_allowed(self, out.validations, (
-            'groups.deckhouse.io "none-exists-2" not exist',
-            'users.deckhouse.io "not-exists" not exist'
-        ))
-
-if __name__ == '__main__':
-    unittest.main()
+            }
+        ],
+        "users": [
+            {
+                "filterResult": {
+                    "userName": "superadmin"
+                }
+            },
+            {
+                "filterResult": {
+                    "userName": "test"
+                }
+            }
+        ]
+    },
+    "type": "Validating"
+}
+"""
+    return _prepare_validation_binding_context(binding_context_json, new_spec)
