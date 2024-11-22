@@ -568,7 +568,7 @@ class TestGroupValidationWebhook(unittest.TestCase):
             "name": "candi-admins"
         })
         out = hook.testrun(main, [ctx])
-        assert_validation_allowed(self, out, 'groups.deckhouse.io "none-exists-2" not exist')
+        assert_validation_allowed(self, out, 'groups.deckhouse.io "none-exists-2" not exists')
 
     def test_should_update_with_warning_new_group_member_not_exists_user(self):
         ctx = _prepare_update_binding_context({
