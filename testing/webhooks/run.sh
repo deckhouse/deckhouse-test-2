@@ -15,8 +15,8 @@
 # limitations under the License.
 set -Eeo pipefail
 
-BASE="$(bin/yq '.REGISTRY_PATH' < candi/image_versions.yml)"
-TAG="$(bin/yq '.BASE_ALT_P11' < candi/image_versions.yml)"
+BASE="$(yq '.REGISTRY_PATH' < candi/image_versions.yml)"
+TAG="$(yq '.BASE_ALT_P11' < candi/image_versions.yml)"
 
 docker run --rm \
   -v "${PWD}":/src \
