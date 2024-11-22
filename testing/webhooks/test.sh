@@ -25,4 +25,4 @@ find /src -wholename '*/webhooks/*.py' -exec sh -c 'module="$(echo "$1" | cut -d
 
 cd /tests
 
-find . -wholename '*_test.py' -exec python3 {} \;
+find . -wholename '*_test.py' -print0 | xargs python3
