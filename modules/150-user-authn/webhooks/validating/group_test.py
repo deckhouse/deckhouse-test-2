@@ -34,10 +34,8 @@ def _assert_validation(t: unittest.TestCase, o: hook.Output, allowed: bool, msg:
             return
 
         if isinstance(msg, str):
-            if allowed:
-                t.assertEqual(len(v.data[0]["warnings"]), 1)
-                t.assertEqual(v.data[0]["warnings"][0], msg)
-
+            t.assertEqual(len(v.data[0]["warnings"]), 1)
+            t.assertEqual(v.data[0]["warnings"][0], msg)
         elif isinstance(msg, tuple):
             t.assertEqual(v.data[0]["warnings"], msg)
         else:
@@ -115,7 +113,7 @@ class TestGroupValidationWebhook(unittest.TestCase):
         out = hook.testrun(main, [ctx])
         assert_validation_allowed(self, out, 'users.deckhouse.io "not-exists" not exist')
 
-    def test_should_update_with_warning_new_group_member_not_exists_user_and_group(self):
+    def test_should_update_with_warnings_new_group_member_not_exists_user_and_group(self):
         ctx = _prepare_update_binding_context({
             "members": [
                 {
@@ -152,7 +150,7 @@ class TestGroupValidationWebhook(unittest.TestCase):
         out = hook.testrun(main, [ctx])
         assert_validation_allowed(self, out, None)
 
-    def test_create_group_with_not_exists_user_and_group(self):
+    def test_create_group_with_warnings_with_not_exists_user_and_group(self):
         ctx = _prepare_create_binding_context({
             "members": [
                 {
@@ -201,6 +199,36 @@ class TestGroupValidationWebhook(unittest.TestCase):
             })
         out = hook.testrun(main, [ctx])
         assert_validation_deny(self, out, 'groups.deckhouse.io "system:new-group" must not start with the "system:" prefix')
+
+    def test_delete(self):
+        ctx = _prepare_delete_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+            ],
+            "name": "new"
+        }, False)
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, None)
+
+
+    def test_delete_with_warnings_if_(self):
+        ctx = _prepare_delete_binding_context({
+            "members": [
+                {
+                    "kind": "User",
+                    "name": "superadmin"
+                },
+            ],
+            "name": "new"
+        }, True)
+        out = hook.testrun(main, [ctx])
+        assert_validation_allowed(self, out, (
+            'groups.deckhouse.io "candi-admins" contains groups.deckhouse.io "new"',
+            'groups.deckhouse.io "crowd-ro" contains groups.deckhouse.io "new"'
+        ))
 
 if __name__ == '__main__':
     unittest.main()
@@ -368,14 +396,14 @@ def _prepare_update_binding_context(new_spec: dict) -> DotMap:
             },
             {
                 "filterResult": {
-                    "groupName": "crowd-supplier-calendar-ro",
+                    "groupName": "crowd-ro",
                     "members": [
                         {
                             "kind": "User",
                             "name": "test"
                         }
                     ],
-                    "name": "crowd-supplier-calendar-ro"
+                    "name": "crowd-ro"
                 }
             }
         ],
@@ -498,14 +526,14 @@ def _prepare_create_binding_context(new_spec: dict) -> DotMap:
             },
             {
                 "filterResult": {
-                    "groupName": "crowd-supplier-calendar-ro",
+                    "groupName": "crowd-ro",
                     "members": [
                         {
                             "kind": "User",
                             "name": "test"
                         }
                     ],
-                    "name": "crowd-supplier-calendar-ro"
+                    "name": "crowd-ro"
                 }
             }
         ],
@@ -526,3 +554,155 @@ def _prepare_create_binding_context(new_spec: dict) -> DotMap:
 }
 """
     return _prepare_validation_binding_context(binding_context_json, new_spec)
+
+def _prepare_delete_binding_context(delete_spec: dict, has_member : bool) -> DotMap:
+    binding_context_json = """
+{
+    "binding": "groups-unique.deckhouse.io",
+    "review": {
+        "request": {
+            "uid": "d47e6935-8e58-4270-b193-c4a8e2626ba1",
+            "kind": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "kind": "Group"
+            },
+            "resource": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "resource": "groups"
+            },
+            "requestKind": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "kind": "Group"
+            },
+            "requestResource": {
+                "group": "deckhouse.io",
+                "version": "v1alpha1",
+                "resource": "groups"
+            },
+            "name": "new",
+            "operation": "DELETE",
+            "userInfo": {
+                "username": "kubernetes-admin",
+                "groups": [
+                    "system:masters",
+                    "system:authenticated"
+                ]
+            },
+            "object": null,
+            "oldObject": {
+                "apiVersion": "deckhouse.io/v1alpha1",
+                "kind": "Group",
+                "metadata": {
+                    "creationTimestamp": "2024-11-22T08:00:33Z",
+                    "generation": 1,
+                    "managedFields": [
+                        {
+                            "apiVersion": "deckhouse.io/v1alpha1",
+                            "fieldsType": "FieldsV1",
+                            "fieldsV1": {
+                                "f:spec": {
+                                    ".": {},
+                                    "f:members": {},
+                                    "f:name": {}
+                                }
+                            },
+                            "manager": "kubectl-create",
+                            "operation": "Update",
+                            "time": "2024-11-22T08:00:33Z"
+                        }
+                    ],
+                    "name": "new",
+                    "resourceVersion": "1185233604",
+                    "uid": "f43bdc3f-61a2-4957-ae5a-241972717118"
+                },
+                "spec": {
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "superadmin"
+                        }
+                    ],
+                    "name": "new-group"
+                }
+            },
+            "dryRun": false,
+            "options": {
+                "kind": "DeleteOptions",
+                "apiVersion": "meta.k8s.io/v1",
+                "propagationPolicy": "Background"
+            }
+        }
+    },
+    "snapshots": {
+        "groups": [
+            {
+                "filterResult": {
+                    "groupName": "candi-admins",
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "superadmin"
+                        },
+                        {
+                            "kind": "Group",
+                            "name": "none-exists-2"
+                        }
+                    ],
+                    "name": "candi-admins"
+                }
+            },
+            {
+                "filterResult": {
+                    "groupName": "crowd-ro",
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "test"
+                        }
+                    ],
+                    "name": "crowd-ro"
+                }
+            },
+            {
+                "filterResult": {
+                    "groupName": "new-group",
+                    "members": [
+                        {
+                            "kind": "User",
+                            "name": "superadmin"
+                        }
+                    ],
+                    "name": "new"
+                }
+            }
+        ],
+        "users": [
+            {
+                "filterResult": {
+                    "userName": "superadmin"
+                }
+            },
+            {
+                "filterResult": {
+                    "userName": "test"
+                }
+            }
+        ]
+    },
+    "type": "Validating"
+}
+"""
+    ctx_dict = json.loads(binding_context_json)
+    ctx = DotMap(ctx_dict)
+    ctx.review.request.oldObject.spec = delete_spec
+    if has_member:
+        snp_dict = DotMap({
+            "kind": "Group",
+            "name": "new",
+        })
+        ctx.snapshots.groups[0].filterResult.members.append(snp_dict)
+        ctx.snapshots.groups[1].filterResult.members.append(snp_dict)
+    return ctx
