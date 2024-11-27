@@ -37,7 +37,9 @@ fromArtifact: common/src-artifact
 shell:
   install:
   - git clone --branch {{ $shellOperatorVersion }} --depth 1 {{ .SOURCE_REPO }}/flant/shell-operator.git /src/shell-operator
+  - rm -r /src/shell-operator/.git
   - git clone --depth 1 {{ .SOURCE_REPO }}/jqlang/jq --branch "jq-1.7.1" /src/jq
+  - rm -r /src/jq/.git
   - cd /src/jq
   - |
     cat > .gitmodules <<"EOF"

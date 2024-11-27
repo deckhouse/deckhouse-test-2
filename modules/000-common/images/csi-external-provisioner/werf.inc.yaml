@@ -27,6 +27,7 @@ shell:
   - cd /src
   - test -d "/patches/{{ $value.csi.provisioner }}" && git apply /patches/{{ $value.csi.provisioner }}/*.patch --verbose
   - rm -r vendor
+  - rm -r .git
 ---
 artifact: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $version | replace "." "-" }}
 from: {{ $.Images.BASE_GOLANG_23_ALPINE }}
