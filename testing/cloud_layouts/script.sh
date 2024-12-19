@@ -438,6 +438,10 @@ function run-test() {
   wait_deckhouse_ready || return $?
   wait_cluster_ready || return $?
 
+  if [[ "${CIS_ENABLED}" == "true" ]]; then
+    >&2 echo "CIS Benchmark placeholder"
+  fi
+
   if [[ -n ${SWITCH_TO_IMAGE_TAG} ]]; then
     test_requirements || return $?
     change_deckhouse_image "${SWITCH_TO_IMAGE_TAG}" || return $?
