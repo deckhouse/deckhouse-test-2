@@ -2438,7 +2438,7 @@ jobs:
             KUBERNETES_VERSION=${KUBERNETES_VERSION}
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
-            IS_ENABLED=${CIS_ENABLED}
+            CIS_ENABLED=${CIS_ENABLED}
           "
 
           ls -lh $(pwd)/testing
