@@ -540,6 +540,42 @@ check_e2e_labels:
         INITIAL_IMAGE_TAG: ${{ steps.setup.outputs.initial-image-tag }}
   {!{- tmpl.Exec "e2e_run_template" (slice .provider "run-test" (coll.Has $ctx "manualRun") ) | strings.Indent 6 }!}
 
+################################################### Collect logs when e2e failed ###########################
+    {!{- if coll.Has $ctx "manualRun" }!}
+    - name: "Create log artifacts archive"
+      id: create_e2e_tests_logs
+      if: always()
+      env:
+        PROVIDER: {!{ $ctx.providerName }!}
+        LAYOUT: {!{ $ctx.layout }!}
+        LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+        SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+      run: |
+        ssh_private_key_path="/tmp/sshkey"
+        rm -f "$ssh_private_key_path"
+        base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+        chmod 0600 "$ssh_private_key_path"
+        
+        eval $(ssh-agent)
+        
+        ssh-add $ssh_private_key_path
+        ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                -- deckhouse-controller collect-debug-info \
+                > /tmp/deckhouse-debug.tar.gz"'
+        scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+    - name: "Upload log artifacts archive"
+      id: upload_e2e_tests_logs
+      if: always()
+      uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
+      with:
+        name: deckhouse-debug
+        path: /tmp/deckhouse-debug.tar.gz
+        retention-days: 7
+        compression-level: 9
+    {!{- end }!}      
+################################################### Collect logs when e2e failed ###########################
+
 {!{- if coll.Has $ctx "manualRun" }!}
     - name: Read connection string
       if: ${{ failure() || cancelled() }}

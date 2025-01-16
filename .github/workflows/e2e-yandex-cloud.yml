@@ -531,6 +531,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -1030,6 +1064,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -1529,6 +1597,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -2028,6 +2130,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -2527,6 +2663,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -3026,6 +3196,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
@@ -3525,6 +3729,40 @@ jobs:
           bash /deckhouse/testing/cloud_layouts/script.sh run-test
 
         # </template: e2e_run_template>
+
+  ################################################### Collect logs when e2e failed ###########################
+      - name: "Create log artifacts archive"
+        id: create_e2e_tests_logs
+        if: always()
+        env:
+          PROVIDER: Yandex.Cloud
+          LAYOUT: WithoutNAT
+          LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY }}
+          SSH_CONNECT_STR_FILE: ${{ steps.e2e_test_run.outputs.ssh_connection_str_file }}
+        run: |
+          ssh_private_key_path="/tmp/sshkey"
+          rm -f "$ssh_private_key_path"
+          base64 -d <<< "$LAYOUT_SSH_KEY" > "$ssh_private_key_path"
+          chmod 0600 "$ssh_private_key_path"
+
+          eval $(ssh-agent)
+
+          ssh-add $ssh_private_key_path
+          ssh -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}) -t 'sudo su - -c "kubectl -n d8-system exec svc/deckhouse-leader -c deckhouse \
+                  -- deckhouse-controller collect-debug-info \
+                  > /tmp/deckhouse-debug.tar.gz"'
+          scp -o StrictHostKeyChecking=no $(cat ${{ env.SSH_CONNECT_STR_FILE }}):/tmp/deckhouse-debug.tar.gz /tmp/deckhouse-debug.tar.gz 
+
+      - name: "Upload log artifacts archive"
+        id: upload_e2e_tests_logs
+        if: always()
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: deckhouse-debug
+          path: /tmp/deckhouse-debug.tar.gz
+          retention-days: 7
+          compression-level: 9      
+  ################################################### Collect logs when e2e failed ###########################
       - name: Read connection string
         if: ${{ failure() || cancelled() }}
         id: check_stay_failed_cluster
