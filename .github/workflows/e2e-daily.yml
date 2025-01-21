@@ -334,6 +334,7 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
+
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
           while true; do
@@ -827,6 +828,7 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
 
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
@@ -1359,6 +1361,7 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
+
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
           while true; do
@@ -1857,6 +1860,7 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
+
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
           while true; do
@@ -2342,6 +2346,7 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
 
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
@@ -2837,6 +2842,7 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
+
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
           while true; do
@@ -3322,6 +3328,7 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
 
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
@@ -3812,6 +3819,7 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
 
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)
@@ -4314,6 +4322,7 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
 
           echo "Starting a check to verify that the image exists in the registry."
           start_time=$(date +%s)

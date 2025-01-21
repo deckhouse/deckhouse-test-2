@@ -492,6 +492,7 @@ check_e2e_labels:
         fi
         echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
+
         echo "Starting a check to verify that the image exists in the registry."
         start_time=$(date +%s)
         while true; do
