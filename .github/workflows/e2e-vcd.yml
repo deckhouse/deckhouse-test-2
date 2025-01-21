@@ -327,6 +327,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -419,6 +420,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -834,6 +862,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -926,6 +955,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -1341,6 +1397,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1433,6 +1490,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -1848,6 +1932,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1940,6 +2025,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -2355,6 +2467,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2447,6 +2560,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -2862,6 +3002,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2954,6 +3095,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
@@ -3369,6 +3537,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -3461,6 +3630,33 @@ jobs:
             MASTERS_COUNT=1
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
+
+          echo "Starting a check to verify that the image exists in the registry."
+          start_time=$(date +%s)
+          while true; do
+              docker pull "${INSTALL_IMAGE_NAME}"
+              if [ $? -ne 0 ]; then
+                  echo "failed pull image"
+              else
+                  echo "success pull image"
+                  break
+              fi
+              sleep 5
+              current_time=$(date +%s)
+
+              # Calculating the time difference in seconds 
+              if [[ -n "${start_time}" && -n "${current_time}" ]]; then
+                  elapsed_seconds=$(( current_time - start_time ))
+              else
+                  echo "Error time calculating..."
+                  continue
+              fi
+
+              if (( $elapsed_seconds >= ${WAIT_IMAGE_TIME} )); then
+                  echo "${elapsed_seconds} seconds have passed; the check is complete."
+                  break
+              fi
+          done
 
           # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
           echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
