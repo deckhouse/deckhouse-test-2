@@ -167,6 +167,22 @@ jobs:
 
   # </template: git_info_job>
 
+
+  # </template: block-e2e-until-image-is-not-ready>
+  block-e2e-until-image-is-not-ready:
+    name: Block e2e until the docker image is not ready
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
+    steps:
+      - id: block-e2e
+        name: Block e2e until the docker image is not ready
+        uses: actions/github-script@v6.4.1
+        with:
+          script: |
+            const e2eChecker = require('./.github/scripts/js/e2e-commit-status');
+            await e2echecker.isWorkflowReadyToE2E()
+  # </template: block-e2e-until-image-is-not-ready>
+
   # <template: check_e2e_labels_job>
   check_e2e_labels:
     name: Check e2e labels
@@ -209,6 +225,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_26 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -327,6 +344,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -712,6 +730,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_27 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -830,6 +849,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1215,6 +1235,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_28 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -1333,6 +1354,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -1718,6 +1740,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_29 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -1836,6 +1859,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2221,6 +2245,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_30 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -2339,6 +2364,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -2724,6 +2750,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_31 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -2842,6 +2869,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.
@@ -3227,6 +3255,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_Automatic == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -3345,6 +3374,7 @@ jobs:
           INITIAL_REF_SLUG: ${{ github.event.inputs.initial_ref_slug }}
           MANUAL_RUN: "true"
           MULTIMASTER: ${{ needs.check_e2e_labels.outputs.multimaster }}
+          WAIT_IMAGE_TIME: 1800 # 30 minutes
         run: |
           # Calculate unique prefix for e2e test.
           # GITHUB_RUN_ID is a unique number for each workflow run.

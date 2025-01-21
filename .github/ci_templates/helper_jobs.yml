@@ -98,6 +98,23 @@ git_info:
 # </template: git_info_job>
 {!{- end -}!}
 
+{!{ define "block-e2e-until-image-is-not-ready" }!}
+# </template: block-e2e-until-image-is-not-ready>
+{!{- $ctx := . }!}
+block-e2e-until-image-is-not-ready:
+  name: Block e2e until the docker image is not ready
+  runs-on: ubuntu-latest
+  if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
+  steps:
+    - id: block-e2e
+      name: Block e2e until the docker image is not ready
+      uses: {!{ index (ds "actions") "actions/github-script" }!}
+      with:
+        script: |
+          const e2eChecker = require('./.github/scripts/js/e2e-commit-status');
+          await e2echecker.isWorkflowReadyToE2E()
+# </template: block-e2e-until-image-is-not-ready>
+{!{- end -}!}
 
 # Check pull request state on push or pull_request_target events:
 # - find PR info on push event
