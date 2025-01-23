@@ -111,9 +111,7 @@ block-e2e-until-image-is-not-ready:
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
         script: |
-            const Octokit = require('@octokit/rest');
-
-            const WORKFLOW_NAME = 'Sleep job';
+            const WORKFLOW_NAME = 'Build and test for dev branches';
             const WORKFLOW_STATUS_RUNNING = 'in_progress';
             const WORKFLOW_STATUS_COMPLETED = 'completed';
             const MAX_ATTEMPTS = 60;
@@ -123,8 +121,6 @@ block-e2e-until-image-is-not-ready:
             const token = process.env.GITHUB_TOKEN;
             const repo = process.env.REPO;
             const prName = context.payload.inputs.pull_request_ref;
-            const octokit = new Octokit({ auth: token });
-
 
             /**
             * @param {string} repo 
@@ -134,7 +130,7 @@ block-e2e-until-image-is-not-ready:
             async function isReadyToE2E(repo, branch) {
                 try {
                     const [owner, repoName] = repo.split('/');
-                    const { data } = await octokit.actions.listWorkflowRunsForRepo({
+                    const { data } = await github.actions.listWorkflowRunsForRepo({
                         owner,
                         repo: repoName,
                         branch: branch,
