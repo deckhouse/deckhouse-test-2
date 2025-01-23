@@ -179,7 +179,6 @@ jobs:
         uses: actions/github-script@v6.4.1
         with:
           script: |
-              const core = require('@actions/core');
               const Octokit = require('@octokit/rest');
 
               const WORKFLOW_NAME = 'Sleep job';
@@ -307,6 +306,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_26 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -843,6 +843,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_27 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -1379,6 +1380,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_28 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -1915,6 +1917,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_29 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -2451,6 +2454,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_30 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -2987,6 +2991,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_1_31 == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
@@ -3523,6 +3528,7 @@ jobs:
     needs:
       - check_e2e_labels
       - git_info
+      - block-e2e-until-image-is-not-ready
     if: needs.check_e2e_labels.outputs.run_containerd_Automatic == 'true'
     outputs:
       ssh_master_connection_string: ${{ steps.check_stay_failed_cluster.outputs.ssh_master_connection_string }}
