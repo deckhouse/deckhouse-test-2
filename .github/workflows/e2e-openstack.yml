@@ -186,21 +186,18 @@ jobs:
               const TIMEOUT_BETWEEN_ATTEMPT = 1000 * 30; // 10 секунд
               const MAX_ITEMS_PER_PAGE = 100;
 
-              const token = process.env.GITHUB_TOKEN;
-              const repo = process.env.REPO;
-              const prName = context.payload.inputs.pull_request_ref;
+
 
               /**
               * @param {string} repo 
               * @param {string} branch 
               * @returns {Promise<boolean>}
               */
-              async function isReadyToE2E(repo, branch) {
+              async function isReadyToE2E(branch) {
                   try {
-                      const [owner, repoName] = repo.split('/');
                       const { data } = await github.actions.listWorkflowRunsForRepo({
-                          owner,
-                          repo: repoName,
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
                           branch: branch,
                           per_page: MAX_ITEMS_PER_PAGE,
                       });
@@ -245,10 +242,15 @@ jobs:
                   return new Promise(resolve => setTimeout(resolve, ms));
               }
 
+
+              const branchName = context.payload.inputs.pull_request_ref;
+              # const prNum = context.payload
+              console.log(prNum);
+              # console.log(`Запуск проверки для ветки: ${branchName} PR: https://github.com/${context.repo.repo}/pull/${prNum}`)
               (async () => {
                   for (let i = 0; i < MAX_ATTEMPTS; i++) {
                       console.log(`Попытка ${i + 1} из ${MAX_ATTEMPTS}`);
-                      const isReady = await isReadyToE2E(repo, prName);
+                      const isReady = await isReadyToE2E(branchName);
                       if (isReady) {
                       // добавить код для проверки образа, если джоба завершилась успешно.
                       return;
