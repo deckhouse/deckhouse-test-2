@@ -174,7 +174,6 @@ block-e2e-until-image-is-not-ready:
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
 
-
             const branchName = context.payload.inputs.pull_request_ref;
             # const prNum = context.payload
             console.log(prNum);
