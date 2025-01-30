@@ -50,6 +50,7 @@ steps:
 runs-on: [self-hosted, regular, selectel]
 outputs:
   tests_image_name: ${{ steps.build.outputs.tests_image_name }}
+  build_report_dir: ${{ steps.build.outputs.build_report_dir }}
 steps:
 {!{ if eq $buildType "release" }!}
   {!{ tmpl.Exec "started_at_output" $ctx | strings.Indent 2 }!}
@@ -118,6 +119,7 @@ steps:
 
       #temporary: move temp dir
       TEMP_WORKDIR="$(dirname "${{github.workspace}}")/${{github.run_id}}-$REGISTRY_SUFFIX"
+      echo "build_report_dir=$(echo ${TEMP_WORKDIR})" >> $GITHUB_OUTPUT
       mkdir -p "$TEMP_WORKDIR"
 
       # Registry path to publish images for Git branches.
@@ -257,9 +259,18 @@ steps:
       ./tools/check-release-images.sh --tag ${CI_COMMIT_REF_SLUG} --edition ${EDITION} --images-path ${DECKHOUSE_REGISTRY_READ_HOST}/deckhouse/
 {!{- end }!}
 
+  - name: Save build report
+    if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
+    uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
+    with:
+      name: build_report_${{ env.WERF_ENV }}
+      path: |
+        ${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+
   - name: Cleanup
-    if: ${{ always() }}
+    if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
     run: |
       rm -f images_tags_werf.json
+      rm -rf ${{ steps.build.outputs.build_report_dir }}
 # </template: build_template>
 {!{ end }!}

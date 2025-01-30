@@ -571,6 +571,7 @@ jobs:
     runs-on: [self-hosted, regular, selectel]
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
+      build_report_dir: ${{ steps.build.outputs.build_report_dir }}
     steps:
 
 
@@ -735,6 +736,7 @@ jobs:
 
           #temporary: move temp dir
           TEMP_WORKDIR="$(dirname "${{github.workspace}}")/${{github.run_id}}-$REGISTRY_SUFFIX"
+          echo "build_report_dir=$(echo ${TEMP_WORKDIR})" >> $GITHUB_OUTPUT
           mkdir -p "$TEMP_WORKDIR"
 
           # Registry path to publish images for Git branches.
@@ -819,10 +821,19 @@ jobs:
           # Encode as gzip+base64 to evade github's SecretMasker error: "Skip output since it may contain secret".
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
 
+      - name: Save build report
+        if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
+        uses: actions/upload-artifact@v4.4.0
+        with:
+          name: build_report_${{ env.WERF_ENV }}
+          path: |
+            ${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+
       - name: Cleanup
-        if: ${{ always() }}
+        if: ${{ always() && (steps.build.outcome == 'success' || steps.build.outcome == 'failure') }}
         run: |
           rm -f images_tags_werf.json
+          rm -rf ${{ steps.build.outputs.build_report_dir }}
     # </template: build_template>
 
 
