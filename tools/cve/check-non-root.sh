@@ -16,6 +16,7 @@
 set -e
 source tools/cve/trivy-wrapper.sh
 
+
 # ANSI escape codes for colors
 RED='\033[0;31m'
 YELLOW='\033[0;33m'
