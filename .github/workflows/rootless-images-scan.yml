@@ -52,7 +52,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
             echo "image_tag=main" >> $GITHUB_ENV
-          elif [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.label.name }}" == "security/rootless" ]]; then
+          elif [[ "${{ github.event_name }}" == "pull_request" && contains(github.event.pull_request.labels.*.name, 'security/rootless') ]]; then
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
