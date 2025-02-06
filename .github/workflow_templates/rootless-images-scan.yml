@@ -36,7 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, "security/rootless")
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'security/rootless')
     steps:
       - name: Ensure valid trigger
         run: |
