@@ -42,20 +42,13 @@ jobs:
             echo "Manual runs must specify a pull request reference."
             exit 1
           fi
-
-          if [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.action }}" == "labeled" ]]; then
-            LABEL="${{ github.event.label.name }}"
-            if [[ "$LABEL" == "rootless/scan" ]]; then
-                echo LABEL=$LABEL >> $GITHUB_ENV
-            fi
-          fi
       - name: Set image tag based on event type
         id: set_tag
         run: |
           if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
             echo "image_tag=main" >> $GITHUB_ENV
-          elif [[ $LABEL != "" ]]; then
+          elif [[ "${{ github.event.label.name }}" ==  "security/rootless" ]]; then
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
