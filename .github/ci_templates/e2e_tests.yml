@@ -62,7 +62,7 @@
 {!{- $provider := index . 0 -}!}
 {!{- $script_arg := index . 1 -}!}
 {!{- $run_from_issue_or_pr := index . 2 -}!}
-{!{- $script := "script.sh" -}!}
+{!{- $script := "script-commander.sh" -}!}
 {!{- $script_eks := "script_eks.sh" -}!}
 {!{- if eq $provider "aws" }!}
   LAYOUT_AWS_ACCESS_KEY: ${{ secrets.LAYOUT_AWS_ACCESS_KEY }}
@@ -98,6 +98,8 @@
   REPOSITORY: ${{ github.repository }}
   DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
   GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+  COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+  COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
 {!{- if and (eq $script_arg "run-test") $run_from_issue_or_pr }!}
   CIS_ENABLED: ${{ needs.check_e2e_labels.outputs.cis }}
 {!{- end }!}
@@ -122,35 +124,6 @@ run: |
     CIS_ENABLED=${CIS_ENABLED}
 {!{- end }!}
   "
-
-  ls -lh $(pwd)/testing
-
-  dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-  echo "DHCTL log file: $dhctl_log_file"
-
-  user_runner_id=$(id -u):$(id -g)
-  echo "user_runner_id $user_runner_id"
-
-
-{!{- if and (eq $script_arg "run-test") $run_from_issue_or_pr }!}
-  echo "Start waiting ssh connection string script"
-  comment_url="${GITHUB_API_SERVER}/repos/${REPOSITORY}/issues/comments/${COMMENT_ID}"
-  echo "Full comment url for updating ${comment_url}"
-
-  ssh_connect_str_file="${DHCTL_LOG_FILE}-ssh-connect_str-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-  echo "ssh_connection_str_file=${ssh_connect_str_file}" >> $GITHUB_OUTPUT
-
-  bastion_ip_file=""
-  if [[ "${PROVIDER}" == "Static" ]] ; then
-    bastion_ip_file="${DHCTL_LOG_FILE}-ssh-bastion-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-  elif [[ "${PROVIDER}" == "VCD" ]] ; then
-    bastion_ip_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-  fi
-
-  echo "ssh_bastion_str_file=${bastion_ip_file}" >> $GITHUB_OUTPUT
-
-  $(pwd)/testing/cloud_layouts/wait-master-ssh-and-update-comment.sh "$dhctl_log_file" "$comment_url" "$ssh_connect_str_file" "$bastion_ip_file" > "${dhctl_log_file}-wait-log" 2>&1 &
-{!{ end }!}
 
 {!{- if eq $provider "eks" }!}
   chmod 755 $(pwd)/testing/cloud_layouts/{!{ $script_eks }!}
@@ -450,7 +423,7 @@ check_e2e_labels:
           INITIAL_IMAGE_TAG=${INITIAL_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
         fi
 
-        # Prepare image tag for deploy/deckhouse (DECKHOUSE_IMAGE_TAG option in testing/cloud_layouts/script.sh).
+        # Prepare image tag for deploy/deckhouse (DECKHOUSE_IMAGE_TAG option in testing/cloud_layouts/script-commander.sh).
         # CI_COMMIT_REF_SLUG is a 'prNUM' for dev branches or 'main' for default branch.
         # Use it as image tag. Add suffix to not overlap with PRs in main repo.
         IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
@@ -528,6 +501,8 @@ check_e2e_labels:
         KUBERNETES_VERSION: "{!{ $ctx.kubernetesVersion }!}"
 {!{- end }!}
         LAYOUT_DECKHOUSE_DOCKERCFG: ${{ secrets.LAYOUT_DECKHOUSE_DOCKERCFG }}
+        COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+        COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         LAYOUT_SSH_KEY: ${{ secrets.LAYOUT_SSH_KEY}}
         TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
         PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
@@ -751,6 +726,8 @@ check_e2e_labels:
       if: ${{ success() || cancelled() }}
       id: cleanup_cluster
       env:
+        COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+        COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         PROVIDER: {!{ $ctx.providerName }!}
         CRI: {!{ $ctx.criName }!}
         LAYOUT: {!{ $ctx.layout }!}

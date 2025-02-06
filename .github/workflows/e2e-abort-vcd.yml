@@ -268,6 +268,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -291,8 +293,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -304,14 +308,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -337,7 +333,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -564,6 +560,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -587,8 +585,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -600,14 +600,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -633,7 +625,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -860,6 +852,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -883,8 +877,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -896,14 +892,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -929,7 +917,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1156,6 +1144,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -1179,8 +1169,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1192,14 +1184,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1225,7 +1209,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1452,6 +1436,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -1475,8 +1461,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1488,14 +1476,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1521,7 +1501,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -1748,6 +1728,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -1771,8 +1753,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -1784,14 +1768,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -1817,7 +1793,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2044,6 +2020,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -2067,8 +2045,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2080,14 +2060,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2113,7 +2085,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
@@ -2340,6 +2312,8 @@ jobs:
         if: ${{ success() || cancelled() }}
         id: cleanup_cluster
         env:
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
           PROVIDER: VCD
           CRI: Containerd
           LAYOUT: Standard
@@ -2363,8 +2337,10 @@ jobs:
           REPOSITORY: ${{ github.repository }}
           DHCTL_LOG_FILE: ${{ steps.setup.outputs.dhctl-log-file}}
           GITHUB_TOKEN: ${{secrets.BOATSWAIN_GITHUB_TOKEN}}
+          COMMANDER_TOKEN: ${{secrets.E2E_COMMANDER_TOKEN}}
+          COMMANDER_HOST: ${{secrets.E2E_COMMANDER_HOST}}
         run: |
-          echo "Execute 'script.sh cleanup' via 'docker run', using environment:
+          echo "Execute 'script-commander.sh cleanup' via 'docker run', using environment:
             INSTALL_IMAGE_NAME=${INSTALL_IMAGE_NAME}
             DECKHOUSE_IMAGE_TAG=${DECKHOUSE_IMAGE_TAG}
             INITIAL_IMAGE_TAG=${INITIAL_IMAGE_TAG}
@@ -2376,14 +2352,6 @@ jobs:
             TMP_DIR_PATH=${TMP_DIR_PATH}
             MASTERS_COUNT=${MASTERS_COUNT}
           "
-
-          ls -lh $(pwd)/testing
-
-          dhctl_log_file="${DHCTL_LOG_FILE}-${PROVIDER}-${LAYOUT}-${CRI}-${KUBERNETES_VERSION}"
-          echo "DHCTL log file: $dhctl_log_file"
-
-          user_runner_id=$(id -u):$(id -g)
-          echo "user_runner_id $user_runner_id"
 
           docker run --rm \
             -e DECKHOUSE_DOCKERCFG=${LAYOUT_DECKHOUSE_DOCKERCFG} \
@@ -2409,7 +2377,7 @@ jobs:
             -v ${TMP_DIR_PATH}:/tmp \
             -w /deckhouse \
           ${INSTALL_IMAGE_NAME} \
-          bash /deckhouse/testing/cloud_layouts/script.sh cleanup
+          bash /deckhouse/testing/cloud_layouts/script-commander.sh cleanup
 
         # </template: e2e_run_template>
 
