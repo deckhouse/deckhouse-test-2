@@ -52,7 +52,7 @@ jobs:
       - name: Set image tag based on event type
         id: set_tag
         run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
+          if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
             echo "image_tag=main" >> $GITHUB_ENV
           elif [[ $LABEL != "" ]]; then
