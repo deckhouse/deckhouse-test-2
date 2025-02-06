@@ -16,6 +16,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 name: "Rootless images scan"
+env:
+  ROOTLESS_LABEL: security/rootless
 on:
   push:
     branches:
@@ -28,6 +30,7 @@ on:
   pull_request:
     types:
       - labeled
+      - synchronize 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.number || github.ref }}
   cancel-in-progress: true
@@ -37,6 +40,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
+    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, env.ROOTLESS_LABEL)
     steps:
       - name: Ensure valid trigger
         run: |
@@ -50,7 +54,7 @@ jobs:
           if [[ "${{ github.ref }}" == "refs/heads/main" && "${{ github.event_name }}" == "push" ]]; then
             echo "image_tag=main" >> $GITHUB_OUTPUT
             echo "image_tag=main" >> $GITHUB_ENV
-          elif [[ "${{ github.event.label.name }}" ==  "security/rootless" ]]; then
+          elif [[ "${{ github.event_name }}" == "pull_request" && "${{ github.event.label.name }}" == "$ROOTLESS_LABEL" ]]; then
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_ENV
           elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
@@ -65,6 +69,7 @@ jobs:
         run: |
           echo "Triggered by: ${{ github.event_name }}"
           echo "Image tag: $image_tag"
+
 
   scan_images:
     runs-on: [ self-hosted, regular, selectel ]
