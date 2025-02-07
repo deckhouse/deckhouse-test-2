@@ -36,7 +36,10 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       image_tag: ${{ steps.set_tag.outputs.image_tag }}
-    if: github.event_name != 'pull_request' || contains(github.event.pull_request.labels.*.name, 'security/rootless')
+    if: |
+      github.event_name != 'pull_request' ||
+      github.event.label.name == 'security/rootless' ||
+      (github.event.action == 'synchronize' && contains(github.event.pull_request.labels.*.name, 'security/rootless'))
     steps:
       - name: Ensure valid trigger
         run: |
@@ -65,8 +68,6 @@ jobs:
         run: |
           echo "Triggered by: ${{ github.event_name }}"
           echo "Image tag: $image_tag"
-
-
   scan_images:
     runs-on: [ self-hosted, regular, selectel ]
     needs: check_trigger
