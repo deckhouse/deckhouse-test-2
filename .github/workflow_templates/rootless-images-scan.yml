@@ -25,7 +25,7 @@ on:
         required: false
       issue_number:
         description: 'Number of issue where label was set'
-        required: false
+        required: true
       comment_id:
         description: 'ID of comment in issue where to put workflow run status'
         required: false
@@ -70,7 +70,7 @@ jobs:
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_OUTPUT
             echo "image_tag=pr${{ github.event.pull_request.number }}" >> $GITHUB_ENV
-          elif [[ -n "${{ github.event.inputs.pull_request_ref }}" ]]; then
+          elif [[ -n "${{ github.event.inputs.issue_number }}" ]]; then
             PR_NUMBER=$(echo "${{ github.event.inputs.issue_number }}")
             echo "image_tag=pr$PR_NUMBER" >> $GITHUB_OUTPUT
             echo "image_tag=pr$PR_NUMBER" >> $GITHUB_ENV
