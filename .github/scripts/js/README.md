@@ -1,5 +1,6 @@
 Support scripts to use with github-script action in github workflows.
 
+test
 1. Changelog.
 2. Run e2e tests.
 3. Deploy web and site to stage and test environments.
