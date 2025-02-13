@@ -1,0 +1,6 @@
+candi:
+  features:
+    - summary: TEST RECORD
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/403
+      impact: THIS WILL BREAK EVERYTHING
+
