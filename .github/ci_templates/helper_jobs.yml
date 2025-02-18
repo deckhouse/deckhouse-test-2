@@ -104,7 +104,10 @@ git_info:
 block-e2e-until-image-is-not-ready:
   name: Block e2e until the docker image is not ready
   runs-on: ubuntu-latest
-  if: ${{ github.event.pull_request.user.login != 'deckhouse-BOaTswain' }}
+  if: |
+    github.event_name == 'pull_request' &&
+    github.event.action != 'workflow_dispatch' &&
+    github.event.action != 'schedule'
   steps:
     - uses: {!{ index (ds "actions") "actions/checkout" }!}
     - name: Block e2e until the docker image is not ready
@@ -112,15 +115,18 @@ block-e2e-until-image-is-not-ready:
       uses: {!{ index (ds "actions") "actions/github-script" }!}
       with:
         script: |
-          const branchName = context.payload.inputs.ci_commit_ref_name;
-          const prNum = context.payload.inputs.issue_number;
-          console.log(`Check build workflow is completed for branch: ${branchName} PR: ${context.payload.repository.html_url}/pull/${prNum}`);
+          console.log(context.payload)
+          if (context.payload.sender.login != 'deckhouse-BOaTswain') {
+            const branchName = context.payload.inputs.ci_commit_ref_name;
+            const prNum = context.payload.inputs.issue_number;
+            console.log(`Check build workflow is completed for branch: ${branchName} PR: ${context.payload.repository.html_url}/pull/${prNum}`);
 
-          const waitForWorkflowIsCompleted = require('./.github/scripts/js/validators/validate-workflow-is-ready')({ github, context, core });
-          try {
-              await waitForWorkflowIsCompleted(branchName, 'Build and test for dev branches');
-          } catch(error) {
-              core.setFailed(error);
+            const waitForWorkflowIsCompleted = require('./.github/scripts/js/validators/validate-workflow-is-ready')({ github, context, core });
+            try {
+                await waitForWorkflowIsCompleted(branchName, 'Build and test for dev branches');
+            } catch(error) {
+                core.setFailed(error);
+            }
           }
 
 # </template: block-e2e-until-image-is-not-ready>
