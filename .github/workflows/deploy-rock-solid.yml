@@ -278,6 +278,8 @@ jobs:
 
       - name: Generate channel releases config map
         run: python .github/scripts/python/generate-channel-releases-cm.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.4.0
@@ -295,6 +297,11 @@ jobs:
     env:
       WERF_CHANNEL: "ea"
     steps:
+      # <template: checkout_step>
+      - name: Checkout sources
+        uses: actions/checkout@v3.5.2
+
+      # </template: checkout_step>
 
       - name: Download artifacts
         uses: actions/download-artifact@v4.1.8

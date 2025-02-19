@@ -172,6 +172,8 @@ Jobs for visual control allowed editions when approving deploy to environments.
 
       - name: Generate channel releases config map
         run: python .github/scripts/python/generate-channel-releases-cm.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
@@ -210,7 +212,8 @@ stage:
     env:
       WERF_CHANNEL: "ea"
     steps:
-
+      {!{- tmpl.Exec "checkout_step" . | strings.Indent 6 }!}
+      
       - name: Download artifacts
         uses: {!{ index (ds "actions") "actions/download-artifact" }!}
         with:
