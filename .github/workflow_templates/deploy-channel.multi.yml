@@ -206,7 +206,7 @@ stage:
 {!{ range $env, $env_properties := $envs }!}
   {!{ $env_properties.job }!}:
     name: "{!{ $env_properties.job_name }!}"
-    runs-on: [self-hosted, regular]
+    runs-on: ubuntu-latest
     needs:
       - prepare_channel_releases
     env:

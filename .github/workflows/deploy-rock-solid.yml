@@ -291,7 +291,7 @@ jobs:
 
   deploy_channels_cm_stage:
     name: "Deploy channels to staging"
-    runs-on: [self-hosted, regular]
+    runs-on: ubuntu-latest
     needs:
       - prepare_channel_releases
     env:
