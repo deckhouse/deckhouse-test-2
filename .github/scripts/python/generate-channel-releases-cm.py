@@ -6,9 +6,13 @@ full_version_pattern = re.compile(r"\d+\.\d+(?:.\d+)?")
 major_version_pattern = re.compile(r"\d+\.\d+")
 
 gh_token=os.getenv('GITHUB_TOKEN')
+gh_env_repo = os.getenv('GITHUB_REPOSITORY')
+gh_owner = gh_env_repo.split('/')[0]
+gh_repo= gh_env_repo.split('/')[1]
 
 github = GhApi(owner='deckhouse', repo='deckhouse', token=gh_token)
 
+stable_version = None
 editions_reference = [ 'BE', 'CE', 'EE', 'FE', 'SE', 'SE-plus' ]
 channels = {
     'alpha': None,
@@ -64,6 +68,7 @@ for channel in channels.keys():
             match_result = major_version_pattern.findall(version)
             if (len(match_result) < 1):
                 continue
+            stable_version = f'v{version}'
             result_channels[channel] = match_result[0]
             break
 
@@ -85,3 +90,6 @@ groups:
 
 with open('publish-channels/.helm/channels.yaml','w') as channels_file:
     channels_file.write(yamldata)
+
+with open(os.getenv('GITHUB_OUTPUT'), 'a') as output:
+    output.write(f'stable_version={stable_version}\n')
