@@ -238,11 +238,15 @@ jobs:
       - name: Run deploy stub
         run: exit 0
 
+
   post_deploy_preparation:
     name: Post deploy preparation
     runs-on: [self-hosted, regular]
     outputs:
-      STABLE_VERSION: ${{ steps.collect-channel-versions.outputs.stable_version }}    
+      STABLE_VERSION: ${{ steps.post-deploy-preparation.outputs.stable_version }}
+      LATEST_RELEASE_ID: ${{ steps.post-deploy-preparation.outputs.latest_release_id }}
+      TARGET_RELEASE_ID: ${{ steps.post-deploy-preparation.outputs.target_release_id }}
+      DEPLOY_KUBECONFIG_BASE64_DEV: ${{ steps.post-deploy-preparation.outputs.KUBECONFIG_BASE64_DEV }}
     needs:
       - run_deploy
     steps:
@@ -258,9 +262,9 @@ jobs:
           python-version: '3.12.3'
 
       - name: Install dependencies
-        run: pip install ghapi fastcore
+        run: pip install ghapi fastcore kubernetes
 
-      - name: Prepare files for collecting and deployment
+      - name: Prepare files to collect and deployment channels
         run: |
           mkdir -p publish-channels/.helm/templates
           tee publish-channels/werf.yaml << EOF
@@ -278,11 +282,13 @@ jobs:
           {{ $.Files.Get "channels.yaml" | indent 4 }}
           EOF
 
-      - name: Collect channel versions
-        id: collect-channel-versions
-        run: python .github/scripts/python/generate-channel-releases-cm.py
+      - name: Post deploy preparation
+        id: post-deploy-preparation
+        run: python .github/scripts/python/post-deploy-preparation.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEPLOY_KUBECONFIG_BASE64_DEV: ${{ secrets.KUBECONFIG_BASE64_DEV }}
+          NAMESPACE_KUBECONFIG_BASE64_DEV: "deckhouse-web-stage"          
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.4.0
@@ -293,6 +299,7 @@ jobs:
 
 
   deploy_channels_cm_stage:
+    if: ${{ needs.post_deploy_preparation.outputs.DEPLOY_KUBECONFIG_BASE64_DEV == 'true' }}
     name: "Deploy channels to staging"
     runs-on: [self-hosted, regular]
     needs:
@@ -312,20 +319,6 @@ jobs:
           name: channels-artifact
           path: publish-channels
 
-      - name: Check artifacts
-        run: |
-          echo "Check working file structure"
-          ls -1AR publish-channels
-
-          echo "Print content of werf.yaml"
-          cat publish-channels/werf.yaml
-
-          echo "Print content of configmap.yaml"
-          cat publish-channels/.helm/templates/configmap.yaml
-
-          echo "Print content of channels.yaml"
-          cat publish-channels/.helm/channels.yaml
-
       - name: Converge
         uses: werf/actions/converge@v1.2
         with:
@@ -339,8 +332,9 @@ jobs:
 
 
   update_latest_release:
+    if: ${{ (github.ref_name == needs.post_deploy_preparation.outputs.STABLE_VERSION) && (needs.post_deploy_preparation.outputs.TARGET_RELEASE_ID != needs.post_deploy_preparation.outputs.LATEST_RELEASE_ID) }}
     name: Update latest release
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, regular]
     needs: post_deploy_preparation
     permissions:
       contents: write
@@ -348,38 +342,17 @@ jobs:
     steps:
       - name: Make latest stable release
         env:
-          STABLE_VERSION: ${{ needs.post_deploy_preparation.outputs.STABLE_VERSION }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TARGET_RELEASE_ID: ${{ needs.post_deploy_preparation.outputs.TARGET_RELEASE_ID }}
         run: |
           set -e
 
-          url="https://api.github.com"
+          url="${GITHUB_API_URL}"
 
           owner="${GITHUB_REPOSITORY%/*}"
           repo="${GITHUB_REPOSITORY#*/}"
 
-          release_by_tag="${url}/repos/${GITHUB_REPOSITORY}/releases/tags/${STABLE_VERSION}"
-
-          echo "${owner}"
-          echo "${repo}"
-          # echo $release_by_tag
-          response=$(curl -s -w "\n%{http_code}" -X GET ${release_by_tag} \
-              -H "Authorization: Bearer ${GITHUB_TOKEN}") || exit $?
-
-          response_code=$(echo "$response" | tail -n1)
-
-          if [[ $response_code != '200' ]]; then
-              echo -e "\e[31mERROR: Unable to determinate release id by tag!\e[0m"
-              echo -e "\e[31mURL: ${release_by_tag}!\e[0m"
-              echo -e "\e[31mResponse code: ${response_code}!\e[0m"
-              exit 1
-          fi
-
-          release_id=$(echo "$response" | sed  '$d' | jq ".id")
-          release_name=$(echo "$response" | sed  '$d' | jq ".name")
-          echo $release_id
-
-          update_release="${url}/repos/${GITHUB_REPOSITORY}/releases/${release_id}"
+          update_release="${url}/repos/${GITHUB_REPOSITORY}/releases/${TARGET_RELEASE_ID}"
 
           response=$(curl -s -w "\n%{http_code}" -X PATCH ${update_release} \
               -H "Authorization: Bearer ${GITHUB_TOKEN}" \
@@ -388,10 +361,10 @@ jobs:
           response_code=$(echo "$response" | tail -n1)
 
           if [[ $response_code != '200' ]]; then
-              echo -e "\e[31mERROR: Unable to update release ${release_name}!\e[0m"
+              echo -e "\e[31mERROR: Unable to update release ${TARGET_RELEASE_ID}!\e[0m"
               echo -e "\e[31mURL: ${update_release}!\e[0m"
               echo -e "\e[31mResponse code: ${response_code}!\e[0m"
               exit 1
           fi
 
-          echo -e "\e[32mRelease ${release_name} has been successfully marked as latest."
+          echo -e "\e[32mRelease ${TARGET_RELEASE_ID} has been successfully marked as latest."
