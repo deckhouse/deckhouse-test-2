@@ -78,7 +78,6 @@ EOF
 
 
 set -Eeo pipefail
-#shopt -s inherit_errexit
 shopt -s failglob
 
 function prepare_environment() {
@@ -119,7 +118,6 @@ function prepare_environment() {
       >&2 echo 'DECKHOUSE_IMAGE_TAG environment variable is required.'
       return 1
     fi
-    BRANCH="${DECKHOUSE_IMAGE_TAG}"
 
     if [[ -z "$PREFIX" ]]; then
       # shellcheck disable=SC2016
@@ -141,10 +139,12 @@ function prepare_environment() {
 
     if [[ -n "$INITIAL_IMAGE_TAG" && "${INITIAL_IMAGE_TAG}" != "${DECKHOUSE_IMAGE_TAG}" ]]; then
       # Use initial image tag as devBranch setting in InitConfiguration.
-      # Then switch deploment to DECKHOUSE_IMAGE_TAG.
+      # Then switch deployment to DECKHOUSE_IMAGE_TAG.
       DEV_BRANCH="${INITIAL_IMAGE_TAG}"
       SWITCH_TO_IMAGE_TAG="${DECKHOUSE_IMAGE_TAG}"
       echo "Will install '${DEV_BRANCH}' first and then switch to '${SWITCH_TO_IMAGE_TAG}'"
+    else
+      DEV_BRANCH="${DECKHOUSE_IMAGE_TAG}"
     fi
 
   case "$PROVIDER" in
@@ -300,29 +300,32 @@ function wait_allerts_resolve() {
   for i in $(seq 1 $iterations); do
 
     response=$(get_cluster_status)
-    mapfile -t alerts < <(jq -r '.cluster_agent_data[] | select(.source == "overview") | .data.warnings.firing_alerts[].alert' <<< "$response")
-      alerts_is_ok=true
-      for alert in "${alerts[@]}"; do
-        # Check if the alert is in the allow list
-        if ! [[ "${allow_alerts[*]}" =~ ${alert} ]]; then
-          echo "Error: Unexpected alert: '$alert'"
-          alerts_is_ok=false
-        else
-          echo "Alert '$alert' ignored"
-        fi
-      done
-
-      if $alerts_is_ok; then
-        echo "All alerts are in the allow list."
-        break
+    alerts=()
+    while IFS= read -r alert; do
+      alerts+=("$alert")
+    done < <(jq -r '.cluster_agent_data[] | select(.source == "overview") | .data.warnings.firing_alerts[].alert' <<< "$response")
+    alerts_is_ok=true
+    for alert in "${alerts[@]}"; do
+      # Check if the alert is in the allow list
+      if ! [[ "${allow_alerts[*]}" =~ ${alert} ]]; then
+        echo "Error: Unexpected alert: '$alert'"
+        alerts_is_ok=false
       else
-        echo "Cluster components are not ready. Attempt $i/$iterations failed. Sleep for $sleep_interval seconds..."
-        if [[ "$i" -eq "$iterations" ]]; then
-          echo "Maximum iterations reached. Cluster components are not ready."
-          exit 1
-        fi
+        echo "Alert '$alert' ignored"
       fi
-      sleep "$sleep_interval"
+    done
+
+    if $alerts_is_ok; then
+      echo "All alerts are in the allow list."
+      break
+    else
+      echo "Cluster components are not ready. Attempt $i/$iterations failed. Sleep for $sleep_interval seconds..."
+      if [[ "$i" -eq "$iterations" ]]; then
+        echo "Maximum iterations reached. Cluster components are not ready."
+        exit 1
+      fi
+    fi
+    sleep "$sleep_interval"
 
   done
 }
@@ -338,7 +341,7 @@ function wait_upmeter_green() {
     if [[ -n $upmeter_data_exists ]]; then
       statuses=$(jq -r '.cluster_agent_data[] | select(.source == "upmeter") | .data.rows[] | .probes[] | "\(.probe):\(.availability)"' <<< "$response")
     else
-      echo "Upmeter don't ready"
+      echo "  Upmeter don't ready"
       sleep "$sleep_interval"
       continue
     fi
@@ -357,7 +360,7 @@ function wait_upmeter_green() {
       echo "All components are available"
       break
     else
-      echo "Cluster components are not ready. Attempt $i/$iterations failed. Sleep for $sleep_interval seconds..."
+      echo "  Cluster components are not ready. Attempt $i/$iterations failed. Sleep for $sleep_interval seconds..."
       if [[ "$i" -eq "$iterations" ]]; then
         echo "Maximum iterations reached. Cluster components are not ready."
         exit 1
@@ -366,6 +369,49 @@ function wait_upmeter_green() {
     sleep "$sleep_interval"
   done
 
+}
+
+function change_deckhouse_image() {
+  new_image_tag="${1}"
+  >&2 echo "Change Deckhouse image to ${new_image_tag}."
+  if ! $ssh_command $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<ENDSSH; then
+export PATH="/opt/deckhouse/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export LANG=C
+set -Eeuo pipefail
+kubectl -n d8-system set image deployment/deckhouse deckhouse=dev-registry.deckhouse.io/sys/deckhouse-oss:${new_image_tag}
+ENDSSH
+    >&2 echo "Cannot change deckhouse image to ${new_image_tag}."
+    return 1
+  fi
+}
+
+# wait_deckhouse_ready check if deckhouse Pod become ready.
+function wait_deckhouse_ready() {
+  testScript=$(cat <<"END_SCRIPT"
+export PATH="/opt/deckhouse/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export LANG=C
+set -Eeuo pipefail
+kubectl -n d8-system get pods -l app=deckhouse
+[[ "$(kubectl -n d8-system get pods -l app=deckhouse -o 'jsonpath={..status.conditions[?(@.type=="Ready")].status}{..status.phase}')" ==  "TrueRunning" ]]
+END_SCRIPT
+)
+
+  testRunAttempts=60
+  for ((i=1; i<=testRunAttempts; i++)); do
+    >&2 echo "Check Deckhouse Pod readiness..."
+    if $ssh_command $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<"${testScript}"; then
+      return 0
+    fi
+
+    if [[ $i -lt $testRunAttempts ]]; then
+      >&2 echo -n "  Deckhouse Pod not ready. Attempt $i/$testRunAttempts failed. Sleep for 30 seconds..."
+      sleep 30
+    else
+      >&2 echo -n "  Deckhouse Pod not ready. Attempt $i/$testRunAttempts failed."
+    fi
+  done
+
+  return 1
 }
 
 function run-test() {
@@ -383,7 +429,7 @@ function run-test() {
     \"name\": \"${PREFIX}\",
     \"cluster_template_version_id\": \"${cluster_template_version_id}\",
     \"values\": {
-        \"branch\": \"${BRANCH}\",
+        \"branch\": \"${DEV_BRANCH}\",
         \"prefix\": \"a${PREFIX}\",
         \"kubernetesVersion\": \"${KUBERNETES_VERSION}\",
         \"defaultCRI\": \"${CRI}\",
@@ -408,7 +454,7 @@ function run-test() {
     -w "\n%{http_code}")
 
   http_code=$(echo "$response" | tail -n 1)
-  response=$(echo "$response" | head -n -1)
+  response=$(echo "$response" | sed '$d')
 
   # Check for HTTP errors
   if [[ ${http_code} -ge 400 ]]; then
@@ -451,7 +497,7 @@ function run-test() {
     cluster_status=$(jq -r '.status' <<< "$response")
     if [ "in_sync" = "$cluster_status" ]; then
       echo "  Cluster status: $cluster_status"
-      echo "  Bootstrap completed, starting to deploy additional components"
+      echo "Bootstrap completed, starting to deploy additional components"
       break
     elif [ "creation_failed" = "$cluster_status" ]; then
       echo "  Cluster status: $cluster_status"
@@ -469,9 +515,7 @@ function run-test() {
   done
 
   wait_upmeter_green
-
   wait_allerts_resolve
-
   set_common_ssh_parameters
 
   testScript=$(cat "$(pwd)/testing/cloud_layouts/script.d/wait_cluster_ready/test_script.sh")
@@ -481,6 +525,22 @@ function run-test() {
   else
     echo "Ingress and Istio test failure"
     return 1
+  fi
+
+  if [[ -n ${SWITCH_TO_IMAGE_TAG} ]]; then
+    echo "Starting switch deckhouse image"
+    change_deckhouse_image "${SWITCH_TO_IMAGE_TAG}" || return $?
+    wait_deckhouse_ready || return $?
+    wait_upmeter_green || return $?
+    wait_allerts_resolve || return $?
+
+    testScript=$(cat "$(pwd)/testing/cloud_layouts/script.d/wait_cluster_ready/test_script.sh")
+    if $ssh_command $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<"${testScript}"; then
+      echo "Ingress and Istio test passed"
+    else
+      echo "Ingress and Istio test failure"
+      return 1
+    fi
   fi
 }
 
@@ -506,7 +566,7 @@ function cleanup() {
     -w "\n%{http_code}")
 
   http_code=$(echo "$response" | tail -n 1)
-  response=$(echo "$response" | head -n -1)
+  response=$(echo "$response" | sed '$d')
 
   # Check for HTTP errors
   if [[ ${http_code} -ge 400 ]]; then
@@ -525,12 +585,11 @@ function cleanup() {
       -H "X-Auth-Token: ${COMMANDER_TOKEN}" |
       jq -r '.status')"
     >&2 echo "Check Cluster delete..."
+    echo "  Cluster status: $cluster_status"
     if [ "deleted" = "$cluster_status" ]; then
       return 0
     elif [ "deletion_failed" = "$cluster_status" ]; then
       return 1
-    else
-      echo "  Cluster status: $cluster_status"
     fi
     if [[ $i -lt $testRunAttempts ]]; then
       >&2 echo -n "  Cluster not deleted. Attempt $i/$testRunAttempts failed. Sleep for $sleep seconds..."
