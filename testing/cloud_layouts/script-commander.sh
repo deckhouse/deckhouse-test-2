@@ -451,6 +451,7 @@ function run-test() {
     -H "X-Auth-Token: ${COMMANDER_TOKEN}" \
     -H 'Content-Type: application/json' \
     -d "$payload" \
+    --retry 3 --retry-delay 5 --retry-all-errors \
     -w "\n%{http_code}")
 
   http_code=$(echo "$response" | tail -n 1)
@@ -535,6 +536,7 @@ function run-test() {
     wait_allerts_resolve || return $?
 
     testScript=$(cat "$(pwd)/testing/cloud_layouts/script.d/wait_cluster_ready/test_script.sh")
+
     if $ssh_command $ssh_bastion "$ssh_user@$master_ip" sudo su -c /bin/bash <<<"${testScript}"; then
       echo "Ingress and Istio test passed"
     else
