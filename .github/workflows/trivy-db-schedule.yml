@@ -38,6 +38,8 @@ jobs:
       run: echo "Empty action to fulfil Github requirements."
   download-and-repush-images:
     name: Download and repush images
+    needs:
+      - skip_tests_repos
     runs-on: [self-hosted, regular]
     steps:
 
