@@ -195,6 +195,7 @@ jobs:
 
           (cd tools && go generate)
           (cd modules/500-upmeter/hooks/smokemini/internal/snapshot && go generate)
+          (make docs-spellcheck-generate-dictionary)
 
       - name: Check generated code
         run: |
