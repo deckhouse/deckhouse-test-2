@@ -1,79 +1,97 @@
+Subject: [PATCH] ++
+---
+Index: cluster-autoscaler/simulator/cluster.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/cluster-autoscaler/simulator/cluster.go b/cluster-autoscaler/simulator/cluster.go
-index cf96e1fcc..07d7c415d 100644
---- a/cluster-autoscaler/simulator/cluster.go
-+++ b/cluster-autoscaler/simulator/cluster.go
-@@ -229,6 +229,10 @@ func (r *RemovalSimulator) findPlaceFor(removedNode string, pods []*apiv1.Pod, n
+--- a/cluster-autoscaler/simulator/cluster.go	(revision 669115a6814d33b9d5757aa801402710029cb5b5)
++++ b/cluster-autoscaler/simulator/cluster.go	(date 1745433170561)
+@@ -229,6 +229,10 @@
 
-        newpods := make([]*apiv1.Pod, 0, len(pods))
-        for _, podptr := range pods {
-+               controllerRef := drain.ControllerRef(podptr)
-+               if controllerRef.Kind == "DaemonSet" && controllerRef.APIVersion == "apps.kruise.io/v1alpha1" {
-+                       continue
-+               }
-                newpod := *podptr
-                newpod.Spec.NodeName = ""
-                newpods = append(newpods, &newpod)
+ 	newpods := make([]*apiv1.Pod, 0, len(pods))
+ 	for _, podptr := range pods {
++		controllerRef := drain.ControllerRef(podptr)
++		if controllerRef.Kind == "DaemonSet" && controllerRef.APIVersion == "apps.kruise.io/v1alpha1" {
++			continue
++		}
+ 		newpod := *podptr
+ 		newpod.Spec.NodeName = ""
+ 		newpods = append(newpods, &newpod)
+Index: cluster-autoscaler/simulator/drainability/rules/replicated/rule.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go b/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go
+--- a/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go	(revision 669115a6814d33b9d5757aa801402710029cb5b5)
++++ b/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go	(date 1745433170545)
+@@ -49,7 +49,7 @@
+
+ 	if r.skipNodesWithCustomControllerPods {
+ 		// TODO(vadasambar): remove this when we get rid of skipNodesWithCustomControllerPods
+-		replicated = replicated && replicatedKind[controllerRef.Kind]
++		replicated = replicated && (replicatedKind[controllerRef.Kind] || (controllerRef.Kind == "DaemonSet" && controllerRef.APIVersion == "apps.kruise.io/v1alpha1"))
+ 	}
+
+ 	if !replicated {
+Index: cluster-autoscaler/simulator/drainability/rules/pdb/rule.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go b/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go
-index 63d92b209..9ccc6776a 100644
---- a/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go
-+++ b/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go
-@@ -21,7 +21,6 @@ import (
+--- a/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go	(revision 669115a6814d33b9d5757aa801402710029cb5b5)
++++ b/cluster-autoscaler/simulator/drainability/rules/pdb/rule.go	(date 1745433170513)
+@@ -21,7 +21,6 @@
 
-        apiv1 "k8s.io/api/core/v1"
-        "k8s.io/autoscaler/cluster-autoscaler/simulator/drainability"
--       "k8s.io/autoscaler/cluster-autoscaler/simulator/framework"
-        "k8s.io/autoscaler/cluster-autoscaler/utils/drain"
+ 	apiv1 "k8s.io/api/core/v1"
+ 	"k8s.io/autoscaler/cluster-autoscaler/simulator/drainability"
+-	"k8s.io/autoscaler/cluster-autoscaler/simulator/framework"
+ 	"k8s.io/autoscaler/cluster-autoscaler/utils/drain"
  )
 
-@@ -39,10 +38,21 @@ func (r *Rule) Name() string {
+@@ -39,10 +38,21 @@
  }
 
  // Drainable decides how to handle pods with pdbs on node drain.
 -func (Rule) Drainable(drainCtx *drainability.DrainContext, pod *apiv1.Pod, _ *framework.NodeInfo) drainability.Status {
 +func (Rule) Drainable(drainCtx *drainability.DrainContext, pod *apiv1.Pod) drainability.Status {
-+       kruiseAds := false
-+       controllerRef := drain.ControllerRef(pod)
-+       if controllerRef.APIVersion == "apps.kruise.io/v1alpha1" && controllerRef.Kind == "DaemonSet" {
-+               kruiseAds = true
-+       }
-        for _, pdb := range drainCtx.RemainingPdbTracker.MatchingPdbs(pod) {
--               if pdb.Status.DisruptionsAllowed < 1 {
--                       return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough pod disruption budget to move %s/%s", pod.Namespace, pod.Name))
-+               if kruiseAds {
-+                       if pdb.Status.CurrentHealthy <= 1 {
-+                               return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough healthy pods to move %s/%s", pod.Namespace, pod.Name))
-+                       }
-+               } else {
-+                       if pdb.Status.DisruptionsAllowed < 1 {
-+                               return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough pod disruption budget to move %s/%s", pod.Namespace, pod.Name))
-+                       }
-                }
-        }
-        return drainability.NewUndefinedStatus()
-diff --git a/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go b/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go
-index 4fed15ca5..7a16dd7e6 100644
---- a/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go
-+++ b/cluster-autoscaler/simulator/drainability/rules/replicated/rule.go
-@@ -49,7 +49,7 @@ func (r *Rule) Drainable(drainCtx *drainability.DrainContext, pod *apiv1.Pod, _
-
-        if r.skipNodesWithCustomControllerPods {
-                // TODO(vadasambar): remove this when we get rid of skipNodesWithCustomControllerPods
--               replicated = replicated && replicatedKind[controllerRef.Kind]
-+               replicated = replicated && (replicatedKind[controllerRef.Kind] || (controllerRef.Kind == "DaemonSet" && controllerRef.APIVersion == "apps.kruise.io/v1alpha1"))
-        }
-
-        if !replicated {
++	kruiseAds := false
++	controllerRef := drain.ControllerRef(pod)
++	if controllerRef.APIVersion == "apps.kruise.io/v1alpha1" && controllerRef.Kind == "DaemonSet" {
++		kruiseAds = true
++	}
+ 	for _, pdb := range drainCtx.RemainingPdbTracker.MatchingPdbs(pod) {
+-		if pdb.Status.DisruptionsAllowed < 1 {
+-			return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough pod disruption budget to move %s/%s", pod.Namespace, pod.Name))
++		if kruiseAds {
++			if pdb.Status.CurrentHealthy <= 1 {
++				return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough healthy pods to move %s/%s", pod.Namespace, pod.Name))
++			}
++		} else {
++			if pdb.Status.DisruptionsAllowed < 1 {
++				return drainability.NewBlockedStatus(drain.NotEnoughPdb, fmt.Errorf("not enough pod disruption budget to move %s/%s", pod.Namespace, pod.Name))
++			}
+ 		}
+ 	}
+ 	return drainability.NewUndefinedStatus()
+Index: cluster-autoscaler/utils/pod/pod.go
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
 diff --git a/cluster-autoscaler/utils/pod/pod.go b/cluster-autoscaler/utils/pod/pod.go
-index b85b14ac3..77dd43a87 100644
---- a/cluster-autoscaler/utils/pod/pod.go
-+++ b/cluster-autoscaler/utils/pod/pod.go
-@@ -32,6 +32,9 @@ const (
+--- a/cluster-autoscaler/utils/pod/pod.go	(revision 669115a6814d33b9d5757aa801402710029cb5b5)
++++ b/cluster-autoscaler/utils/pod/pod.go	(date 1745433170569)
+@@ -32,6 +32,9 @@
  func IsDaemonSetPod(pod *apiv1.Pod) bool {
-        controllerRef := metav1.GetControllerOf(pod)
-        if controllerRef != nil && controllerRef.Kind == "DaemonSet" {
-+               if controllerRef.APIVersion == "apps.kruise.io/v1alpha1" {
-+                       return false
-+               }
-                return true
-        }
+ 	controllerRef := metav1.GetControllerOf(pod)
+ 	if controllerRef != nil && controllerRef.Kind == "DaemonSet" {
++		if controllerRef.APIVersion == "apps.kruise.io/v1alpha1" {
++			return false
++		}
+ 		return true
+ 	}
 
