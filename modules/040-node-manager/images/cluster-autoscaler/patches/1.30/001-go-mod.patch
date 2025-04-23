@@ -8,6 +8,7 @@ index 59d43f1a..ea938d0f 100644
 -go 1.22.0
 +go 1.23.0
 +
++toolchain go1.24.0
 
  require (
  	github.com/onsi/ginkgo/v2 v2.16.0
