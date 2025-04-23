@@ -32,6 +32,7 @@ shell:
     {{- end }}
   - mv ./cluster-autoscaler/* /src
   - rm -rf /tmp/autoscaler /src/vendor
+  - rm -rf /src/cloudprovider/azure/test
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact-{{ $image_version }}
 fromImage: builder/golang-alpine
