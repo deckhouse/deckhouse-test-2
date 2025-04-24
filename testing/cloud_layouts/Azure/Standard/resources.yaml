@@ -2,6 +2,38 @@
 apiVersion: deckhouse.io/v1
 kind: AzureInstanceClass
 metadata:
+  name: autoscaler
+spec:
+  machineSize: Standard_B2s
+---
+apiVersion: deckhouse.io/v1
+kind: NodeGroup
+metadata:
+  name: autoscaler
+spec:
+  cloudInstances:
+    classReference:
+      kind: AzureInstanceClass
+      name: autoscaler
+    maxPerZone: 1
+    minPerZone: 0
+    zones:
+      - "1"
+      - "3"
+  disruptions:
+    approvalMode: Manual
+  nodeTemplate:
+    labels:
+      node-role/autoscaler: ""
+    taints:
+      - effect: NoExecute
+        key: node
+        value: autoscaler
+  nodeType: CloudEphemeral
+---
+apiVersion: deckhouse.io/v1
+kind: AzureInstanceClass
+metadata:
   name: worker
 spec:
   machineSize: Standard_D2_v2
