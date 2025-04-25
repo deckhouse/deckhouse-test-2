@@ -17,6 +17,14 @@ set -Eeuo pipefail
 
 deployment_name="autoscaler-test"
 
+function log_autoscaler() {
+  echo "Cluster-autoscaler warning logs:"
+  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^W"
+
+   echo "Cluster-autoscaler error logs:"
+  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^E"
+}
+
 function create_deployment() {
     local attempts=10
     local ret_apply
@@ -87,9 +95,10 @@ function wait_deployment_become_ready() {
   done
 
   echo "Deployment 'autoscaler-test' become ready timeout exited. Exit"
+  log_autoscaler
   return 1
 }
-
+kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^E"
 function scale_down_deployment() {
   local attempts=10
   local ret_down
@@ -119,6 +128,7 @@ function wait_become_worker_nodes_delete() {
   for i in $(seq $attempts); do
     worker_nodes_in_cluster="$(kubectl get no -l node-role/autoscaler="" -o json | jq --raw-output '.items | length')"
     if [[ "$worker_nodes_in_cluster" == "$should_nodes_in_cluster" ]]; then
+      log_autoscaler
       echo "Nodes in worker ng scaled down'. Autoscaler test was processed!"
       return 0
     fi
@@ -128,6 +138,7 @@ function wait_become_worker_nodes_delete() {
   done
 
   echo "Waiting scale down nodes in node group worker to $should_nodes_in_cluster timeout exited. Exit"
+  log_autoscaler
   return 1
 }
 
