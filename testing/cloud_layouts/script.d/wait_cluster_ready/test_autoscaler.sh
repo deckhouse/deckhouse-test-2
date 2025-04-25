@@ -1,4 +1,4 @@
-# Copyright 2024 Flant JSC
+# Copyright 2025 Flant JSC
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,13 +16,17 @@ export LANG=C
 set -Eeuo pipefail
 
 deployment_name="autoscaler-test"
+should_nodes_in_cluster="0"
+
 
 function log_autoscaler() {
   echo "Cluster-autoscaler warning logs:"
-  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^W"
+  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep -e "^W" || true
 
-   echo "Cluster-autoscaler error logs:"
-  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^E"
+  echo "Cluster-autoscaler error logs:"
+  kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep -e "^E" || true
+
+  return 0
 }
 
 function create_deployment() {
@@ -98,7 +102,7 @@ function wait_deployment_become_ready() {
   log_autoscaler
   return 1
 }
-kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep "^E"
+
 function scale_down_deployment() {
   local attempts=10
   local ret_down
@@ -120,24 +124,43 @@ function scale_down_deployment() {
   return 1
 }
 
-function wait_become_worker_nodes_delete() {
+function wait_become_autoscaler_nodes_delete() {
   # 25 minutes
   local attempts=150
-  local should_nodes_in_cluster="0"
 
   for i in $(seq $attempts); do
-    worker_nodes_in_cluster="$(kubectl get no -l node-role/autoscaler="" -o json | jq --raw-output '.items | length')"
-    if [[ "$worker_nodes_in_cluster" == "$should_nodes_in_cluster" ]]; then
-      log_autoscaler
-      echo "Nodes in worker ng scaled down'. Autoscaler test was processed!"
+    autoscaler_nodes_in_cluster="$(kubectl get no -l node-role/autoscaler="" -o json | jq --raw-output '.items | length')"
+    if [[ "$autoscaler_nodes_in_cluster" == "$should_nodes_in_cluster" ]]; then
+      echo "Nodes in autoscaler ng scaled down"
       return 0
     fi
 
-    >&2 echo "Cluster has $worker_nodes_in_cluster worker nodes! Waiting scale down nodes in node group worker to $should_nodes_in_cluster. Attempt $i/$attempts. Sleeping 10 seconds..."
+    >&2 echo "Cluster has $autoscaler_nodes_in_cluster autoscaler nodes! Waiting scale down nodes in node group autoscaler to ${should_nodes_in_cluster}. Attempt $i/$attempts. Sleeping 10 seconds..."
     sleep 10
   done
 
-  echo "Waiting scale down nodes in node group worker to $should_nodes_in_cluster timeout exited. Exit"
+  echo "Waiting scale down nodes in node group autoscaler to $should_nodes_in_cluster timeout exited. Exit"
+  log_autoscaler
+  return 1
+}
+
+function wait_become_autoscaler_instances_delete() {
+  # 15 minutes
+  local attempts=90
+
+  for i in $(seq $attempts); do
+    autoscaler_nodes_in_cluster="$(kubectl get instances -l node.deckhouse.io/group=autoscaler -o json | jq --raw-output '.items | length')"
+    if [[ "$autoscaler_nodes_in_cluster" == "$should_nodes_in_cluster" ]]; then
+      log_autoscaler
+      echo "Instances in autoscaler ng scaled down'. Autoscaler test was processed!"
+      return 0
+    fi
+
+    >&2 echo "Cluster has $autoscaler_nodes_in_cluster autoscaler nodes! Waiting scale down nodes in node group autoscaler to ${should_nodes_in_cluster}. Attempt $i/$attempts. Sleeping 10 seconds..."
+    sleep 10
+  done
+
+  echo "Waiting scale down nodes in node group autoscaler to $should_nodes_in_cluster timeout exited. Exit"
   log_autoscaler
   return 1
 }
@@ -146,6 +169,7 @@ function wait_become_worker_nodes_delete() {
 create_deployment
 wait_deployment_become_ready
 scale_down_deployment
-wait_become_worker_nodes_delete
+wait_become_autoscaler_nodes_delete
+wait_become_autoscaler_instances_delete
 
 exit 0
