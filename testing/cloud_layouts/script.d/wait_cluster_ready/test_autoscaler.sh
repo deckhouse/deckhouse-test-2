@@ -20,6 +20,9 @@ should_nodes_in_cluster="0"
 
 
 function log_autoscaler() {
+  echo "Sleep 2 minutes for collecting errors and warnings logs"
+  sleep 120
+
   echo "Cluster-autoscaler warning logs:"
   kubectl -n d8-cloud-instance-manager logs -l app=cluster-autoscaler | grep -e "^W" || true
 
