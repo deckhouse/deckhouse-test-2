@@ -54,7 +54,7 @@ jobs:
 {!{- $providerNames := slice "AWS" "EKS" "GCP" "Yandex.Cloud" "OpenStack" "vSphere" "VCD" "Static" -}!}
 {!{- $commanderProviders := "yandex-cloud" -}!}
 {!{- if $enableWorkflowOnTestRepos -}!}
-{!{-   $providerNames = slice "AWS" "OpenStack" -}!}
+{!{-   $providerNames = slice "VCD" -}!}
 {!{- end -}!}
 {!{- range $providerName := $providerNames -}!}
 {!{-   $provider := $providerName | replaceAll "." "-" | toLower -}!}
