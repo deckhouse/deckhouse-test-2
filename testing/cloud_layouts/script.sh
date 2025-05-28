@@ -465,39 +465,14 @@ function test_requirements() {
   release=${release//\"/\\\"}
 
   # Get current version from cluster and increment minor version
-  >&2 echo "Waiting for DeckhouseRelease in 'Deployed' status..."
-  
-  # Wait for DeckhouseRelease to reach 'Deployed' status with timeout
-  timeout=600  # 10 minutes timeout
-  elapsed=0
-  current_version=""
-  
-  while [ $elapsed -lt $timeout ]; do
-    current_version=$(kubectl get deckhousereleases.deckhouse.io -o jsonpath='{.items[?(@.status.phase=="Deployed")].spec.version}' | head -1)
-    if [ -n "${current_version}" ]; then
-      >&2 echo "Found DeckhouseRelease in 'Deployed' status: ${current_version}"
-      break
-    fi
-    
-    >&2 echo "Waiting for DeckhouseRelease in 'Deployed' status... ($elapsed/$timeout seconds)"
-    sleep 10
-    elapsed=$((elapsed + 10))
-  done
-  
-  if [ $elapsed -ge $timeout ]; then
-    >&2 echo "Timeout: No DeckhouseRelease with 'Deployed' status found within $timeout seconds"
-    # Fallback to 'Delivered' status as before
-    >&2 echo "Falling back to 'Delivered' status..."
-    current_version=$(kubectl get deckhousereleases.deckhouse.io -o jsonpath='{.items[?(@.status.phase=="Delivered")].spec.version}' | head -1)
-  fi
-  
   >&2 echo "Getting current DeckhouseRelease version from cluster..."
+  current_version=$(kubectl get deckhousereleases.deckhouse.io -o jsonpath='{.items[?(@.status.phase=="Delivered")].spec.version}' | head -1)
   if [ -z "${current_version}" ]; then
     >&2 echo "No DeckhouseRelease with status 'Delivered' found, using default version"
-    next_version="v1.69.3"
+    next_version="v1.96.3"
   else
     >&2 echo "Current delivered version: ${current_version}"
-    # Extract version components (assuming format like v1.69.3)
+    # Extract version components (assuming format like v1.96.3)
     if [[ $current_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
       major="${BASH_REMATCH[1]}"
       minor="${BASH_REMATCH[2]}"
@@ -508,7 +483,7 @@ function test_requirements() {
       >&2 echo "Next version will be: ${next_version}"
     else
       >&2 echo "Unable to parse version format, using default"
-      next_version="v1.69.3"
+      next_version="v1.96.3"
     fi
   fi
 
@@ -554,17 +529,17 @@ spec:
 
 >&2 echo "Apply deckhousereleases ..."
 
-echo 'apiVersion: deckhouse.io/v1alpha1
+echo "apiVersion: deckhouse.io/v1alpha1
 approved: false
 kind: DeckhouseRelease
 metadata:
   annotations:
-    dryrun: "true"
-  name: v1.96.3
+    dryrun: \"true\"
+  name: ${next_version}
 spec:
-  version: v1.96.3
+  version: ${next_version}
   requirements: {}
-' | \$python_binary -c "
+" | \$python_binary -c "
 import yaml, sys
 
 data = yaml.safe_load(sys.stdin)
