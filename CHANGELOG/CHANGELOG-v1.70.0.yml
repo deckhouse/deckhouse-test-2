@@ -1,0 +1,7 @@
+testing:
+  fixes:
+    - summary: use current release version for cloud testing
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/529
+    - summary: use current release version for cloud testing
+      pull_request: https://github.com/deckhouse/deckhouse-test-2/pull/525
+
