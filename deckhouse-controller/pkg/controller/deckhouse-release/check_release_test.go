@@ -26,6 +26,7 @@ import (
 	"strconv"
 	"testing"
 
+	"github.com/gojuno/minimock/v3"
 	v1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/fake"
 	"github.com/iancoleman/strcase"
@@ -80,12 +81,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 		}}
 
 	suite.Run("Have new deckhouse image", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.3"}`}},
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.3"}`}},
 				}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -100,13 +101,13 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Have canary release wave 0", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
 					FilesContent: map[string]string{
-						`version.json`: `{"version": "v1.25.0", "canary": {"stable": {"enabled": true, "waves": 5, "interval": "6m"}}}`,
+						`version.json`: `{"version": "v1.16.0", "canary": {"stable": {"enabled": true, "waves": 5, "interval": "6m"}}}`,
 					}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -120,13 +121,13 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Have canary release wave 4", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
 					FilesContent: map[string]string{
-						`version.json`: `{"version": "v1.25.5", "canary": {"stable": {"enabled": true, "waves": 5, "interval": "15m"}}}`,
+						`version.json`: `{"version": "v1.16.5", "canary": {"stable": {"enabled": true, "waves": 5, "interval": "15m"}}}`,
 					}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -139,12 +140,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Existed release suspended", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.0", "suspend": true}`}}}, nil
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.0", "suspend": true}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
@@ -160,7 +161,7 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.0", "suspend": true}`}}}, nil
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.0", "suspend": true}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
@@ -173,12 +174,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("New release suspended", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.0", "suspend": true}`}}}, nil
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.0", "suspend": true}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
@@ -191,12 +192,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Resume suspended release", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.0"}`}}}, nil
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.0"}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855")
@@ -209,12 +210,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Image hash not changed", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
-					FilesContent: map[string]string{`version.json`: `{"version": "v1.25.0"}`}}}, nil
+					FilesContent: map[string]string{`version.json`: `{"version": "v1.16.0"}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e1752280e1115ac71ca734ed769f9a1af979aaee4013cdafb62d0f9090f66857")
@@ -228,13 +229,13 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Release has requirements", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
 					FilesContent: map[string]string{
-						`version.json`: `{"version": "v1.30.0", "requirements": {"k8s": "1.19", "req1": "dep1"}}`,
+						`version.json`: `{"version": "v1.16.0", "requirements": {"k8s": "1.19", "req1": "dep1"}}`,
 					}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -248,13 +249,13 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Release has canary", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{
 					FilesContent: map[string]string{
-						"version.json": `{"canary":{"alpha":{"enabled":true,"interval":"5m","waves":2}, "beta":{"enabled":false,"interval":"1m","waves":1},"early-access":{"enabled":true,"interval":"30m","waves":6},"rock-solid":{"enabled":false,"interval":"5m","waves":5},"stable":{"enabled":true,"interval":"30m","waves":6}},"version":"v1.31.0"}`}}}, nil
+						"version.json": `{"version":"v1.16.1","canary":{"stable":{"enabled":true,"interval":"30m","waves":6},"alpha":{"enabled":true,"interval":"5m","waves":2}, "beta":{"enabled":false,"interval":"1m","waves":1},"early-access":{"enabled":true,"interval":"30m","waves":6},"rock-solid":{"enabled":false,"interval":"5m","waves":5}}}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e1752280e1115ac71ca734ed769f9a1af979aaee4013cdafb62d0f9090f76859")
@@ -267,22 +268,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Release has cooldown", func() {
-		dependency.TestDC.CRClient.ListTagsMock.Return([]string{
-			"v1.31.0",
-			"v1.31.1",
-			"v1.32.0",
-			"v1.32.1",
-			"v1.32.2",
-			"v1.32.3",
-			"v1.33.0",
-			"v1.33.1",
-		}, nil)
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{
-					"version.json": `{"version":"v1.31.0"}`,
+					"version.json": `{"version":"v1.16.0"}`,
 				}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -303,12 +294,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Inherit release cooldown", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{
-					"version.json": `{"version":"v1.31.1"}`,
+					"version.json": `{"version":"v1.16.1"}`,
 				}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -329,12 +320,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Patch release has own cooldown", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{
-					"version.json": `{"version":"v1.31.2"}`,
+					"version.json": `{"version":"v1.16.2"}`,
 				}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -355,12 +346,12 @@ func (suite *ControllerTestSuite) TestCheckDeckhouseRelease() {
 	})
 
 	suite.Run("Release has disruptions", func() {
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{
-					"version.json": `{"version": "v1.32.0", "disruptions":{"1.32":["ingressNginx"]}}`,
+					"version.json": `{"version": "v1.16.0", "disruptions":{"1.16":["ingressNginx"]}}`,
 				}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
@@ -399,14 +390,14 @@ global:
 
 		changelog := fmt.Sprintf(changelogTemplate, "`control-plane`") // global.features[0].description
 
-		dependency.TestDC.CRClient.ImageMock.When(testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, testDeckhouseVersion).Then(testDeckhouseVersionImage, nil)
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{
 					&fakeLayer{},
 					&fakeLayer{FilesContent: map[string]string{
-						"version.json":   `{"version": "v1.31.0"}`,
+						"version.json":   `{"version": "v1.16.0"}`,
 						"changelog.yaml": changelog,
 					}},
 				}, nil
@@ -429,18 +420,13 @@ global:
 			"v1.33.1",
 			"v1.34.0",
 		}, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{"version.json": `{"version":"v1.34.0"}`}}}, nil
 			},
 			DigestStub: func() (v1.Hash, error) {
 				return v1.NewHash("sha256:e1752280e1115ac71ca734ed769f9a1af979aaee4013cdafb62d0f9090f76879")
-			},
-		}, nil)
-		dependency.TestDC.CRClient.ImageMock.When("v1.32.3").Then(&fake.FakeImage{
-			LayersStub: func() ([]v1.Layer, error) {
-				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{"version.json": `{"version":"v1.32.3"}`}}}, nil
 			},
 		}, nil)
 
@@ -460,7 +446,7 @@ global:
 			"v1.33.0",
 			"v1.33.1",
 		}, nil)
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{"version.json": `{"version":"v1.33.1"}`}}}, nil
@@ -469,14 +455,15 @@ global:
 				return v1.NewHash("sha256:e1752280e1115ac71ca734ed769f9a1af979aaee4013cdafb62d0f9090f76879")
 			},
 		}, nil)
-		dependency.TestDC.CRClient.ImageMock.When("v1.32.3").Then(&fake.FakeImage{
+
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "v1.32.3").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{"version.json": `{"version":"v1.32.3"}`}}}, nil
 			},
 		}, nil)
 
-		dependency.TestDC.CRClient.ImageMock.When("v1.33.1").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "v1.33.1").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{&fakeLayer{}, &fakeLayer{FilesContent: map[string]string{"version.json": `{"version":"v1.33.1"}`}}}, nil
@@ -489,7 +476,7 @@ global:
 	})
 
 	suite.Run("Restore absent releases from a registry", func() {
-		dependency.TestDC.CRClient.ImageMock.When("stable").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "stable").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{
@@ -501,7 +488,7 @@ global:
 			},
 		}, nil)
 
-		dependency.TestDC.CRClient.ImageMock.When("v1.58.1").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "v1.58.1").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{
@@ -513,7 +500,7 @@ global:
 			},
 		}, nil)
 
-		dependency.TestDC.CRClient.ImageMock.When("v1.59.3").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "v1.59.3").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{
@@ -525,7 +512,7 @@ global:
 			},
 		}, nil)
 
-		dependency.TestDC.CRClient.ImageMock.When("v1.60.2").Then(&fake.FakeImage{
+		dependency.TestDC.CRClient.ImageMock.When(minimock.AnyContext, "v1.60.2").Then(&fake.FakeImage{
 			ManifestStub: ManifestStub,
 			LayersStub: func() ([]v1.Layer, error) {
 				return []v1.Layer{

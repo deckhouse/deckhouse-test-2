@@ -63,11 +63,15 @@ spec:
       {{- include "helm_lib_tolerations" (tuple . "system") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
       {{- include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "controller")) | nindent 6 }}
+      automountServiceAccountToken: true
       imagePullSecrets:
         - name: deckhouse-registry
       containers:
         - args:
             - --metrics-bind-address=:8080
+            {{- if .Values.serviceWithHealthchecks.debug }}
+            - --debugging=true
+            {{- end }}
           image: {{ include "helm_lib_module_image" (list . "controller") }}
           imagePullPolicy: IfNotPresent
           name: controller

@@ -16,6 +16,7 @@ editions:
     - azure
     - gcp
     - yandex
+    - kubernetes
   # skip adding fix imports for release. need only for CE edition in general case
   skipFixingImports: true
 
@@ -35,12 +36,10 @@ editions:
     skipModules: true
 
 - name: BE
-  versionMapFile: "ee/be/candi/version_map.yml"
   modulesDir: "ee/be/modules"
 
   # exclude modules from templates and images
   excludeModules:
-  - ceph-csi
   - openvpn
 
 - name: SE
@@ -58,6 +57,7 @@ editions:
   - dashboard
 
 - name: EE
+  versionMapFile: "ee/candi/version_map.yml"
   modulesDir: "ee/modules"
   terraformProviders:
     - openstack

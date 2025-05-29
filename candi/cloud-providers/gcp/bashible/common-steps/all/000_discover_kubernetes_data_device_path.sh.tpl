@@ -19,7 +19,7 @@ function get_data_device_secret() {
   if [ -f /var/lib/bashible/bootstrap-token ]; then
     while true; do
       for server in {{ .normal.apiserverEndpoints | join " " }}; do
-        if d8-curl -s -f -X GET "https://$server/api/v1/namespaces/d8-system/secrets/$secret" --header "Authorization: Bearer $(</var/lib/bashible/bootstrap-token)" --cacert "$BOOTSTRAP_DIR/ca.crt"
+        if d8-curl --connect-timeout 10 -s -f -X GET "https://$server/api/v1/namespaces/d8-system/secrets/$secret" --header "Authorization: Bearer $(</var/lib/bashible/bootstrap-token)" --cacert "$BOOTSTRAP_DIR/ca.crt"
         then
           return 0
         else
@@ -59,7 +59,7 @@ if [ -f /var/lib/bashible/kubernetes_data_device_path ]; then
     return 0
   fi
 else
-  cloud_disk_name="$(get_data_device_secret | jq -re --arg hostname "$HOSTNAME" '.data[$hostname]' | base64 -d)"
+  cloud_disk_name="$(get_data_device_secret | jq -re --arg hostname "$(bb-d8-node-name)" '.data[$hostname]' | base64 -d)"
 fi
 
 echo "$(discover_device_path "$cloud_disk_name")" > /var/lib/bashible/kubernetes_data_device_path

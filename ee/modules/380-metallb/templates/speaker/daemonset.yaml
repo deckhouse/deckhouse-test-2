@@ -46,6 +46,7 @@ spec:
         {{ include "helm_lib_prevent_ds_eviction_annotation" . | nindent 8 }}
       labels:
         app: speaker
+        metallb-role: speaker
     spec:
       {{- include "helm_lib_priority_class" (tuple . "system-node-critical") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_root" . | nindent 6 }}
@@ -56,6 +57,7 @@ spec:
         {{- if .Values.metallb.speaker.tolerations }}
         {{- .Values.metallb.speaker.tolerations | toYaml | nindent 6 }}
         {{- end }}
+      automountServiceAccountToken: true
       imagePullSecrets:
         - name: deckhouse-registry
       volumes:

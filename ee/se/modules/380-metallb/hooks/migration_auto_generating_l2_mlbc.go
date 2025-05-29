@@ -11,15 +11,14 @@ import (
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
 	"github.com/flant/addon-operator/sdk"
-	"github.com/flant/shell-operator/pkg/kube/object_patch"
 	"github.com/flant/shell-operator/pkg/kube_events_manager/types"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 )
 
 var _ = sdk.RegisterFunc(&go_hook.HookConfig{
-	// Depends on 'migration-adopt-old-fashioned-l2-lbs.go' hook
+	// 'migration-adopt-old-fashioned-l2-lbs.go' depends on this hook
 	OnBeforeHelm: &go_hook.OrderedConfig{Order: 5},
-	Queue:        "/modules/metallb/generate-mlbc",
+	Queue:        "/modules/metallb/discovery",
 	Kubernetes: []go_hook.KubernetesConfig{
 		{
 			Name:       "module_config",
@@ -152,17 +151,18 @@ func createMetalLoadBalancerClass(input *go_hook.HookInput, mlbcInfo *MetalLoadB
 	if err != nil {
 		return
 	}
-	input.PatchCollector.Create(mlbcUnstructured, object_patch.UpdateIfExists())
+	input.PatchCollector.CreateOrUpdate(mlbcUnstructured)
+	input.Logger.Info("MetalLoadBalancerClass created", "name", mlbcInfo.Name)
 }
 
 func deleteMetalLoadBalancerClass(input *go_hook.HookInput, mlbcName string) {
-	input.PatchCollector.Delete(
+	input.PatchCollector.DeleteInBackground(
 		"network.deckhouse.io/v1alpha1",
 		"MetalLoadBalancerClass",
 		"",
 		mlbcName,
-		object_patch.InBackground(),
 	)
+	input.Logger.Info("MetalLoadBalancerClass deleted", "name", mlbcName)
 }
 
 func migrateMCtoMLBC(input *go_hook.HookInput) error {
@@ -172,6 +172,7 @@ func migrateMCtoMLBC(input *go_hook.HookInput) error {
 	}
 	mc, ok := snapsMC[0].(*ModuleConfig)
 	if !ok || mc.Spec.Version >= 2 {
+		input.Logger.Info("processing skipped", "ModuleConfig version", mc.Spec.Version)
 		return nil
 	}
 

@@ -3,8 +3,13 @@ cpu: 25m
 memory: 50Mi
 {{- end }}
 
-{{- $kubernetesSemVer := semver .Values.global.discovery.kubernetesVersion }}
-{{- $ccmImageName := join "" (list "cloudControllerManager" $kubernetesSemVer.Major $kubernetesSemVer.Minor ) }}
+{{- $ccmImageName := ""}}
+{{- if eq .Values.cloudProviderVcd.internal.legacyMode true -}}
+  {{- $ccmImageName = "cloudControllerManagerLegacy" }}
+{{- else -}}
+  {{- $ccmImageName = "cloudControllerManager" }}
+{{- end }}
+
 {{- $ccmImage := include "helm_lib_module_image_no_fail" (list . $ccmImageName) }}
 {{- if $ccmImage }}
   {{- if (.Values.global.enabledModules | has "vertical-pod-autoscaler") }}
@@ -14,7 +19,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: cloud-controller-manager
   namespace: d8-cloud-provider-vcd
-  {{- include "helm_lib_module_labels" (list . (dict "app" "cloud-controller-manager" "workload-resource-policy.deckhouse.io" "master")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "cloud-controller-manager")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -72,6 +77,7 @@ spec:
       {{- include "helm_lib_node_selector" (tuple . "master") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple . "wildcard") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
+      automountServiceAccountToken: true
       hostNetwork: true
       dnsPolicy: Default
       serviceAccountName: cloud-controller-manager

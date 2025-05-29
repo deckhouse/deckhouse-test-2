@@ -12,12 +12,17 @@ memory: 10Mi
 {{- $kubeImageTagSuffix := .Values.controlPlaneManager.internal.effectiveKubernetesVersion | replace "." "" }}
 
 {{- $images := dict }}
+{{- $imageHolders := dict }}
 {{- range $component := list "kubeApiserver" "kubeControllerManager" "kubeScheduler" }}
   {{- $componentWithSuffix := printf "%s%s" $component $kubeImageTagSuffix }}
   {{- $_ := set $images $componentWithSuffix (get $.Values.global.modulesImages.digests.controlPlaneManager $componentWithSuffix) }}
+  {{- $_ := set $imageHolders $componentWithSuffix (printf "image-holder-%s" ($component | kebabcase)) }}
 {{- end }}
 {{- $_ := set $images "kubeApiserverHealthcheck" $.Values.global.modulesImages.digests.controlPlaneManager.kubeApiserverHealthcheck }}
 {{- $_ := set $images "etcd" $.Values.global.modulesImages.digests.controlPlaneManager.etcd }}
+
+{{- $_ := set $imageHolders "kubeApiserverHealthcheck" "image-holder-kube-apiserver-healthcheck" }}
+{{- $_ := set $imageHolders "etcd" "image-holder-etcd" }}
 
 {{- $registry := dict }}
 {{- $_ := set $registry "address" $.Values.global.modulesImages.registry.address }}
@@ -31,6 +36,7 @@ memory: 10Mi
 {{- $_ := set $tpl_context "registry" $registry }}
 {{- $_ := set $tpl_context "clusterConfiguration" .Values.global.clusterConfiguration }}
 {{- $_ := set $tpl_context.clusterConfiguration "kubernetesVersion" .Values.controlPlaneManager.internal.effectiveKubernetesVersion }}
+{{- $_ := set $tpl_context "kubeadmDir"  (ternary "kubeadm/v1beta4" "kubeadm/v1beta3" (semverCompare ">=1.31" $tpl_context.clusterConfiguration.kubernetesVersion))}}
 {{- $_ := set $tpl_context "apiserver" dict }}
 {{- $_ := set $tpl_context "scheduler" dict }}
 {{- $_ := set $tpl_context "resourcesRequestsMilliCpuControlPlane" .Values.global.internal.modules.resourcesRequests.milliCpuControlPlane }}
@@ -115,10 +121,10 @@ memory: 10Mi
 {{- define "control_plane_config" }}
   {{- $context := index . 0 }}
   {{- $tpl_context := index . 1 }}
-kubeadm-config.yaml: {{ tpl ($context.Files.Get "kubeadm/config.yaml.tpl") $tpl_context | b64enc }}
-  {{- range $patch_file, $_ := $context.Files.Glob "kubeadm/patches/*" }}
-{{ base $patch_file }}: {{ tpl ($context.Files.Get $patch_file) $tpl_context | b64enc }}
-  {{- end }}
+kubeadm-config.yaml: {{ tpl ($context.Files.Get (printf "%s/config.yaml.tpl" $tpl_context.kubeadmDir)) $tpl_context | b64enc }}
+{{- range $path, $_ := $context.Files.Glob (printf "%s/patches/*" $tpl_context.kubeadmDir) }}
+{{ base $path }}: {{ tpl ($context.Files.Get $path) $tpl_context | b64enc }}
+{{- end }}
   {{- if $tpl_context.apiserver.oidcCA }}
 extra-file-oidc-ca.crt: {{ $tpl_context.apiserver.oidcCA | b64enc }}
   {{- end }}
@@ -162,7 +168,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: d8-control-plane-manager
   namespace: kube-system
-  {{- include "helm_lib_module_labels" (list . (dict "app" "d8-control-plane-manager" "workload-resource-policy.deckhouse.io" "master")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "d8-control-plane-manager")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -179,7 +185,7 @@ spec:
         cpu: 50m
         memory: 80Mi
     {{- range $name, $imageDigest := $images }}
-    - containerName: image-holder-{{ $name | kebabcase }}
+    - containerName: {{ index $imageHolders $name }}
       minAllowed:
         {{- include "image_holder_resources" $ | nindent 8 }}
       maxAllowed:
@@ -212,6 +218,7 @@ spec:
       {{- include "helm_lib_tolerations" (tuple . "any-node" "uninitialized") | nindent 6 }}
       imagePullSecrets:
       - name: deckhouse-registry
+      automountServiceAccountToken: true
       serviceAccountName: d8-control-plane-manager
       containers:
       - name: control-plane-manager
@@ -268,7 +275,7 @@ spec:
             {{- include "control_plane_manager_resources" . | nindent 12 }}
 {{- end }}
 {{- range $name, $imageDigest := $images }}
-      - name: image-holder-{{ $name | kebabcase }}
+      - name: {{ index $imageHolders $name }}
         image: "{{ $.Values.global.modulesImages.registry.base }}@{{ $imageDigest }}"
         command:
         - /pause

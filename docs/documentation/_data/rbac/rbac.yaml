@@ -69,57 +69,6 @@ modules:
     namespace: d8-admission-policy-engine
     subsystems:
     - security
-  ceph-csi:
-    capabilities:
-      manage:
-      - name: d8:manage:permission:module:ceph-csi:view
-        rules:
-        - apiGroups:
-          - deckhouse.io
-          resources:
-          - cephcsidriver
-          verbs:
-          - get
-          - list
-          - watch
-        - apiGroups:
-          - deckhouse.io
-          resourceNames:
-          - ceph-csi
-          resources:
-          - moduleconfigs
-          verbs:
-          - get
-          - list
-          - watch
-      - name: d8:manage:permission:module:ceph-csi:edit
-        rules:
-        - apiGroups:
-          - deckhouse.io
-          resources:
-          - cephcsidriver
-          verbs:
-          - create
-          - update
-          - patch
-          - delete
-          - deletecollection
-        - apiGroups:
-          - deckhouse.io
-          resourceNames:
-          - ceph-csi
-          resources:
-          - moduleconfigs
-          verbs:
-          - create
-          - update
-          - patch
-          - delete
-      use: null
-    namespace: d8-ceph-csi
-    subsystems:
-    - storage
-    - infrastructure
   cert-manager:
     capabilities:
       manage:
@@ -324,6 +273,38 @@ modules:
     namespace: d8-cloud-provider-azure
     subsystems:
     - infrastructure
+  cloud-provider-dynamix:
+    capabilities:
+      manage:
+      - name: d8:manage:permission:module:cloud-provider-dynamix:view
+        rules:
+        - apiGroups:
+          - deckhouse.io
+          resourceNames:
+          - cloud-provider-dynamix
+          resources:
+          - moduleconfigs
+          verbs:
+          - get
+          - list
+          - watch
+      - name: d8:manage:permission:module:cloud-provider-dynamix:edit
+        rules:
+        - apiGroups:
+          - deckhouse.io
+          resourceNames:
+          - cloud-provider-dynamix
+          resources:
+          - moduleconfigs
+          verbs:
+          - create
+          - update
+          - patch
+          - delete
+      use: null
+    namespace: d8-cloud-provider-dynamix
+    subsystems:
+    - infrastructure
   cloud-provider-gcp:
     capabilities:
       manage:
@@ -354,6 +335,38 @@ modules:
           - delete
       use: null
     namespace: d8-cloud-provider-gcp
+    subsystems:
+    - infrastructure
+  cloud-provider-huaweicloud:
+    capabilities:
+      manage:
+      - name: d8:manage:permission:module:cloud-provider-huaweicloud:view
+        rules:
+        - apiGroups:
+          - deckhouse.io
+          resourceNames:
+          - cloud-provider-huaweicloud
+          resources:
+          - moduleconfigs
+          verbs:
+          - get
+          - list
+          - watch
+      - name: d8:manage:permission:module:cloud-provider-huaweicloud:edit
+        rules:
+        - apiGroups:
+          - deckhouse.io
+          resourceNames:
+          - cloud-provider-huaweicloud
+          resources:
+          - moduleconfigs
+          verbs:
+          - create
+          - update
+          - patch
+          - delete
+      use: null
+    namespace: d8-cloud-provider-huaweicloud
     subsystems:
     - infrastructure
   cloud-provider-openstack:
@@ -2528,6 +2541,8 @@ subsystems:
     - d8-system
   infrastructure:
     modules:
+    - cloud-provider-dynamix
+    - cloud-provider-huaweicloud
     - cloud-provider-openstack
     - cloud-provider-vcd
     - keepalived
@@ -2537,7 +2552,6 @@ subsystems:
     - cloud-provider-azure
     - cloud-provider-gcp
     - cloud-provider-yandex
-    - ceph-csi
     - local-path-provisioner
     - node-manager
     - terraform-manager
@@ -2549,12 +2563,13 @@ subsystems:
     - pod-reloader
     - chrony
     namespaces:
-    - d8-ceph-csi
     - d8-chrony
     - d8-cloud-instance-manager
     - d8-cloud-provider-aws
     - d8-cloud-provider-azure
+    - d8-cloud-provider-dynamix
     - d8-cloud-provider-gcp
+    - d8-cloud-provider-huaweicloud
     - d8-cloud-provider-openstack
     - d8-cloud-provider-vcd
     - d8-cloud-provider-vsphere
@@ -2650,8 +2665,6 @@ subsystems:
     - d8-user-authn
   storage:
     modules:
-    - ceph-csi
     - snapshot-controller
     namespaces:
-    - d8-ceph-csi
     - d8-snapshot-controller

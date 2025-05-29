@@ -63,6 +63,13 @@ properties:
     default: false
     description: |
       Do not enforce any Network Policy. Just log allowed/disallowed connections.
+  exclusiveCNIPlugin:
+    type: boolean
+    default: true
+    description: |
+      Prevents additional CNI plugins from being enabled on cluster nodes. If the Istio module's [`dataPlane.trafficRedirectionSetupMode` setting](../istio/configuration.html#parameters-dataplane-trafficredirectionsetupmode) is set to `CNIPlugin`, the option will be automatically set to `false`.
+
+      Explicitly disabling this option is recommended only when using an additional CNI or a specific CNI plugin in the cluster. An example of such a use case could be the Linkerd CNI plugin.
   bpfLBMode:
     type: string
     default: "Hybrid"
@@ -72,7 +79,11 @@ properties:
       - `SNAT` — traffic from the client to the pod (and back) passes through NAT, and accordingly the sender's address is lost.
       - `DSR` — traffic from the client to the pod passes with the sender's address preserved, and back - according to the routing rules (bypassing the balancer). This mode saves network traffic and reduces delays, but only works for TCP traffic.
       - `Hybrid` — TCP traffic is processed in DSR mode, and UDP traffic is processed in SNAT mode.
-
+  activeL2NeighborDiscoveryEnabled:
+    type: boolean
+    default: true
+    description: |
+      Enables the Cilium `L2 neighbor discovery` mechanism, which helps ensure that ARP table entries are kept up-to-date on all cluster nodes.
   resourcesManagement:
     description: |
       Settings for CPU and memory requests and limits by cilium agent pods.

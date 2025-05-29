@@ -382,7 +382,7 @@ func handleEgressGateways(input *go_hook.HookInput) error {
 			"SDNInternalEgressGatewayInstance",
 			"",
 			egi.Name,
-			object_patch.IgnoreMissingObject(),
+			object_patch.WithIgnoreMissingObject(),
 		)
 	}
 
@@ -414,11 +414,12 @@ func makeEGStatusPatchForState(egState egressGatewayState, egInstances []EgressG
 
 	var c ConditionTypeChecker
 
-	if egState.Mode == "VirtualIPAddress" {
+	switch egState.Mode {
+	case "VirtualIPAddress":
 		c = *conditionlTypeCheckerWithDefaults(metav1.ConditionTrue, "ElectionSucceedAndVirtualIPAnnounced", fmt.Sprintf("Node %s was elected as active node and VirtualIP is announced", egState.DesiredActiveNode)).
 			WithDesiredNodeCheck(egState).
 			WithReadyNodesCountCheck(len(readyOwnedInstances))
-	} else if egState.Mode == "PrimaryIPFromEgressGatewayNodeInterface" {
+	case "PrimaryIPFromEgressGatewayNodeInterface":
 		c = *conditionlTypeCheckerWithDefaults(metav1.ConditionTrue, "ElectionSucceed", "Node was elected as active node").
 			WithDesiredNodeCheck(egState)
 	}
@@ -447,7 +448,7 @@ func makeEGStatusPatchForState(egState egressGatewayState, egInstances []EgressG
 
 func processRemovingLabels(input *go_hook.HookInput, nodeToLabel map[string][]string) {
 	for keyName, labels := range nodeToLabel {
-		input.PatchCollector.Filter(removeLabels(labels), "v1", "Node", "", keyName)
+		input.PatchCollector.PatchWithMutatingFunc(removeLabels(labels), "v1", "Node", "", keyName)
 	}
 }
 
@@ -472,7 +473,7 @@ func removeLabels(labels []string) func(obj *unstructured.Unstructured) (*unstru
 
 func processAddingLabels(input *go_hook.HookInput, nodeToLabel map[string][]string) {
 	for keyName, labels := range nodeToLabel {
-		input.PatchCollector.Filter(appendLabels(labels), "v1", "Node", "", keyName)
+		input.PatchCollector.PatchWithMutatingFunc(appendLabels(labels), "v1", "Node", "", keyName)
 	}
 }
 

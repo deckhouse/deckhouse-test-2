@@ -11,7 +11,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: capi-controller-manager
   namespace: d8-cloud-instance-manager
-  {{- include "helm_lib_module_labels" (list . (dict "app" "capi-controller-manager" "workload-resource-policy.deckhouse.io" "master")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "capi-controller-manager")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -68,6 +68,7 @@ spec:
       {{- include "helm_lib_node_selector" (tuple . "master") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple . "any-node" "with-uninitialized") | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
+      automountServiceAccountToken: true
       serviceAccountName: capi-controller-manager
       terminationGracePeriodSeconds: 10
       hostNetwork: true

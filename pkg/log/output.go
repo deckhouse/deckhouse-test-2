@@ -16,7 +16,12 @@ package log
 
 import (
 	"encoding/json"
+	"fmt"
 	"log/slog"
+	"maps"
+	"slices"
+	"strconv"
+	"strings"
 )
 
 const (
@@ -25,20 +30,20 @@ const (
 )
 
 type LogOutput struct {
-	Level      string `json:"level"`
-	Name       string `json:"logger"`
-	Message    string `json:"msg"`
-	Source     string `json:"source"`
-	FieldsJSON []byte `json:"-"`
-	Stacktrace string `json:"stacktrace"`
-	Time       string `json:"time"`
+	Level      string         `json:"level"`
+	Name       string         `json:"logger"`
+	Message    string         `json:"msg"`
+	Source     string         `json:"source"`
+	Fields     map[string]any `json:"-"`
+	Stacktrace string         `json:"stacktrace"`
+	Time       string         `json:"time"`
 }
 
 func (lo *LogOutput) MarshalJSON() ([]byte, error) {
 	render := Render{}
 	render.buf = append(render.buf, '{')
 
-	render.JSONKeyValue(slog.LevelKey, lo.Level)
+	render.JSONKeyValue(slog.LevelKey, strings.ToLower(lo.Level))
 
 	render.buf = append(render.buf, ',')
 
@@ -55,8 +60,14 @@ func (lo *LogOutput) MarshalJSON() ([]byte, error) {
 		render.buf = append(render.buf, ',')
 	}
 
-	if len(lo.FieldsJSON) > 0 {
-		render.buf = append(render.buf, lo.FieldsJSON...)
+	if len(lo.Fields) > 0 {
+		b, err := json.Marshal(lo.Fields)
+		if err != nil {
+			return nil, err
+		}
+
+		// ignore first and last '{' and '}' symbols
+		render.buf = append(render.buf, b[1:len(b)-1]...)
 		render.buf = append(render.buf, ',')
 	}
 
@@ -172,4 +183,88 @@ func (r *Render) escapes(s string) {
 		}
 	}
 	r.buf = append(r.buf, s[j:]...)
+}
+
+func (lo *LogOutput) Text() ([]byte, error) {
+	render := Render{}
+
+	render.buf = append(render.buf, lo.Time...)
+	render.buf = append(render.buf, ' ')
+
+	render.buf = append(render.buf, strings.ToUpper(lo.Level)...)
+	render.buf = append(render.buf, ' ')
+
+	if lo.Name != "" {
+		render.TextKeyValue(LoggerNameKey, lo.Name)
+		render.buf = append(render.buf, ' ')
+	}
+
+	render.TextQuotedKeyValue(slog.MessageKey, lo.Message)
+	render.buf = append(render.buf, ' ')
+
+	if lo.Source != "" {
+		render.TextKeyValue(slog.SourceKey, lo.Source)
+		render.buf = append(render.buf, ' ')
+	}
+
+	render.FieldsToString(lo.Fields, "")
+
+	if lo.Stacktrace != "" {
+		render.TextKeyValue(StacktraceKey, lo.Stacktrace)
+	}
+
+	render.buf = append(render.buf, '\n')
+
+	return render.buf, nil
+}
+
+func (r *Render) TextKeyValue(key, value string) {
+	r.string(key)
+	r.buf = append(r.buf, '=')
+	r.string(value)
+}
+
+func (r *Render) TextQuotedKeyValue(key, value string) {
+	r.string(key)
+	r.buf = append(r.buf, '=', '\'')
+	r.string(value)
+	r.buf = append(r.buf, '\'')
+}
+
+func (r *Render) FieldsToString(m map[string]any, keyPrefix string) {
+	keys := slices.Collect(maps.Keys(m))
+	slices.Sort(keys)
+
+	for _, k := range keys {
+		v := m[k]
+
+		if keyPrefix != "" {
+			k = keyPrefix + "." + k
+		}
+
+		switch val := v.(type) {
+		case string:
+			r.TextQuotedKeyValue(k, val)
+		case float64:
+			r.TextQuotedKeyValue(k, strconv.FormatFloat(val, 'f', -1, 64))
+		case int:
+			r.TextQuotedKeyValue(k, strconv.Itoa(val))
+		case uint:
+			r.TextQuotedKeyValue(k, strconv.FormatUint(uint64(val), 10))
+		case int64:
+			r.TextQuotedKeyValue(k, strconv.FormatInt(val, 10))
+		case uint64:
+			r.TextQuotedKeyValue(k, strconv.FormatUint(val, 10))
+		case bool:
+			r.TextQuotedKeyValue(k, strconv.FormatBool(val))
+		case map[string]any:
+			r.FieldsToString(val, k)
+			continue
+		default:
+			r.buf = append(r.buf, fmt.Sprintf("!SOMETHING GOES WRONG. type: %T", v)...)
+			continue
+		}
+
+		r.buf = append(r.buf, ' ')
+	}
 }

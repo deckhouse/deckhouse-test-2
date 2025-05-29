@@ -8,7 +8,7 @@ cpu: 10m
 memory: 60Mi
 {{- end }}
 
-{{- if (.Values.global.enabledModules | has "vertical-pod-autoscaler") }}
+{{- if and .Values.prometheus.internal.grafana.enabled (.Values.global.enabledModules | has "vertical-pod-autoscaler") }}
 ---
 apiVersion: autoscaling.k8s.io/v1
 kind: VerticalPodAutoscaler
@@ -39,6 +39,7 @@ spec:
         memory: 100Mi
     {{- include "helm_lib_vpa_kube_rbac_proxy_resources" . | nindent 4 }}
 {{- end }}
+{{- if .Values.prometheus.internal.grafana.enabled }}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -71,6 +72,7 @@ spec:
       {{- include "helm_lib_priority_class" (tuple . "cluster-low") | nindent 6 }}
       {{- include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "grafana-v10")) | nindent 6 }}
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
+      automountServiceAccountToken: true
       serviceAccountName: grafana
       imagePullSecrets:
       - name: deckhouse-registry
@@ -160,6 +162,8 @@ spec:
         {{- end }}
         - name: GF_SECURITY_COOKIE_SAMESITE
           value: "strict"
+        - name: GF_DATABASE_WAL
+          value: "true"
         - name: PROMETHEUS_TOKEN
           valueFrom:
             secretKeyRef:
@@ -320,3 +324,4 @@ spec:
             - key: grafanaLogo
               path: deckhouse-logo.svg
       {{- end }}
+{{- end }}

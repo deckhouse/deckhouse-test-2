@@ -98,6 +98,7 @@ properties:
           properties:
             name:
               type: string
+              x-dmt-default: name
             standby:
               type: number
             reserveCPU:
@@ -340,6 +341,9 @@ properties:
             kubelet:
               # This is a copy from NodeGroup object. We trust that hook will not change it.
               type: object
+              additionalProperties: true
+            nodeDrainTimeoutSecond:
+              type: [integer]
               additionalProperties: true
             fencing:
               # This is a copy from NodeGroup object. We trust that hook will not change it.

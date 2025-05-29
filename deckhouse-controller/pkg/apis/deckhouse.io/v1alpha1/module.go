@@ -31,6 +31,9 @@ const (
 
 	ModuleSourceEmbedded = "Embedded"
 
+	ModuleAnnotationDescriptionRu = "ru.meta.deckhouse.io/description"
+	ModuleAnnotationDescriptionEn = "en.meta.deckhouse.io/description"
+
 	ModuleConditionEnabledByModuleConfig  = "EnabledByModuleConfig"
 	ModuleConditionEnabledByModuleManager = "EnabledByModuleManager"
 	ModuleConditionIsReady                = "IsReady"
@@ -41,8 +44,6 @@ const (
 	ModulePhaseDownloadingError = "DownloadingError"
 	ModulePhaseReconciling      = "Reconciling"
 	ModulePhaseInstalling       = "Installing"
-	ModulePhaseHooksDisabled    = "HooksDisabled"
-	ModulePhaseWaitSyncTasks    = "WaitSyncTasks"
 	ModulePhaseDownloaded       = "Downloaded"
 	ModulePhaseConflict         = "Conflict"
 	ModulePhaseReady            = "Ready"
@@ -60,13 +61,10 @@ const (
 	ModuleReasonDisabled                    = "Disabled"
 	ModuleReasonConflict                    = "Conflict"
 	ModuleReasonDownloading                 = "Downloading"
-	ModuleReasonDownloadingError            = "DownloadingError"
 	ModuleReasonHookError                   = "HookError"
 	ModuleReasonModuleError                 = "ModuleError"
 	ModuleReasonReconciling                 = "Reconciling"
 	ModuleReasonInstalling                  = "Installing"
-	ModuleReasonHooksDisabled               = "HooksDisabled"
-	ModuleReasonWaitSyncTasks               = "WaitSyncTasks"
 	ModuleReasonError                       = "Error"
 
 	ModuleMessageBundle                      = "turned off by bundle"
@@ -83,9 +81,7 @@ const (
 	ModuleMessageDownloading                 = "downloading"
 	ModuleMessageReconciling                 = "reconciling"
 	ModuleMessageInstalling                  = "installing"
-	ModuleMessageWaitSyncTasks               = "run sync tasks"
 	ModuleMessageOnStartupHook               = "onStartup hooks done"
-	ModuleMessageHooksDisabled               = "hooks disabled"
 
 	DeckhouseRequirementFieldName        string = "deckhouse"
 	KubernetesRequirementFieldName       string = "kubernetes"
@@ -151,17 +147,23 @@ type ModulePlatformRequirements struct {
 }
 
 type ModuleProperties struct {
-	Weight           uint32              `json:"weight,omitempty"`
-	Source           string              `json:"source,omitempty"`
-	ReleaseChannel   string              `json:"releaseChannel,omitempty"`
-	Stage            string              `json:"stage,omitempty"`
-	Namespace        string              `json:"namespace,omitempty"`
-	Subsystems       []string            `json:"subsystems,omitempty"`
-	Description      string              `json:"description,omitempty"`
-	Version          string              `json:"version,omitempty"`
-	UpdatePolicy     string              `json:"updatePolicy,omitempty"`
-	AvailableSources []string            `json:"availableSources,omitempty"`
-	Requirements     *ModuleRequirements `json:"requirements,omitempty" yaml:"requirements,omitempty"`
+	Weight           uint32                `json:"weight,omitempty"`
+	Source           string                `json:"source,omitempty"`
+	ReleaseChannel   string                `json:"releaseChannel,omitempty"`
+	Stage            string                `json:"stage,omitempty"`
+	Namespace        string                `json:"namespace,omitempty"`
+	Subsystems       []string              `json:"subsystems,omitempty"`
+	Version          string                `json:"version,omitempty"`
+	UpdatePolicy     string                `json:"updatePolicy,omitempty"`
+	ExclusiveGroup   string                `json:"exclusiveGroup,omitempty" yaml:"exclusiveGroup,omitempty"`
+	AvailableSources []string              `json:"availableSources,omitempty"`
+	Requirements     *ModuleRequirements   `json:"requirements,omitempty" yaml:"requirements,omitempty"`
+	DisableOptions   *ModuleDisableOptions `json:"disableOptions,omitempty" yaml:"disableOptions,omitempty"`
+}
+
+type ModuleDisableOptions struct {
+	Confirmation bool   `json:"confirmation" yaml:"confirmation"`
+	Message      string `json:"message" yaml:"message"`
 }
 
 type ModuleStatus struct {
@@ -202,16 +204,6 @@ func (m *Module) ConditionStatus(condName string) bool {
 			return cond.Status == corev1.ConditionTrue
 		}
 	}
-	return false
-}
-
-func (m *Module) CheckConditionTrue(condName string) bool {
-	for _, cond := range m.Status.Conditions {
-		if cond.Type == condName {
-			return cond.Status == corev1.ConditionTrue
-		}
-	}
-
 	return false
 }
 
@@ -269,6 +261,15 @@ func (m *Module) DisabledByModuleConfigMoreThan(timeout time.Duration) bool {
 	for _, cond := range m.Status.Conditions {
 		if cond.Type == ModuleConditionEnabledByModuleConfig && cond.Status == corev1.ConditionFalse {
 			return time.Since(cond.LastTransitionTime.Time) >= timeout
+		}
+	}
+	return false
+}
+
+func (m *Module) HasCondition(condName string) bool {
+	for _, cond := range m.Status.Conditions {
+		if cond.Type == condName {
+			return true
 		}
 	}
 	return false

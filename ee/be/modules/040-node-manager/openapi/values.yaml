@@ -98,6 +98,7 @@ properties:
           properties:
             name:
               type: string
+              x-dmt-default: name
             standby:
               type: number
             reserveCPU:
@@ -341,6 +342,11 @@ properties:
               # This is a copy from NodeGroup object. We trust that hook will not change it.
               type: object
               additionalProperties: true
+            nodeDrainTimeoutSecond:
+              type: [integer]
+              additionalProperties: true
+              minimum: 30
+              maximum: 7200
             fencing:
               # This is a copy from NodeGroup object. We trust that hook will not change it.
               type: object

@@ -9,17 +9,56 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 // required yaml https://www.npmjs.com/package/yaml
 const YAML = require('yaml');
 
 /**
-*
-* @param {object} block
-* @param {number} index
-* @param {string[]} allowedSections
-* @returns
-*/
+ * @param {string} blockText
+ * @returns {string}
+ */
+function processBlock(blockText) {
+  const lines = blockText.split('\n');
+  const targetFields = ['summary', 'impact']; // fields being processed
+  const unsafeChars = ['[', '{'];
+  const processedLines = [];
+
+  for (const line of lines) {
+    let processedLine = line;
+
+    for (const field of targetFields) {
+      if (processedLine.startsWith(`${field}:`)) {
+        const colonIndex = processedLine.indexOf(':');
+        const key = processedLine.slice(0, colonIndex + 1);
+        let valuePart = processedLine.slice(colonIndex + 1).trim();
+
+        // Check if the value is wrapped in quotes
+        const isQuoted =
+          (valuePart.startsWith('"') && valuePart.endsWith('"')) || (valuePart.startsWith("'") && valuePart.endsWith("'"));
+
+        if (!isQuoted && valuePart.length > 0) {
+          const firstChar = valuePart[0];
+          if (unsafeChars.includes(firstChar)) {
+            // Escape double quotes inside the value
+            valuePart = valuePart.replace(/"/g, '\\"');
+            processedLine = `${key} "${valuePart}"`;
+          }
+        }
+        break; // don't check other fields after a match
+      }
+    }
+
+    processedLines.push(processedLine);
+  }
+
+  return processedLines.join('\n');
+}
+
+/**
+ * @param {object} block
+ * @param {number} index
+ * @param {string[]} allowedSections
+ * @returns {boolean}
+ */
 function validateYaml(block, index, allowedSections) {
   if (
     block.section === undefined ||
@@ -30,10 +69,13 @@ function validateYaml(block, index, allowedSections) {
     throw new Error(`'section' is required and must be a non-empty string and allowed section in block ${index}`);
   }
 
-  if (!allowedSections.includes(block.section)) {
-    console.log('Allowed sections:', allowedSections.join(', '))
-    throw new Error(`'section' is required and must be a non-empty string and allowed section in block ${index}`);
-  }
+  const blockSections = block.section.split(',').map((section) => section.trim());
+  blockSections.forEach((section) => {
+    if (!allowedSections.includes(section)) {
+      console.log('Allowed sections:', allowedSections.join(', '));
+      throw new Error(`section '${section}' is not an allowed section in block ${index}`);
+    }
+  });
 
   if (
     block.type === undefined ||
@@ -54,6 +96,18 @@ function validateYaml(block, index, allowedSections) {
   }
 
   if (
+    typeof block.impact_level === 'string' &&
+    block.impact_level.length > 0 &&
+    !['default', 'high', 'low'].includes(block.impact_level)
+  ) {
+    throw new Error(`'impact_level' must be one of levels: default, high, low. In block ${index}`);
+  }
+
+  if (block.impact_level === 'high' && (block.impact === undefined || block.impact === null || block.impact.length === 0)) {
+    throw new Error(`'impact' is required when 'impact_level' is 'high' in block ${index}`);
+  }
+
+  if (
     typeof block.impact === 'string' &&
     block.impact.length > 0 &&
     block.impact === '<what to expect for users, possibly MULTI-LINE>, required if impact_level is high ↓'
@@ -61,24 +115,24 @@ function validateYaml(block, index, allowedSections) {
     throw new Error(`'impact' is required and must be a non-empty string in block ${index}`);
   }
 
-  if (block.impact_level.length > 0 && !['default', 'high', 'low'].includes(block.impact_level)) {
-    throw new Error(`'impact_level' must be one of levels: default, high, low. In block ${index}`);
-  }
-
   return true;
 }
 
 /**
- * 
- * @param {string} changelogEntries 
+
+ * @param {string} changelogEntries
  * @param {string[]} allowedSections
  */
 function validatePullRequestChangelog(changelogEntries, allowedSections) {
   let changesBlocks = changelogEntries.split('---');
   try {
-    changesBlocks.forEach((changeBlock, idx) =>
-        validateYaml(YAML.parse(changeBlock.trim()), idx + 1, allowedSections)
-    );
+    changesBlocks.forEach((changeBlock, idx) => {
+      const processedBlock = processBlock(changeBlock.trim());
+      const parsed = YAML.parse(processedBlock);
+      console.log(parsed);
+      validateYaml(parsed, idx + 1, allowedSections);
+    });
+
     console.log('Changes is valid');
   } catch (error) {
     throw error;

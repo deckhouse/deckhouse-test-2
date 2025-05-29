@@ -9,8 +9,8 @@ description: "Настройка окружения Huawei Cloud для рабо
 * Elastic IP-адрес можно назначить master-узлу.
 * Узлы, управляемые Cluster API, не имеют публичных IP-адресов.
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vSUznz9tfsUtLqC7r2nHHndLdbTYN5LIwFnP68-pxZY1wZaIrG6Mxj0kvyIZV-jKDDidp8sfB0UMTdz/pub?w=812&h=655)
-<!--- Source: https://docs.google.com/drawings/d/1sB_V7NhDiit8Gok2pq_8syQknCdC4GicpG3L2YF5QIU/edit --->
+![Схема размещения Standard](../../images/cloud-provider-huawei/huawei-standard.png)
+<!--- Исходник: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10811&t=IvETjbByf1MSQzcm-0 --->
 
 Пример конфигурации схемы размещения:
 
@@ -41,4 +41,24 @@ masterNodeGroup:
     policy: AntiAffinity
   volumeTypeMap:
     ru-moscow-1a: SSD
+```
+
+## VpcPeering
+
+![Схема размещения VpcPeering](../../images/cloud-provider-huawei/huawei-vpc-peering-ru.png)
+<!--- Исходник: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-11715&t=IvETjbByf1MSQzcm-0 --->
+
+Пример конфигурации схемы размещения:
+
+```yaml
+apiVersion: deckhouse.io/v1
+kind: HuaweiCloudClusterConfiguration
+layout: VpcPeering
+sshPublicKey: "<Public SSH key>"
+vpcPeering:
+  internalNetworkDNSServers:
+    - 8.8.8.8
+  internalNetworkCIDR: 10.221.128.0/24
+  internalNetworkSecurity: true
+  subnet: subnet-43b4
 ```

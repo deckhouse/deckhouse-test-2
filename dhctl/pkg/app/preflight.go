@@ -17,28 +17,33 @@ package app
 import "gopkg.in/alecthomas/kingpin.v2"
 
 var (
-	PreflightSkipAll                       = false
-	PreflightSkipSSHForward                = false
-	PreflightSkipAvailabilityPorts         = false
-	PreflightSkipResolvingLocalhost        = false
-	PreflightSkipDeckhouseVersionCheck     = false
-	PreflightSkipRegistryThroughProxy      = false
-	PreflightSkipPublicDomainTemplateCheck = false
-	PreflightSkipSSHCredentialsCheck       = false
-	PreflightSkipRegistryCredentials       = false
-	PreflightSkipContainerdExistCheck      = false
-	PreflightSkipPythonChecks              = false
-	PreflightSkipSudoIsAllowedForUserCheck = false
-	PreflightSkipSystemRequirementsCheck   = false
-	PreflightSkipOneSSHHost                = false
-	PreflightSkipCloudAPIAccessibility     = false
+	PreflightSkipAll                          = false
+	PreflightSkipSSHForward                   = false
+	PreflightSkipAvailabilityPorts            = false
+	PreflightSkipResolvingLocalhost           = false
+	PreflightSkipDeckhouseEditionCheck        = false
+	PreflightSkipRegistryThroughProxy         = false
+	PreflightSkipPublicDomainTemplateCheck    = false
+	PreflightSkipSSHCredentialsCheck          = false
+	PreflightSkipRegistryCredentials          = false
+	PreflightSkipContainerdExistCheck         = false
+	PreflightSkipPythonChecks                 = false
+	PreflightSkipSudoIsAllowedForUserCheck    = false
+	PreflightSkipSystemRequirementsCheck      = false
+	PreflightSkipOneSSHHost                   = false
+	PreflightSkipCloudAPIAccessibility        = false
+	PreflightSkipTimeDrift                    = false
+	PreflightSkipCIDRIntersection             = false
+	PreflightSkipDeckhouseUserCheck           = false
+	PreflightSkipYandexWithNatInstanceCheck   = false
+	PreflightSkipStaticInstancesIPDuplication = false
 )
 
 const (
 	SSHForwardArgName                = "preflight-skip-ssh-forward-check"
 	PortsAvailabilityArgName         = "preflight-skip-availability-ports-check"
 	ResolvingLocalhostArgName        = "preflight-skip-resolving-localhost-check"
-	DeckhouseVersionCheckArgName     = "preflight-skip-deckhouse-version-check"
+	DeckhouseEditionCheckArgName     = "preflight-skip-deckhouse-edition-check"
 	RegistryThroughProxyCheckArgName = "preflight-skip-registry-through-proxy"
 	PublicDomainTemplateCheckArgName = "preflight-skip-public-domain-template-check"
 	SSHCredentialsCheckArgName       = "preflight-skip-ssh-credentials-check"
@@ -48,27 +53,35 @@ const (
 	SudoAllowedCheckArgName          = "preflight-skip-sudo-allowed"
 	SystemRequirementsArgName        = "preflight-skip-system-requirements-check"
 	CloudAPIAccessibilityArgName     = "preflight-cloud-api-accesibility-check"
+	TimeDriftArgName                 = "preflight-time-drift-check"
 	OneSSHHostCheckArgName           = "preflight-skip-one-ssh-host"
+	CIDRIntersection                 = "preflight-skip-cidr-intersection"
+	DeckhouseUserCheckName           = "preflight-skip-deckhouse-user-check"
+	YandexWithNatInstance            = "preflight-skip-yandex-with-nat-instance-check"
+	StaticInstancesIPDuplication     = "preflight-skip-staticinstances-ip-duplication"
 )
 
-var (
-	PreflightSkipOptionsMap = map[string]*bool{
-		SSHForwardArgName:                &PreflightSkipSSHForward,
-		PortsAvailabilityArgName:         &PreflightSkipAvailabilityPorts,
-		ResolvingLocalhostArgName:        &PreflightSkipResolvingLocalhost,
-		DeckhouseVersionCheckArgName:     &PreflightSkipDeckhouseVersionCheck,
-		RegistryThroughProxyCheckArgName: &PreflightSkipRegistryThroughProxy,
-		PublicDomainTemplateCheckArgName: &PreflightSkipPublicDomainTemplateCheck,
-		SSHCredentialsCheckArgName:       &PreflightSkipSSHCredentialsCheck,
-		RegistryCredentialsCheckArgName:  &PreflightSkipRegistryCredentials,
-		CloudAPIAccessibilityArgName:     &PreflightSkipCloudAPIAccessibility,
-		ContainerdExistCheckArgName:      &PreflightSkipContainerdExistCheck,
-		PythonChecksArgName:              &PreflightSkipPythonChecks,
-		SudoAllowedCheckArgName:          &PreflightSkipSudoIsAllowedForUserCheck,
-		SystemRequirementsArgName:        &PreflightSkipSystemRequirementsCheck,
-		OneSSHHostCheckArgName:           &PreflightSkipOneSSHHost,
-	}
-)
+var PreflightSkipOptionsMap = map[string]*bool{
+	SSHForwardArgName:                &PreflightSkipSSHForward,
+	PortsAvailabilityArgName:         &PreflightSkipAvailabilityPorts,
+	ResolvingLocalhostArgName:        &PreflightSkipResolvingLocalhost,
+	DeckhouseEditionCheckArgName:     &PreflightSkipDeckhouseEditionCheck,
+	RegistryThroughProxyCheckArgName: &PreflightSkipRegistryThroughProxy,
+	PublicDomainTemplateCheckArgName: &PreflightSkipPublicDomainTemplateCheck,
+	SSHCredentialsCheckArgName:       &PreflightSkipSSHCredentialsCheck,
+	RegistryCredentialsCheckArgName:  &PreflightSkipRegistryCredentials,
+	CloudAPIAccessibilityArgName:     &PreflightSkipCloudAPIAccessibility,
+	ContainerdExistCheckArgName:      &PreflightSkipContainerdExistCheck,
+	PythonChecksArgName:              &PreflightSkipPythonChecks,
+	SudoAllowedCheckArgName:          &PreflightSkipSudoIsAllowedForUserCheck,
+	SystemRequirementsArgName:        &PreflightSkipSystemRequirementsCheck,
+	OneSSHHostCheckArgName:           &PreflightSkipOneSSHHost,
+	CIDRIntersection:                 &PreflightSkipCIDRIntersection,
+	StaticInstancesIPDuplication:     &PreflightSkipStaticInstancesIPDuplication,
+	DeckhouseUserCheckName:           &PreflightSkipDeckhouseUserCheck,
+	TimeDriftArgName:                 &PreflightSkipTimeDrift,
+	YandexWithNatInstance:            &PreflightSkipYandexWithNatInstanceCheck,
+}
 
 func ApplyPreflightSkips(skips []string) {
 	for _, skip := range skips {
@@ -91,9 +104,9 @@ func DefinePreflight(cmd *kingpin.CmdClause) {
 	cmd.Flag(ResolvingLocalhostArgName, "Skip resolving the localhost domain").
 		Envar(configEnvName("PREFLIGHT_SKIP_RESOLVING_LOCALHOST_CHECK")).
 		BoolVar(PreflightSkipOptionsMap[ResolvingLocalhostArgName])
-	cmd.Flag(DeckhouseVersionCheckArgName, "Skip verifying deckhouse version").
-		Envar(configEnvName("PREFLIGHT_SKIP_INCOMPATIBLE_VERSION_CHECK")).
-		BoolVar(PreflightSkipOptionsMap[DeckhouseVersionCheckArgName])
+	cmd.Flag(DeckhouseEditionCheckArgName, "Skip verifying deckhouse edition").
+		Envar(configEnvName("PREFLIGHT_SKIP_INCOMPATIBLE_EDITION_CHECK")).
+		BoolVar(PreflightSkipOptionsMap[DeckhouseEditionCheckArgName])
 	cmd.Flag(RegistryThroughProxyCheckArgName, "Skip verifying deckhouse version").
 		Envar(configEnvName("PREFLIGHT_SKIP_REGISTRY_THROUGH_PROXY")).
 		BoolVar(PreflightSkipOptionsMap[RegistryThroughProxyCheckArgName])
@@ -109,6 +122,9 @@ func DefinePreflight(cmd *kingpin.CmdClause) {
 	cmd.Flag(CloudAPIAccessibilityArgName, "Skip verifying Cloud API").
 		Envar(configEnvName("PREFLIGHT_SKIP_CLOUD_API_CHECK")).
 		BoolVar(PreflightSkipOptionsMap[CloudAPIAccessibilityArgName])
+	cmd.Flag(TimeDriftArgName, "Skip verifying time drift").
+		Envar(configEnvName("PREFLIGHT_SKIP_TIME_DRIFT")).
+		BoolVar(PreflightSkipOptionsMap[TimeDriftArgName])
 	cmd.Flag(ContainerdExistCheckArgName, "Skip verifying contanerd exist").
 		Envar(configEnvName("PREFLIGHT_SKIP_CONTAINERD_EXIST")).
 		BoolVar(PreflightSkipOptionsMap[ContainerdExistCheckArgName])
@@ -124,4 +140,16 @@ func DefinePreflight(cmd *kingpin.CmdClause) {
 	cmd.Flag(OneSSHHostCheckArgName, "Skip verifying one ssh-host parametr").
 		Envar(configEnvName("PREFLIGHT_SKIP_ONE_SSH_HOST")).
 		BoolVar(PreflightSkipOptionsMap[OneSSHHostCheckArgName])
+	cmd.Flag(CIDRIntersection, "Skip verifying CIDRs intersection").
+		Envar(configEnvName("PREFLIGHT_SKIP_CIDR_INTERSECTION")).
+		BoolVar(PreflightSkipOptionsMap[CIDRIntersection])
+	cmd.Flag(DeckhouseUserCheckName, "Skip verifying deckhouse user existence").
+		Envar(configEnvName("PREFLIGHT_SKIP_DECKHOUSE_USER")).
+		BoolVar(PreflightSkipOptionsMap[DeckhouseUserCheckName])
+	cmd.Flag(YandexWithNatInstance, "Skip verifying Yandex Cloud WithNatInstance configuration").
+		Envar(configEnvName("PREFLIGHT_SKIP_YANDEX_WITH_NAT_INSTANCE_CHECK")).
+		BoolVar(PreflightSkipOptionsMap[YandexWithNatInstance])
+	cmd.Flag(StaticInstancesIPDuplication, "Skip verifying StaticInstances IP intersection").
+		Envar(configEnvName("PREFLIGHT_SKIP_SI_IP_DUPLICATION")).
+		BoolVar(PreflightSkipOptionsMap[StaticInstancesIPDuplication])
 }

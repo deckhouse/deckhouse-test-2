@@ -23,6 +23,7 @@
 {{- $gracePeriod = (kindIs "invalid" $crd.spec.waitLoadBalancerOnTerminating) | ternary $defaultGracePeriod $crd.spec.waitLoadBalancerOnTerminating }}
 {{- $defaultSSLCertificate := $crd.spec.defaultSSLCertificate | default dict }}
 {{- $defaultSSLCertificateSecretRef := $defaultSSLCertificate.secretRef | default dict }}
+{{- $logLevels := dict "Error" 0 "Warn" 1 "Info" 2 "Extended" 3 "Debug" 4 "Trace" 5 -}}
 
 {{- if ( $context.Values.global.enabledModules | has "vertical-pod-autoscaler") }}
 ---
@@ -54,6 +55,10 @@ spec:
         memory: {{ $resourcesRequestsVPA_Memory.max | default "200Mi" | quote }}
       {{- if $crd.spec.enableIstioSidecar }}
     - containerName: istio-proxy
+      mode: "Off"
+      {{- end }}
+      {{- if $geoIP2.maxmindLicenseKey }}
+    - containerName: geoip-updater
       mode: "Off"
       {{- end }}
     {{- else }}
@@ -153,6 +158,7 @@ spec:
   {{- end }}
 {{- include "helm_lib_priority_class" (tuple $context "system-cluster-critical") | nindent 6 }}
       serviceAccountName: ingress-nginx
+      automountServiceAccountToken: true
       terminationGracePeriodSeconds: 420
   {{- if and (eq $crd.spec.inlet "HostWithFailover") (not $failover) }}
       dnsPolicy: ClusterFirstWithHostNet
@@ -201,12 +207,15 @@ spec:
         args:
         - /nginx-ingress-controller
         - --configmap=$(POD_NAMESPACE)/{{ $name }}-config
-        - --v=2
+        - --v={{ get $logLevels (default "Info" $crd.spec.controllerLogLevel) }}
         - --ingress-class={{ $crd.spec.ingressClass }}
         - --healthz-port=10254
         - --http-port=80
         - --https-port=443
         - --update-status=true
+        {{- if eq $controllerVersion "1.12" }}
+        - --enable-metrics=true
+        {{- end }}
         {{- if $loadBalancer }}
         - --publish-service=d8-ingress-nginx/{{ $crd.name }}-load-balancer
         {{- end }}
@@ -225,7 +234,7 @@ spec:
         {{- if eq "nginx" $crd.spec.ingressClass }}
         - --watch-ingress-without-class=true
         {{- end }}
-        {{- if and $crd.spec.annotationValidationEnabled (or (eq $controllerVersion "1.9") (eq $controllerVersion "1.10")) }}
+        {{- if $crd.spec.annotationValidationEnabled }}
         - --enable-annotation-validation=true
         {{- end }}
   {{- if $crd.spec.customErrors }}
@@ -319,7 +328,6 @@ spec:
           name: webhook
   {{- end }}
         volumeMounts:
-  {{- if or (eq $controllerVersion "1.9") (eq $controllerVersion "1.10") }}
         - mountPath: /chroot/var/lib/nginx/body
           name: client-body-temp-path
         - mountPath: /chroot/var/lib/nginx/fastcgi
@@ -337,25 +345,10 @@ spec:
         - mountPath: /chroot/etc/nginx/webhook-ssl/
           name: webhook-cert
           readOnly: true
-  {{- else }}
-        - mountPath: /var/lib/nginx/body
-          name: client-body-temp-path
-        - mountPath: /var/lib/nginx/fastcgi
-          name: fastcgi-temp-path
-        - mountPath: /var/lib/nginx/proxy
-          name: proxy-temp-path
-        - mountPath: /var/lib/nginx/scgi
-          name: scgi-temp-path
-        - mountPath: /var/lib/nginx/uwsgi
-          name: uwsgi-temp-path
-        - mountPath: /etc/nginx/ssl/
-          name: secret-nginx-auth-tls
-        - mountPath: /tmp/nginx/
-          name: tmp-nginx
-        - mountPath: /etc/nginx/webhook-ssl/
-          name: webhook-cert
-          readOnly: true
-  {{- end }}
+        {{- if $geoIP2.maxmindLicenseKey }}
+        - mountPath: /chroot/etc/ingress-controller/geoip/
+          name: geoip-data
+        {{- end }}
       - image: {{ include "helm_lib_module_image" (list $context "protobufExporter") }}
         name: protobuf-exporter
         resources:
@@ -366,6 +359,31 @@ spec:
         volumeMounts:
           - mountPath: /var/files
             name: telemetry-config-file
+      {{- if $geoIP2.maxmindLicenseKey }}
+      - image: {{ include "helm_lib_module_image" (list $context "geoipUpdater") }}
+        name: geoip-updater
+        args:
+        - --licenseKey={{ $geoIP2.maxmindLicenseKey }}
+        - --editionIDs={{ $geoIP2.maxmindEditionIDs | join "," }}
+        - --interval=1440
+        resources:
+          requests:
+            memory: 100Mi
+            cpu: 50m
+            {{- include "helm_lib_module_ephemeral_storage_only_logs" . | nindent 12 }}
+        livenessProbe:
+          failureThreshold: 10
+          httpGet:
+            path: /healthz
+            port: 8789
+            scheme: HTTP
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+        volumeMounts:
+          - mountPath: /chroot/etc/ingress-controller/geoip/
+            name: geoip-data
+      {{- end }}
       - name: kube-rbac-proxy
         image: {{ include "helm_lib_module_image" (list $context "kubeRbacProxy") }}
         args:
@@ -434,6 +452,10 @@ spec:
         emptyDir: {}
       - name: uwsgi-temp-path
         emptyDir: {}
+      {{- if $geoIP2.maxmindLicenseKey }}
+      - name: geoip-data
+        emptyDir: {}
+      {{- end }}
       - name: secret-nginx-auth-tls
         secret:
           secretName: ingress-nginx-{{ $crd.name }}-auth-tls

@@ -10,7 +10,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: upmeter-agent
   namespace: d8-{{ .Chart.Name }}
-  {{- include "helm_lib_module_labels" (list . (dict "app" "upmeter" "workload-resource-policy.deckhouse.io" "master")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "upmeter")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -49,6 +49,7 @@ spec:
         - name: deckhouse-registry
       terminationGracePeriodSeconds: 5
       serviceAccountName: upmeter-agent
+      automountServiceAccountToken: true
       {{- include "helm_lib_node_selector" (tuple . "master") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple . "wildcard") | nindent 6 }}
       {{- include "helm_lib_priority_class" (tuple . "cluster-medium") | nindent 6 }}

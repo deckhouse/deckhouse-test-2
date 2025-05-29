@@ -14,8 +14,8 @@ Two layouts are supported. Below is more information about each of them.
 * If the master does not have a public IP, then an additional instance with a public IP (aka bastion host) is required for installation tasks and accessing the cluster.
 * Peering can also be configured between the cluster VPC and other VPCs.
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vR1oHqbXPJPYxUXwpkRGM6VPpZaNc8WoGH-N0Zqb9GexSc-NQDvsGiXe_Hc-Z1fMQWBRawuoy8FGENt/pub?w=989&amp;h=721)
-<!--- Source: https://docs.google.com/drawings/d/1VTAoz6-65q7m99KA933e1phWImirxvb9-OLH9DRtWPE/edit --->
+![resources](../../images/cloud-provider-gcp/gcp-standard.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10164&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 
@@ -41,7 +41,7 @@ masterNodeGroup:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Required.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Required.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Required.
     diskSizeGb: 20                  # Optional, local disk is used if not specified.
     disableExternalIP: false        # Optional, by default master has externalIP.
     additionalNetworkTags:          # Optional.
@@ -55,7 +55,7 @@ nodeGroups:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Required.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Required.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Required.
     diskSizeGb: 20                  # Optional, local disk is used if not specified.
     disableExternalIP: true         # Optional, by default nodes do not have externalIP.
     additionalNetworkTags:          # Optional.
@@ -83,8 +83,8 @@ provider:
 * A dedicated VPC is created for the cluster; all cluster nodes have public IP addresses.
 * Peering can be configured between the cluster VPC and other VPCs.
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vTq2Jlx4k8OXt4acHeW6NvqABsZIPSDoOldDiGERYHWHmmKykSjXZ_ADvKecCC1L8Jjq4143uv5GWDR/pub?w=989&amp;h=721)
-<!--- Source: https://docs.google.com/drawings/d/1uhWbQFiycsFkG9D1vNbJNrb33Ih4YMdCxvOX5maW5XQ/edit --->
+![resources](../../images/cloud-provider-gcp/gcp-withoutnat.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10296&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 
@@ -104,7 +104,7 @@ masterNodeGroup:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Required.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Required.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Required.
     diskSizeGb: 20                  # Optional, local disk is used if not specified.
     additionalNetworkTags:          # Optional.
     - tag1
@@ -117,7 +117,7 @@ nodeGroups:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Required.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Required.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Required.
     diskSizeGb: 20                  # Optional, local disk is used if not specified.
     additionalNetworkTags:          # Optional.
     - tag1

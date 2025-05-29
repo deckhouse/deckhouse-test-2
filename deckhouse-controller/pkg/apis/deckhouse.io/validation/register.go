@@ -19,7 +19,7 @@ package validation
 import (
 	"net/http"
 
-	metricstorage "github.com/flant/shell-operator/pkg/metric_storage"
+	"github.com/flant/shell-operator/pkg/metric"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	moduletypes "github.com/deckhouse/deckhouse/deckhouse-controller/pkg/controller/moduleloader/types"
@@ -32,6 +32,7 @@ type registerer interface {
 
 type moduleStorage interface {
 	GetModuleByName(name string) (*moduletypes.Module, error)
+	GetModulesByExclusiveGroup(exclusiveGroup string) []string
 }
 
 type moduleManager interface {
@@ -45,9 +46,9 @@ func RegisterAdmissionHandlers(
 	mm moduleManager,
 	validator *configtools.Validator,
 	storage moduleStorage,
-	metricStorage *metricstorage.MetricStorage,
+	metricStorage metric.Storage,
 ) {
-	reg.RegisterHandler("/validate/v1alpha1/module-configs", moduleConfigValidationHandler(cli, storage, metricStorage, validator))
+	reg.RegisterHandler("/validate/v1alpha1/module-configs", moduleConfigValidationHandler(cli, storage, metricStorage, mm, validator))
 	reg.RegisterHandler("/validate/v1alpha1/modules", moduleValidationHandler())
 	reg.RegisterHandler("/validate/v1/configuration-secret", kubernetesVersionHandler(mm))
 	reg.RegisterHandler("/validate/v1alpha1/update-policies", updatePolicyHandler(cli))

@@ -5,8 +5,8 @@ description: "Schemes of placement and interaction of resources in VMware vSpher
 
 ## Standard
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vQolOJQw4clYDug78Mr7rvX7wYPsb2uVhab5cDZrzBKq76Ox6dZhgoBXuq-ta8DRC2grjNUcfEq_AR8/pub?w=667&h=516)
-<!--- Source: https://docs.google.com/drawings/d/1QOgPkq_xfBWMMI3SEU4Q9lyZM5mIWWbF_MwVsd06diE/edit --->
+![resources](../../images/cloud-provider-vsphere/vsphere-standard.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-11345&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 

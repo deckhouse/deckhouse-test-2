@@ -14,7 +14,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: {{ .Chart.Name }}
   namespace: kube-system
-  {{- include "helm_lib_module_labels" (list . (dict "app" "node-local-dns" "workload-resource-policy.deckhouse.io" "every-node")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "node-local-dns")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: apps/v1
@@ -63,6 +63,7 @@ spec:
       dnsPolicy: ClusterFirstWithHostNet
 {{- end }}
       serviceAccountName: d8-node-local-dns
+      automountServiceAccountToken: true
 {{- if (.Values.global.enabledModules | has "cni-cilium") }}
       initContainers:
       {{- include "helm_lib_module_init_container_check_linux_kernel" (tuple . ">= 5.7") | nindent 6 }}
@@ -86,7 +87,7 @@ spec:
           runAsNonRoot: false
           runAsUser: 0
         image: {{ include "helm_lib_module_image" (list . "coredns") }}
-        command: ["/bin/bash", "-l", "-c", "/start.sh"]
+        command: ["/coredns-helper", "-action=start"]
         env:
         - name: KUBE_CLUSTER_DOMAIN
           value: {{ .Values.global.discovery.clusterDomain | quote }}
@@ -111,7 +112,8 @@ spec:
 {{- else }}
           exec:
             command:
-            - /liveness.sh
+            - /coredns-helper
+            - -action=liveness
           periodSeconds: 20
           timeoutSeconds: 7
 {{- end }}
@@ -123,7 +125,8 @@ spec:
 {{- else }}
           exec:
             command:
-            - /readiness.sh
+            - /coredns-helper
+            - -action=readiness
 {{- end }}
           periodSeconds: 5
           timeoutSeconds: 7

@@ -56,12 +56,20 @@ spec:
                 releaseChannel:
                   type: string
                   description: Module release channel.
+                exclusiveGroup:
+                  type: string
+                  description: Indicates the group where only one module can be active at a time.
                 updatePolicy:
                   type: string
                   description: Module update policy.
-                description:
-                  type: string
-                  description: Module description.
+                disableOptions:
+                  type: object
+                  description: Parameters of module disable protection.
+                  properties:
+                    confirmation:
+                      type: boolean
+                    message:
+                      type: string
                 requirements:
                   type: object
                   x-kubernetes-preserve-unknown-fields: true
@@ -99,10 +107,6 @@ spec:
                     - Conflict
                     - Ready
                     - Error
-                    # TODO(ipaqsa): delete after 1.68
-                    - Pending
-                    - Enqueued
-                    - NotInstalled
                 hooksState:
                   type: string
                   description: Hooks status report.
@@ -133,7 +137,12 @@ spec:
         - name: Weight
           jsonPath: .properties.weight
           type: integer
-          description: Module _weight_ (priority).
+          priority: 1
+          description: Module weight
+        - name: Stage
+          jsonPath: .properties.stage
+          type: string
+          description: Module stage
         - name: Release channel
           jsonPath: .properties.releaseChannel
           description: Release channel of the module.

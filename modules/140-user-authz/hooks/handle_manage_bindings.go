@@ -21,7 +21,6 @@ import (
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
 	"github.com/flant/addon-operator/sdk"
-	"github.com/flant/shell-operator/pkg/kube/object_patch"
 	rbacv1 "k8s.io/api/rbac/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
@@ -62,7 +61,7 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 			},
 			ExecuteHookOnEvents:          ptr.To(false),
 			ExecuteHookOnSynchronization: ptr.To(false),
-			FilterFunc:                   filterUseBinding,
+			FilterFunc:                   filterAutomaticUseBinding,
 		},
 	},
 }, syncBindings)
@@ -74,7 +73,7 @@ type filteredUseBinding struct {
 	Subjects  []rbacv1.Subject `json:"subjects"`
 }
 
-func filterUseBinding(obj *unstructured.Unstructured) (go_hook.FilterResult, error) {
+func filterAutomaticUseBinding(obj *unstructured.Unstructured) (go_hook.FilterResult, error) {
 	var binding rbacv1.RoleBinding
 	if err := sdk.FromUnstructured(obj, &binding); err != nil {
 		return nil, err
@@ -130,7 +129,7 @@ func syncBindings(input *go_hook.HookInput) error {
 		role, namespaces := roleAndNamespacesByBinding(input.Snapshots["manageRoles"], binding.RoleName)
 		useBindingName := fmt.Sprintf("d8:use:%s:binding:%s", role, binding.Name)
 		for namespace := range namespaces {
-			input.PatchCollector.Create(createBinding(binding, role, namespace), object_patch.UpdateIfExists())
+			input.PatchCollector.CreateOrUpdate(createBinding(binding, role, namespace))
 			expected[useBindingName] = true
 		}
 	}

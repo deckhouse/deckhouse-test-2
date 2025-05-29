@@ -105,6 +105,7 @@ spec:
       imagePullSecrets:
       - name: deckhouse-registry
       terminationGracePeriodSeconds: 5
+      automountServiceAccountToken: true
       serviceAccountName: openvpn
       {{- include "helm_lib_node_selector" (tuple . "system") | nindent 6 }}
       {{- include "helm_lib_tolerations" (tuple . "system") | nindent 6 }}
@@ -248,6 +249,8 @@ spec:
         - "8000"
         - --role
         - master
+        - --metrics.path
+        - "/metrics"
         - --ovpn.network
         - "{{ include "get_network_with_bitmask" (list . .Values.openvpn.tunnelNetwork) }}"
         {{- if hasKey .Values.openvpn "inlet" }}
@@ -300,6 +303,8 @@ spec:
               fieldPath: metadata.namespace
         - name: EASYRSA_PATH
           value: /mnt/easyrsa
+        - name: CLIENT_CERT_EXPIRATION_DAYS
+          value: "{{ .Values.openvpn.clientCertExpirationDays }}"
         volumeMounts:
           - mountPath: /mnt/easyrsa
             name: certs
@@ -335,6 +340,8 @@ spec:
         - name: KUBE_RBAC_PROXY_CONFIG
           value: |
             upstreams:
+            - upstream: http://127.0.0.1:8000/metrics
+              path: /metrics
             - upstream: http://127.0.0.1:8000/
               path: /
               authorization:

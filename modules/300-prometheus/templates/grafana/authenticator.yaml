@@ -1,4 +1,4 @@
-{{- if .Values.prometheus.internal.deployDexAuthenticator }}
+{{- if and .Values.prometheus.internal.grafana.enabled .Values.prometheus.internal.deployDexAuthenticator }}
 ---
 apiVersion: deckhouse.io/v1
 kind: DexAuthenticator
@@ -13,6 +13,10 @@ spec:
   {{- end }}
   applicationIngressClassName: {{ include "helm_lib_module_ingress_class" . | quote }}
   signOutURL: "/logout"
+  {{- with .Values.prometheus.auth.allowedUserEmails }}
+  allowedEmails:
+  {{- . | toYaml | nindent 2 }}
+  {{- end }}
   {{- with .Values.prometheus.auth.allowedUserGroups }}
   allowedGroups:
   {{- . | toYaml | nindent 2 }}

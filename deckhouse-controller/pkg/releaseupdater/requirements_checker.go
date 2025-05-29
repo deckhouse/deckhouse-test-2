@@ -21,7 +21,9 @@ import (
 	"errors"
 	"fmt"
 
+	"go.opentelemetry.io/otel"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/yaml"
 
@@ -38,15 +40,16 @@ const (
 	deckhouseClusterConfigurationConfig = "d8-cluster-configuration"
 	systemNamespace                     = "kube-system"
 	k8sAutomaticVersion                 = "Automatic"
+	reqCheckerServiceName               = "requirements-checker"
 )
 
 type RequirementsChecker[T any] interface {
-	MetRequirements(v *T) []NotMetReason
+	MetRequirements(ctx context.Context, v *T) []NotMetReason
 }
 
 type Check[T any] interface {
 	GetName() string
-	Verify(v *T) error
+	Verify(ctx context.Context, v *T) error
 }
 
 type NotMetReason struct {
@@ -62,11 +65,14 @@ type Checker[T any] struct {
 	logger *log.Logger
 }
 
-func (c *Checker[T]) MetRequirements(v *T) []NotMetReason {
+func (c *Checker[T]) MetRequirements(ctx context.Context, v *T) []NotMetReason {
+	ctx, span := otel.Tracer(reqCheckerServiceName).Start(ctx, "met-requirements")
+	defer span.End()
+
 	reasons := make([]NotMetReason, 0)
 
 	for _, fn := range c.fns {
-		err := fn.Verify(v)
+		err := fn.Verify(ctx, v)
 		if err != nil {
 			reasons = append(reasons, NotMetReason{
 				Reason:  fn.GetName(),
@@ -118,7 +124,7 @@ func (c *deckhouseVersionCheck) GetName() string {
 	return c.name
 }
 
-func (c *deckhouseVersionCheck) Verify(dr *v1alpha1.DeckhouseRelease) error {
+func (c *deckhouseVersionCheck) Verify(_ context.Context, dr *v1alpha1.DeckhouseRelease) error {
 	releaseName, err := deckhouseversion.Instance().ValidateBaseVersion(dr.GetVersion().String())
 	if err != nil {
 		// invalid deckhouse version in deckhouse release
@@ -161,7 +167,7 @@ func (c *kubernetesVersionCheck) GetName() string {
 	return c.name
 }
 
-func (c *kubernetesVersionCheck) Verify(dr *v1alpha1.DeckhouseRelease) error {
+func (c *kubernetesVersionCheck) Verify(_ context.Context, dr *v1alpha1.DeckhouseRelease) error {
 	if c.isKubernetesVersionAutomatic() && len(dr.GetRequirements()["autoK8sVersion"]) > 0 {
 		if moduleName, err := kubernetesversion.Instance().ValidateBaseVersion(dr.GetRequirements()["autoK8sVersion"]); err != nil {
 			// invalid auto kubernetes version in deckhouse release
@@ -188,7 +194,11 @@ func (c *kubernetesVersionCheck) initClusterKubernetesVersion(ctx context.Contex
 	key := client.ObjectKey{Namespace: systemNamespace, Name: deckhouseClusterConfigurationConfig}
 	secret := new(corev1.Secret)
 	if err := c.k8sclient.Get(ctx, key, secret); err != nil {
-		return fmt.Errorf("failed to get secret: %w", err)
+		// the secret does not exist in managed cluster
+		if apierrors.IsNotFound(err) {
+			return nil
+		}
+		return fmt.Errorf("failed to get the 'd8-cluster-configuration' secret: %w", err)
 	}
 
 	clusterConfigurationRaw, ok := secret.Data["cluster-configuration.yaml"]
@@ -196,12 +206,12 @@ func (c *kubernetesVersionCheck) initClusterKubernetesVersion(ctx context.Contex
 		return fmt.Errorf("expected field 'cluster-configuration.yaml' not found in secret %s", secret.Name)
 	}
 
-	clusterConf := new(clusterConf)
-	if err := yaml.Unmarshal(clusterConfigurationRaw, clusterConf); err != nil {
+	conf := new(clusterConf)
+	if err := yaml.Unmarshal(clusterConfigurationRaw, conf); err != nil {
 		return fmt.Errorf("failed to unmarshal cluster configuration: %w", err)
 	}
 
-	c.clusterKubernetesVersion = clusterConf.KubernetesVersion
+	c.clusterKubernetesVersion = conf.KubernetesVersion
 
 	return nil
 }
@@ -223,7 +233,7 @@ func (c *deckhouseRequirementsCheck) GetName() string {
 	return c.name
 }
 
-func (c *deckhouseRequirementsCheck) Verify(dr *v1alpha1.DeckhouseRelease) error {
+func (c *deckhouseRequirementsCheck) Verify(_ context.Context, dr *v1alpha1.DeckhouseRelease) error {
 	for key, value := range dr.GetRequirements() {
 		// these fields are checked by extenders in module release controller
 		if extenders.IsExtendersField(key) {
@@ -270,7 +280,7 @@ func (c *disruptionCheck) GetName() string {
 	return c.name
 }
 
-func (c *disruptionCheck) Verify(pointer *v1alpha1.Release) error {
+func (c *disruptionCheck) Verify(_ context.Context, pointer *v1alpha1.Release) error {
 	release := *pointer
 
 	if !c.settings.InDisruptionApprovalMode() {
@@ -315,7 +325,7 @@ func (c *moduleRequirementsCheck) GetName() string {
 	return c.name
 }
 
-func (c *moduleRequirementsCheck) Verify(mr *v1alpha1.ModuleRelease) error {
+func (c *moduleRequirementsCheck) Verify(_ context.Context, mr *v1alpha1.ModuleRelease) error {
 	err := extenders.CheckModuleReleaseRequirements(mr.GetModuleName(), mr.GetName(), mr.GetVersion(), mr.GetModuleReleaseRequirements())
 	if err != nil {
 		return err

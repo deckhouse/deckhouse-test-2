@@ -21,7 +21,6 @@ import (
 	"fmt"
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
-	"github.com/flant/addon-operator/pkg/module_manager/go_hook/metrics"
 	"github.com/flant/addon-operator/sdk"
 	"github.com/flant/shell-operator/pkg/kube_events_manager/types"
 	"github.com/iancoleman/strcase"
@@ -236,7 +235,6 @@ func calculateEffectiveStorageClass(input *go_hook.HookInput, args Args, current
 			"namespace":   args.Namespace,
 			"module_name": args.ModuleName,
 		},
-		metrics.WithGroup("storage_class_change"),
 	)
 
 	return effectiveStorageClass
@@ -308,7 +306,7 @@ func storageClassChangeWithArgs(input *go_hook.HookInput, dc dependency.Containe
 		}
 
 		if err != nil && !errors.IsNotFound(err) {
-			input.Logger.Errorf("%v", err)
+			input.Logger.Error(err.Error())
 		}
 	}
 	return nil

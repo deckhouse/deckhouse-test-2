@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
@@ -54,7 +55,7 @@ type Loop struct {
 	logger           log.Logger
 	interruptable    bool
 	showError        bool
-	ctx              context.Context
+	prefix           string
 }
 
 // NewLoop create Loop with features:
@@ -83,6 +84,7 @@ func NewSilentLoop(name string, attemptsQuantity int, wait time.Duration) *Loop 
 		// - this loop is not interruptable by the signal watcher in tomb package.
 		interruptable: false,
 		showError:     true,
+		prefix:        fmt.Sprintf("[%s][%d] ", name, rand.Int()),
 	}
 }
 
@@ -96,11 +98,6 @@ func (l *Loop) WithInterruptable(flag bool) *Loop {
 	return l
 }
 
-func (l *Loop) WithContext(ctx context.Context) *Loop {
-	l.ctx = ctx
-	return l
-}
-
 func (l *Loop) WithLogger(logger log.Logger) *Loop {
 	l.logger = logger
 	return l
@@ -111,8 +108,16 @@ func (l *Loop) WithShowError(flag bool) *Loop {
 	return l
 }
 
-// Run retries a task function until it succeeded or break task retries if break predicate returns true
 func (l *Loop) Run(task func() error) error {
+	return l.run(context.Background(), task)
+}
+
+// RunContext retries a task like Run but breaks if context done.
+func (l *Loop) RunContext(ctx context.Context, task func() error) error {
+	return l.run(ctx, task)
+}
+
+func (l *Loop) run(ctx context.Context, task func() error) error {
 	setupTests(&l.attemptsQuantity, &l.waitTime)
 
 	loopBody := func() error {
@@ -126,37 +131,33 @@ func (l *Loop) Run(task func() error) error {
 			// Run task and return if everything is ok.
 			err = task()
 			if err == nil {
-				l.logger.LogSuccess("Succeeded!\n")
+				l.logger.LogSuccess(l.prefix + "Succeeded!\n")
 				return nil
 			}
 
 			if l.breakPredicate != nil && l.breakPredicate(err) {
-				l.logger.LogDebugF("Client break loop with %v\n", err)
+				l.logger.LogDebugF(l.prefix+"Client break loop with %v\n", err)
 				return err
 			}
 
-			l.logger.LogFailRetry(fmt.Sprintf(attemptMessage, i, l.attemptsQuantity, l.name, l.waitTime))
+			l.logger.LogFailRetry(fmt.Sprintf(l.prefix+attemptMessage, i, l.attemptsQuantity, l.name, l.waitTime))
 			errorMsg := "\t%v\n\n"
 			if l.showError {
 				errorMsg = "\tError: %v\n\n"
 			}
-			l.logger.LogInfoF(errorMsg, err)
+			l.logger.LogInfoF(l.prefix+errorMsg, err)
 
 			// Do not waitTime after the last iteration.
 			if i < l.attemptsQuantity {
-				if l.ctx != nil {
-					select {
-					case <-l.ctx.Done():
-						return fmt.Errorf("timeout while %q: last error: %v", l.name, l.ctx.Err())
-					case <-time.After(l.waitTime):
-					}
-				} else {
-					time.Sleep(l.waitTime)
+				select {
+				case <-time.After(l.waitTime):
+				case <-ctx.Done():
+					return fmt.Errorf("Loop was canceled: %w", ctx.Err())
 				}
 			}
 		}
 
-		return fmt.Errorf("Timeout while %q: last error: %v", l.name, err)
+		return fmt.Errorf("Timeout while %q: last error: %w", l.name, err)
 	}
 
 	return l.logger.LogProcess("default", l.name, loopBody)

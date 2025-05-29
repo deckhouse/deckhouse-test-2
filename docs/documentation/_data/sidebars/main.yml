@@ -1,6 +1,5 @@
 # Next lines are for local build only
 entries:
-  folders:
     - title:
         en: Overview
         ru: Введение в документацию
@@ -58,8 +57,8 @@ entries:
                 ru: Сборка и публикация
               url: /module-development/build/
             - title:
-                en: Running in the cluster
-                ru: Запуск в кластере
+                en: Running and verifying in the cluster
+                ru: Запуск и проверка в кластере
               url: /module-development/run/
             - title:
                 en: Module dependencies
@@ -109,6 +108,10 @@ entries:
                     en: Common settings
                     ru: Общие настройки
                   url: /security_software_setup.html
+                - title:
+                    en: Sysctl parameters
+                    ru: Параметры sysctl
+                  url: /security/sysctl.html
                 - title:
                     en: KESL
                     ru: KESL
@@ -180,6 +183,7 @@ entries:
             - title:
                 en: Amazon Web Services
                 ru: Amazon Web Services
+              moduleName: cloud-provider-aws
               folders:
                 - title:
                     en: Description
@@ -224,6 +228,7 @@ entries:
             - title:
                 en: Google Cloud Platform
                 ru: Google Cloud Platform
+              moduleName: cloud-provider-gcp
               folders:
                 - title:
                     en: Description
@@ -268,6 +273,7 @@ entries:
             - title:
                 en: Microsoft Azure
                 ru: Microsoft Azure
+              moduleName: cloud-provider-azure
               folders:
                 - title:
                     en: Description
@@ -308,7 +314,7 @@ entries:
             - title:
                 en: OpenStack
                 ru: OpenStack
-              d8Revision: ee
+              moduleName: cloud-provider-openstack
               folders:
                 - title:
                     en: Description
@@ -353,7 +359,7 @@ entries:
             - title:
                 en: Huawei Cloud
                 ru: Huawei Cloud
-              d8Revision: ee
+              moduleName: cloud-provider-huaweicloud
               folders:
                 - title:
                     en: Description
@@ -390,7 +396,7 @@ entries:
             - title:
                 en: VMware Cloud Director
                 ru: VMware Cloud Director
-              d8Revision: ee
+              moduleName: cloud-provider-vcd
               featureStatus: experimental
               folders:
                 - title:
@@ -429,14 +435,14 @@ entries:
                     en: Examples
                     ru: Примеры
                   url: /modules/cloud-provider-vcd/examples.html
-                - title:
-                    en: FAQ
-                    ru: FAQ
-                  url: /modules/cloud-provider-vcd/faq.html
+                #- title:
+                    #en: FAQ
+                    #ru: FAQ
+                  #url: /modules/cloud-provider-vcd/faq.html
             - title:
                 en: VMware vSphere
                 ru: VMware vSphere
-              d8Revision: ee
+              moduleName: cloud-provider-vsphere
               folders:
                 - title:
                     en: Description
@@ -481,6 +487,7 @@ entries:
             - title:
                 en: Yandex Cloud
                 ru: Yandex Cloud
+              moduleName: cloud-provider-yandex
               folders:
                 - title:
                     en: Description
@@ -525,7 +532,7 @@ entries:
             - title:
                 en: zVirt
                 ru: zVirt
-              d8Revision: ee
+              moduleName: cloud-provider-zvirt
               featureStatus: experimental
               folders:
                 - title:
@@ -567,7 +574,7 @@ entries:
             - title:
                 en: Dynamix
                 ru: Базис.DynamiX
-              d8Revision: ee
+              moduleName: cloud-provider-dynamix
               featureStatus: experimental
               folders:
                 - title:
@@ -605,6 +612,7 @@ entries:
         - title:
             en: Control plane management
             ru: Управление control plane
+          moduleName: control-plane-manager
           folders:
             - title:
                 en: Description
@@ -633,6 +641,7 @@ entries:
         - title:
             en: Node management
             ru: Управление узлами
+          moduleName: node-manager
           folders:
             - title:
                 en: Description
@@ -665,7 +674,6 @@ entries:
             - title:
                 en: node-local-dns
                 ru: node-local-dns
-              d8Revision: ee
               folders:
                 - title:
                     en: Description
@@ -855,7 +863,6 @@ entries:
             - title:
                 en: keepalived
                 ru: keepalived
-              d8Revision: ee
               folders:
                 - title:
                     en: Description
@@ -884,7 +891,6 @@ entries:
             - title:
                 en: metallb
                 ru: metallb
-              d8Revision: ee
               folders:
                 - title:
                     en: Description
@@ -942,7 +948,6 @@ entries:
             - title:
                 en: network-gateway
                 ru: network-gateway
-              d8Revision: ee
               folders:
                 - title:
                     en: Description
@@ -956,7 +961,6 @@ entries:
                 en: service-with-healthchecks
                 ru: service-with-healthchecks
               featureStatus: experimental
-              d8Revision: ee
               moduleName: service-with-healthchecks
               folders:
                 - title:
@@ -982,7 +986,6 @@ entries:
             - title:
                 en: static-routing-manager
                 ru: static-routing-manager
-              d8Revision: ee
               folders:
                 - title:
                     en: Description
@@ -1012,6 +1015,7 @@ entries:
             en: Prometheus & Grafana
             ru: Prometheus & Grafana
           url: /modules/prometheus/
+          moduleName: prometheus
           folders:
             - title:
                 en: Description
@@ -1040,6 +1044,7 @@ entries:
         - title:
             en: Monitoring your applications
             ru: Мониторинг вашего приложения
+          moduleName: monitoring-custom
           folders:
             - title:
                 en: Description
@@ -1052,6 +1057,7 @@ entries:
         - title:
             en: Network monitoring
             ru: Мониторинг сети
+          moduleName: monitoring-ping
           folders:
             - title:
                 en: Description
@@ -1068,6 +1074,7 @@ entries:
         - title:
             en: Cluster monitoring
             ru: Мониторинг кластера
+          moduleName: monitoring-kubernetes
           folders:
             - title:
                 en: Description
@@ -1080,6 +1087,7 @@ entries:
         - title:
             en: Control plane monitoring
             ru: Мониторинг control plane
+          moduleName: monitoring-kubernetes-control-plane
           folders:
             - title:
                 en: Description
@@ -1092,6 +1100,7 @@ entries:
         - title:
             en: Extended monitoring
             ru: Расширенный мониторинг
+          moduleName: extended-monitoring
           folders:
             - title:
                 en: Description
@@ -1108,6 +1117,7 @@ entries:
             - title:
                 en: Logs shipment
                 ru: Доставка логов
+              moduleName: log-shipper
               folders:
                 - title:
                     en: Description
@@ -1141,6 +1151,7 @@ entries:
             - title:
                 en: Short-term storage
                 ru: Кратковременное хранение
+              moduleName: loki
               featureStatus: experimental
               folders:
                 - title:
@@ -1171,13 +1182,10 @@ entries:
                     en: Configuration
                     ru: Настройки
                   url: /modules/operator-prometheus/configuration.html
-                - title:
-                    en: FAQ
-                    ru: FAQ
-                  url: /modules/operator-prometheus/faq.html
             - title:
                 en: okmeter
                 ru: okmeter
+              moduleName: okmeter
               featureStatus: proprietaryOkmeter
               folders:
                 - title:
@@ -1195,6 +1203,7 @@ entries:
             - title:
                 en: prometheus-pushgateway
                 ru: prometheus-pushgateway
+              moduleName: prometheus-pushgateway
               folders:
                 - title:
                     en: Description
@@ -1211,6 +1220,7 @@ entries:
             - title:
                 en: upmeter
                 ru: upmeter
+              moduleName: upmeter
               folders:
                 - title:
                     en: Description
@@ -1243,6 +1253,7 @@ entries:
         - title:
             en: Priority classes
             ru: Priority classes
+          moduleName: priority-class
           folders:
             - title:
                 en: Description
@@ -1255,6 +1266,7 @@ entries:
         - title:
             en: Scaling by any metric
             ru: Масштабирование по метрикам
+          moduleName: prometheus-metrics-adapter
           folders:
             - title:
                 en: Description
@@ -1279,6 +1291,7 @@ entries:
         - title:
             en: Vertical Pod autoscaler
             ru: Вертикальное масштабирование
+          moduleName: vertical-pod-autoscaler
           folders:
             - title:
                 en: Description
@@ -1311,6 +1324,7 @@ entries:
             - title:
                 en: descheduler
                 ru: descheduler
+              moduleName: descheduler
               featureStatus: experimental
               folders:
                 - title:
@@ -1336,6 +1350,7 @@ entries:
             - title:
                 en: flow-schema
                 ru: flow-schema
+              moduleName: flow-schema
               folders:
                 - title:
                     en: Description
@@ -1352,6 +1367,7 @@ entries:
             - title:
                 en: pod-reloader
                 ru: pod-reloader
+              moduleName: pod-reloader
               folders:
                 - title:
                     en: Description
@@ -1372,6 +1388,7 @@ entries:
         - title:
             en: User authentication
             ru: User authentication
+          moduleName: user-authn
           folders:
             - title:
                 en: Description
@@ -1400,6 +1417,7 @@ entries:
         - title:
             en: User authorization
             ru: User authorization
+          moduleName: user-authz
           folders:
             - title:
                 en: Description
@@ -1453,6 +1471,7 @@ entries:
         - title:
             en: Admission Policy
             ru: Политики безопасности
+          moduleName: admission-policy-engine
           folders:
             - title:
                 en: Description
@@ -1482,7 +1501,6 @@ entries:
             en: Audit
             ru: Аудит
           moduleName: runtime-audit-engine
-          d8Revision: ee
           featureStatus: experimental
           folders:
             - title:
@@ -1520,6 +1538,7 @@ entries:
             - title:
                 en: cert-manager
                 ru: cert-manager
+              moduleName: cert-manager
               folders:
                 - title:
                     en: Description
@@ -1548,6 +1567,7 @@ entries:
             - title:
                 en: network-policy-engine
                 ru: network-policy-engine
+              moduleName: network-policy-engine
               folders:
                 - title:
                     en: Description
@@ -1564,7 +1584,7 @@ entries:
             - title:
                 en: operator-trivy
                 ru: operator-trivy
-              d8Revision: ee
+              moduleName: operator-trivy
               featureStatus: experimental
               folders:
                 - title:
@@ -1583,79 +1603,190 @@ entries:
         en: Storage
         ru: Хранилище
       folders:
-        - title:
-            en: ceph-csi
-            ru: ceph-csi
-          featureStatus: deprecated
-          folders:
-            - title:
-                en: Description
-                ru: Описание
-              url: /modules/ceph-csi/
-            - title:
-                en: Examples
-                ru: Примеры
-              url: /modules/ceph-csi/examples.html
-            - title:
-                en: Reference
-                ru: Справка
-              folders:
-                - title:
-                    en: Configuration
-                    ru: Настройки
-                  url: /modules/ceph-csi/configuration.html
-                - title:
-                    en: Custom Resources
-                    ru: Custom Resources
-                  url: /modules/ceph-csi/cr.html
-            - title:
-                en: FAQ
-                ru: FAQ
-              url: /modules/ceph-csi/faq.html
-        - title:
-            en: local-path-provisioner
-            ru: local-path-provisioner
-          folders:
-            - title:
-                en: Description
-                ru: Описание
-              url: /modules/local-path-provisioner/
-            - title:
-                en: Examples
-                ru: Примеры
-              url: /modules/local-path-provisioner/examples.html
-            - title:
-                en: Reference
-                ru: Справка
-              folders:
-                - title:
-                    en: Configuration
-                    ru: Настройки
-                  url: /modules/local-path-provisioner/configuration.html
-                - title:
-                    en: Custom Resources
-                    ru: Custom Resources
-                  url: /modules/local-path-provisioner/cr.html
-            - title:
-                en: FAQ
-                ru: FAQ
-              url: /modules/local-path-provisioner/faq.html
-        - title:
-            en: snapshot-controller
-            ru: snapshot-controller
-          folders:
-            - title:
-                en: Description
-                ru: Описание
-              url: /modules/snapshot-controller/
-            - title:
-                en: Usage
-                ru: Примеры
-              url: /modules/snapshot-controller/usage.html
-            - title:
-                en: Configuration
-                ru: Настройки
-              url: /modules/snapshot-controller/configuration.html
+      - title:
+          en: Overview
+          ru: Обзор
+        url: /storage/admin/
+      - title:
+          en: Storage configuration
+          ru: Настройка хранилищ
+        url: /storage/admin/supported-storage.html
+      - title:
+          en: SDS
+          ru: Программно-определяемые хранилища
+        folders:
+          - title:
+              en: Local storage based on LVM
+              ru: Локальное хранилище на основе LVM
+            url: /storage/admin/sds/lvm-local.html
+          - title:
+              en: Replicated storage based on DRBD
+              ru: Реплицируемое хранилище на основе DRBD
+            url: /storage/admin/sds/lvm-replicated.html
+      - title:
+          en: External
+          ru: Внешние хранилища
+        folders:
+          - title:
+              en: Distributed Ceph storage
+              ru: Распределённое хранилище Ceph
+            url: /storage/admin/external/ceph.html
+          - title:
+              en: HPE data storage
+              ru: Хранилище данных HPE
+            url: /storage/admin/external/hpe.html
+          - title:
+              en: Huawei data storage
+              ru: Хранилище данных Huawei
+            url: /storage/admin/external/huawei.html
+          - title:
+              en: NFS data storage
+              ru: Хранилище данных NFS
+            url: /storage/admin/external/nfs.html
+          - title:
+              en: S3-based object storage
+              ru: Объектное хранилище на основе S3
+            url: /storage/admin/external/s3.html
+          - title:
+              en: SCSI-based data storage
+              ru: Хранилище данных на основе протокола SCSI
+            url: /storage/admin/external/scsi.html
+          - title:
+              en: TATLIN.UNIFIED (Yadro) unified storage
+              ru: Унифицированное хранилище TATLIN.UNIFIED (Yadro)
+            url: /storage/admin/external/yadro.html
+      - title:
+         en: Module settings
+         ru: Настройки модулей
+        folders:
+          - title:
+              en: csi-ceph
+              ru: csi-ceph
+            url: /reference/mc/csi-ceph/
+          - title:
+              en: csi-hpe
+              ru: csi-hpe
+            url: /reference/mc/csi-hpe/
+          - title:
+              en: csi-huawei
+              ru: csi-huawei
+            url: /reference/mc/csi-huawei/
+          - title:
+              en: csi-nfs
+              ru: csi-nfs
+            url: /reference/mc/csi-nfs/
+          - title:
+              en: csi-s3
+              ru: csi-s3
+            url: /reference/mc/csi-s3/
+          - title:
+              en: csi-scsi-generic
+              ru: csi-scsi-generic
+            url: /reference/mc/csi-scsi-generic/
+          - title:
+              en: sds-local-volume
+              ru: sds-local-volume
+            url: /reference/mc/sds-local-volume/
+          - title:
+              en: sds-node-configurator
+              ru: sds-node-configurator
+            url: /reference/mc/sds-node-configurator/
+          - title:
+              en: sds-replicated-volume
+              ru: sds-replicated-volume
+            url: /reference/mc/sds-replicated-volume/
+      - title:
+         en: Custom Resources
+         ru: Custom Resources
+        folders:
+          - title:
+              en: CephClusterAuthentication
+              ru: CephClusterAuthentication
+            url: /reference/cr/cephclusterauthentication/
+          - title:
+              en: CephClusterConnection
+              ru: CephClusterConnection
+            url: /reference/cr/cephclusterconnection/
+          - title:
+              en: CephMetadataBackup
+              ru: CephMetadataBackup
+            url: /reference/cr/cephmetadatabackup/
+          - title:
+              en: CephStorageClass
+              ru: CephStorageClass
+            url: /reference/cr/cephstorageclass/
+          - title:
+              en: HPEStorageClass
+              ru: HPEStorageClass
+            url: /reference/cr/hpestorageconnection/
+          - title:
+              en: HuaweiStorageClass
+              ru: HuaweiStorageClass
+            url: /reference/cr/huaweistorageclass/
+          - title:
+              en: LocalStorageClass
+              ru: LocalStorageClass
+            url: /reference/cr/localstorageclass/
+          - title:
+              en: LVMLogicalVolumeSnapshot
+              ru: LVMLogicalVolumeSnapshot
+            url: /reference/cr/lvmlogicalvolumesnapshot/
+          - title:
+              en: LVMLogicalVolume
+              ru: LVMLogicalVolume
+            url: /reference/cr/lvmlogicalvolume/
+          - title:
+              en: LvmVolumeGroupBackup
+              ru: LvmVolumeGroupBackup
+            url: /reference/cr/lvmvolumegroupbackup/
+          - title:
+              en: LVMVolumeGroupSet
+              ru: LVMVolumeGroupSet
+            url: /reference/cr/lvmvolumegroupset/
+          - title:
+              en: LVMVolumeGroup
+              ru: LVMVolumeGroup
+            url: /reference/cr/lvmvolumegroup/
+          - title:
+              en: NFSStorageClass
+              ru: NFSStorageClass
+            url: /reference/cr/nfsstorageclass/
+          - title:
+              en: ReplicatedStorageMetadataBackup
+              ru: ReplicatedStorageMetadataBackup
+            url: /reference/cr/replicatedstoragemetadatabackup/
+          - title:
+              en: ReplicatedStorageClass
+              ru: ReplicatedStorageClass
+            url: /reference/cr/replicatedstorageclass/
+          - title:
+              en: ReplicatedStoragePool
+              ru: ReplicatedStoragePool
+            url: /reference/cr/replicatedstoragepool/
+          - title:
+              en: S3StorageClass
+              ru: S3StorageClass
+            url: /reference/cr/s3storageclass/
+          - title:
+              en: SCSIDevice
+              ru: SCSIDevice
+            url: /reference/cr/scsidevice/
+          - title:
+              en: SCSIStorageClass
+              ru: SCSIStorageClass
+            url: /reference/cr/scsistorageclass/
+          - title:
+              en: SCSITarget
+              ru: SCSITarget
+            url: /reference/cr/scsitarget/
+          - title:
+              en: YadroTatlinUnifiedStorageClass
+              ru: YadroTatlinUnifiedStorageClass
+            url: /reference/cr/yadrotatlinunifiedstorageclass/
+          - title:
+              en: YadroTatlinUnifiedStorageConnection
+              ru: YadroTatlinUnifiedStorageConnection
+            url: /reference/cr/yadrotatlinunifiedstorageconnection/
     - title:
         en: Little things
         ru: Приятные мелочи
@@ -1663,6 +1794,7 @@ entries:
         - title:
             en: chrony
             ru: chrony
+          moduleName: chrony
           folders:
             - title:
                 en: Description
@@ -1679,6 +1811,7 @@ entries:
         - title:
             en: namespace-configurator
             ru: namespace-configurator
+          moduleName: namespace-configurator
           folders:
             - title:
                 en: Description
@@ -1720,3 +1853,7 @@ entries:
         en: Used software
         ru: Используемое ПО
       url: /oss_info.html
+    - title:
+        en: Release notes
+        ru: История изменений
+      url: /release-notes.html

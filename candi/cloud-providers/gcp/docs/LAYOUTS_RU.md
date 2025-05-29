@@ -14,8 +14,8 @@ description: "Описание схем размещения и взаимоде
 * Если master не имеет публичного IP-адреса, для установки и доступа в кластер необходим дополнительный инстанс с публичным IP-адресом (например, bastion-хост).
 * Между VPC кластера и другими VPC можно настроить пиринговое соединение.
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vR1oHqbXPJPYxUXwpkRGM6VPpZaNc8WoGH-N0Zqb9GexSc-NQDvsGiXe_Hc-Z1fMQWBRawuoy8FGENt/pub?w=989&amp;h=721)
-<!--- Исходник: https://docs.google.com/drawings/d/1VTAoz6-65q7m99KA933e1phWImirxvb9-OLH9DRtWPE/edit --->
+![resources](../../images/cloud-provider-gcp/gcp-standard.png)
+<!--- Исходник: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10164&t=IvETjbByf1MSQzcm-0 --->
 
 Пример конфигурации схемы размещения:
 
@@ -43,7 +43,7 @@ masterNodeGroup:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Обязательный параметр.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Обязательный параметр.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Обязательный параметр.
     diskSizeGb: 20                  # Необязательный параметр. Если не указан — используется локальный диск.
     disableExternalIP: false        # Необязательный параметр, по умолчанию master-узел имеет externalIP.
     additionalNetworkTags:          # Необязательный параметр.
@@ -57,7 +57,7 @@ nodeGroups:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Обязательный параметр.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Обязательный параметр.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Обязательный параметр.
     diskSizeGb: 20                  # Необязательный параметр. Если не указан — используется локальный диск.
     disableExternalIP: true         # Необязательный параметр, по умолчанию узлы не имеют externalIP.
     additionalNetworkTags:          # Необязательный параметр.
@@ -85,8 +85,8 @@ provider:
 * Для кластера создается отдельная VPC, все узлы кластера имеют публичные IP-адреса.
 * Между VPC кластера и другими VPC можно настроить пиринговое соединение.
 
-![resources](https://docs.google.com/drawings/d/e/2PACX-1vTq2Jlx4k8OXt4acHeW6NvqABsZIPSDoOldDiGERYHWHmmKykSjXZ_ADvKecCC1L8Jjq4143uv5GWDR/pub?w=989&amp;h=721)
-<!--- Исходник: https://docs.google.com/drawings/d/1uhWbQFiycsFkG9D1vNbJNrb33Ih4YMdCxvOX5maW5XQ/edit --->
+![resources](../../images/cloud-provider-gcp/gcp-withoutnat.png)
+<!--- Исходник: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10296&t=IvETjbByf1MSQzcm-0 --->
 
 Пример конфигурации схемы размещения:
 
@@ -107,7 +107,7 @@ masterNodeGroup:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Обязательный параметр.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Обязательный параметр.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Обязательный параметр.
     diskSizeGb: 20                  # Необязательный параметр, Если не указан — используется локальный диск.
     additionalNetworkTags:          # Необязательный параметр.
     - tag1
@@ -120,7 +120,7 @@ nodeGroups:
   - europe-west4-b
   instanceClass:
     machineType: n1-standard-4      # Обязательный параметр.
-    image: projects/ubuntu-os-cloud/global/images/ubuntu-1804-bionic-v20190911  # Обязательный параметр.
+    image: projects/ubuntu-os-cloud/global/images/ubuntu-2404-noble-amd64-v20250313  # Обязательный параметр.
     diskSizeGb: 20                  # Необязательный параметр. Если не указан — используется локальный диск.
     additionalNetworkTags:          # Необязательный параметр.
     - tag1

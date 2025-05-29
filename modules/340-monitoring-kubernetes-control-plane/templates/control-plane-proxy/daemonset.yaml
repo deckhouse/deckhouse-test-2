@@ -10,7 +10,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: control-plane-proxy
   namespace: d8-monitoring
-  {{- include "helm_lib_module_labels" (list . (dict "app" "control-plane-proxy" "workload-resource-policy.deckhouse.io" "every-node")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "control-plane-proxy")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -44,6 +44,7 @@ spec:
         app: control-plane-proxy
     spec:
       serviceAccountName: control-plane-proxy
+      automountServiceAccountToken: true
       hostNetwork: true
       dnsPolicy: ClusterFirstWithHostNet
       {{- include "helm_lib_priority_class" (tuple . "cluster-medium") | nindent 6 }}

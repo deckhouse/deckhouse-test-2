@@ -378,7 +378,7 @@ spec:
     fi
 
     bb-deckhouse-get-disruptive-update-approval
-    bb-yum-install "kernel-${desired_version}"
+    bb-dnf-install "kernel-${desired_version}"
 ```
 
 ## NodeGroup parameters and their result
@@ -688,7 +688,7 @@ spec:
                 privileged_without_host_devices = false
                 runtime_engine = ""
                 runtime_root = ""
-                runtime_type = "io.containerd.runc.v1"
+                runtime_type = "io.containerd.runc.v2"
                 [plugins."io.containerd.grpc.v1.cri".containerd.runtimes.nvidia.options]
                   BinaryName = "/usr/bin/nvidia-container-runtime"
                   SystemdCgroup = false
@@ -766,7 +766,7 @@ spec:
       distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
       curl -s -L https://nvidia.github.io/libnvidia-container/$distribution/libnvidia-container.repo | sudo tee /etc/yum.repos.d/nvidia-container-toolkit.repo
     fi
-    bb-yum-install nvidia-container-toolkit nvidia-driver
+    bb-dnf-install nvidia-container-toolkit nvidia-driver
     nvidia-ctk config --set nvidia-container-runtime.log-level=error --in-place
   nodeGroups:
   - gpu

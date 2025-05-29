@@ -11,8 +11,8 @@ Three layouts are supported. Below is more information about each of them.
 In this placement strategy, nodes do not have public IP addresses allocated to them; they use NAT gateway service in Yandex Cloud to connect to the Internet. NAT Gateway uses random public IP addresses from [dedicated ranges](https://yandex.cloud/ru/docs/overview/concepts/public-ips#virtual-private-cloud). Because of this, it is impossible to whitelist the IP addresses of cloud resources located behind a specific NAT gateway on the side of other services.
 {% endalert %}
 
-![Yandex Cloud Standard Layout scheme](../../images/cloud-provider-yandex/layout-standard.png)
-<!--- Source: https://docs.google.com/drawings/d/1WI8tu-QZYcz3DvYBNlZG4s5OKQ9JKyna7ESHjnjuCVQ/edit --->
+![Yandex Cloud Standard Layout scheme](../../images/cloud-provider-yandex/yandex-standard.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10422&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 
@@ -86,10 +86,10 @@ dhcpOptions:
 
 In this layout, NAT (of any kind) is not used, and each node is assigned a public IP.
 
-> **Caution!** Currently, the cloud-provider-yandex module does not support Security Groups; thus, is why all cluster nodes connect directly to the Internet.
+> **Caution!** The cloud-provider-yandex module does not support Security Groups, so all cluster nodes will be available without connection restrictions.
 
-![Yandex Cloud WithoutNAT Layout scheme](../../images/cloud-provider-yandex/layout-withoutnat.png)
-<!--- Source: https://docs.google.com/drawings/d/1I7M9DquzLNu-aTjqLx1_6ZexPckL__-501Mt393W1fw/edit --->
+![Yandex Cloud WithoutNAT Layout scheme](../../images/cloud-provider-yandex/yandex-withoutnat.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10557&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 
@@ -155,18 +155,19 @@ dhcpOptions:
 
 ## WithNATInstance
 
-In this placement strategy, Deckhouse creates a NAT instance and adds a rule to a route table containing a route to 0.0.0.0/0 with a NAT instance as the next hop.
+In this placement strategy, Deckhouse creates a NAT instance inside new separate subnet and adds a rule to a route table containing a route to `0.0.0.0/0` with a NAT instance as the next hop.
+This separate subnet is needed to avoid routing loop.
 
-If the `withNATInstance.externalSubnetID` parameter is set, the NAT instance will be created in this subnet.
+If the `withNATInstance.internalSubnetID` parameter is set, the NAT instance will be created in this subnet.
 
-IF the `withNATInstance.externalSubnetID` parameter is not set and `withNATInstance.internalSubnetID` is set, the NAT instance will be created in this last subnet.
+If the `withNATInstance.internalSubnetCIDR` parameter is set, then a new internal subnet will be created. The NAT instance will be created in this subnet.
 
-If neither `withNATInstance.externalSubnetID` nor `withNATInstance.internalSubnetID` is set, the NAT instance will be created in the  `ru-central1-a` zone.
+Either `withNATInstance.internalSubnetID` or `withNATInstance.internalSubnetCIDR` parameter is required.
 
-If the IP address of the NAT-instance does not matter, you can pass an empty object `withNATInstance: {}`, then the necessary networks and dynamic IP will be created automatically.
+If the `withNATInstance.externalSubnetID` is provided in addition to previous ones, the NAT instance will be attached to it via secondary interface.
 
-![Yandex Cloud WithNATInstance Layout scheme](../../images/cloud-provider-yandex/layout-withnatinstance.png)
-<!--- Source: https://docs.google.com/drawings/d/1oVpZ_ldcuNxPnGCkx0dRtcAdL7BSEEvmsvbG8Aif1pE/edit --->
+![Yandex Cloud WithNATInstance Layout scheme](../../images/cloud-provider-yandex/yandex-withnatinstance.png)
+<!--- Source: https://www.figma.com/design/T3ycFB7P6vZIL359UJAm7g/%D0%98%D0%BA%D0%BE%D0%BD%D0%BA%D0%B8-%D0%B8-%D1%81%D1%85%D0%B5%D0%BC%D1%8B?node-id=995-10034&t=IvETjbByf1MSQzcm-0 --->
 
 Example of the layout configuration:
 

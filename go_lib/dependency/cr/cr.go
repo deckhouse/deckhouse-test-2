@@ -33,20 +33,23 @@ import (
 
 	"github.com/google/go-containerregistry/pkg/authn"
 	"github.com/google/go-containerregistry/pkg/name"
-	v1 "github.com/google/go-containerregistry/pkg/v1"
+	crv1 "github.com/google/go-containerregistry/pkg/v1"
 	"github.com/google/go-containerregistry/pkg/v1/remote"
-	oci_tools "github.com/sylabs/oci-tools/pkg/mutate"
+	ocitools "github.com/sylabs/oci-tools/pkg/mutate"
 	"github.com/tidwall/gjson"
+	"go.opentelemetry.io/otel"
 )
 
 //go:generate minimock -i Client -o cr_mock.go
 
 const (
 	defaultTimeout = 120 * time.Second
+
+	tracerName = "container-registry-client"
 )
 
 type Client interface {
-	Image(ctx context.Context, tag string) (v1.Image, error)
+	Image(ctx context.Context, tag string) (crv1.Image, error)
 	Digest(ctx context.Context, tag string) (string, error)
 	ListTags(ctx context.Context) ([]string, error)
 }
@@ -64,11 +67,13 @@ func NewClient(repo string, options ...Option) (Client, error) {
 	// make possible to rewrite timeout in runtime
 	if t := os.Getenv("REGISTRY_TIMEOUT"); t != "" {
 		var err error
+
 		timeout, err = time.ParseDuration(t)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("parse duration: %w", err)
 		}
 	}
+
 	opts := &registryOptions{
 		timeout: timeout,
 	}
@@ -85,15 +90,16 @@ func NewClient(repo string, options ...Option) (Client, error) {
 	if !opts.withoutAuth {
 		authConfig, err := readAuthConfig(repo, opts.dockerCfg)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("read auth config: %w", err)
 		}
+
 		r.authConfig = authConfig
 	}
 
 	return r, nil
 }
 
-func (r *client) Image(ctx context.Context, tag string) (v1.Image, error) {
+func (r *client) Image(ctx context.Context, tag string) (crv1.Image, error) {
 	imageURL := r.registryURL + ":" + tag
 
 	var nameOpts []name.Option
@@ -103,7 +109,7 @@ func (r *client) Image(ctx context.Context, tag string) (v1.Image, error) {
 
 	ref, err := name.ParseReference(imageURL, nameOpts...) // parse options available: weak validation, etc.
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("parse reference: %w", err)
 	}
 
 	imageOptions := make([]remote.Option, 0)
@@ -111,42 +117,45 @@ func (r *client) Image(ctx context.Context, tag string) (v1.Image, error) {
 	if !r.options.withoutAuth {
 		imageOptions = append(imageOptions, remote.WithAuth(authn.FromConfig(r.authConfig)))
 	}
+
 	if r.options.ca != "" {
 		imageOptions = append(imageOptions, remote.WithTransport(GetHTTPTransport(r.options.ca)))
 	}
 
 	if r.options.timeout > 0 {
 		// add default timeout to prevent endless request on a huge image
+		// Warning!: don't use cancel() in the defer func here. Otherwise *v1.Image outside this function would be inaccessible due to cancelled context, while reading layers, for example.
 		ctxWTO, cancel := context.WithTimeout(ctx, r.options.timeout)
-		// seems weird - yes! but we can't call cancel here, otherwise Image outside this function would be inaccessible
-		go func() {
-			<-ctxWTO.Done()
-			cancel()
-		}()
+		_ = cancel
 
 		imageOptions = append(imageOptions, remote.WithContext(ctxWTO))
 	} else {
 		imageOptions = append(imageOptions, remote.WithContext(ctx))
 	}
 
-	return remote.Image(
-		ref,
-		imageOptions...,
-	)
+	image, err := remote.Image(ref, imageOptions...)
+	if err != nil {
+		return nil, fmt.Errorf("image: %w", err)
+	}
+
+	return image, nil
 }
 
 func (r *client) ListTags(ctx context.Context) ([]string, error) {
+	ctx, span := otel.Tracer(tracerName).Start(ctx, "ListTags")
+	defer span.End()
+
 	var nameOpts []name.Option
 	if r.options.useHTTP {
 		nameOpts = append(nameOpts, name.Insecure)
 	}
 
-	imageOptions := make([]remote.Option, 0)
+	listOptions := make([]remote.Option, 0)
 	if !r.options.withoutAuth {
-		imageOptions = append(imageOptions, remote.WithAuth(authn.FromConfig(r.authConfig)))
+		listOptions = append(listOptions, remote.WithAuth(authn.FromConfig(r.authConfig)))
 	}
 	if r.options.ca != "" {
-		imageOptions = append(imageOptions, remote.WithTransport(GetHTTPTransport(r.options.ca)))
+		listOptions = append(listOptions, remote.WithTransport(GetHTTPTransport(r.options.ca)))
 	}
 
 	repo, err := name.NewRepository(r.registryURL, nameOpts...)
@@ -157,28 +166,31 @@ func (r *client) ListTags(ctx context.Context) ([]string, error) {
 	if r.options.timeout > 0 {
 		// add default timeout to prevent endless request on a huge amount of tags
 		ctxWTO, cancel := context.WithTimeout(ctx, r.options.timeout)
-		go func() {
-			<-ctxWTO.Done()
-			cancel()
-		}()
+		// here we can use cancel because we return the []strings, not []*v1.Image
+		defer cancel()
 
-		imageOptions = append(imageOptions, remote.WithContext(ctxWTO))
+		listOptions = append(listOptions, remote.WithContext(ctxWTO))
 	} else {
-		imageOptions = append(imageOptions, remote.WithContext(ctx))
+		listOptions = append(listOptions, remote.WithContext(ctx))
 	}
 
-	return remote.List(repo, imageOptions...)
+	list, err := remote.List(repo, listOptions...)
+	if err != nil {
+		return nil, fmt.Errorf("list: %w", err)
+	}
+
+	return list, nil
 }
 
 func (r *client) Digest(ctx context.Context, tag string) (string, error) {
 	image, err := r.Image(ctx, tag)
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("image: %w", err)
 	}
 
 	d, err := image.Digest()
 	if err != nil {
-		return "", err
+		return "", fmt.Errorf("extract digest: %w", err)
 	}
 
 	return d.String(), nil
@@ -187,7 +199,7 @@ func (r *client) Digest(ctx context.Context, tag string) (string, error) {
 func readAuthConfig(repo, dockerCfgBase64 string) (authn.AuthConfig, error) {
 	r, err := parse(repo)
 	if err != nil {
-		return authn.AuthConfig{}, err
+		return authn.AuthConfig{}, fmt.Errorf("parse repo: %w", err)
 	}
 
 	dockerCfg, err := base64.StdEncoding.DecodeString(dockerCfgBase64)
@@ -202,13 +214,13 @@ func readAuthConfig(repo, dockerCfgBase64 string) (authn.AuthConfig, error) {
 	for repoName, repoAuth := range auths {
 		repoNameURL, err := parse(repoName)
 		if err != nil {
-			return authn.AuthConfig{}, err
+			return authn.AuthConfig{}, fmt.Errorf("parse repo name: %w", err)
 		}
 
 		if repoNameURL.Host == r.Host {
 			err := json.Unmarshal([]byte(repoAuth.Raw), &authConfig)
 			if err != nil {
-				return authn.AuthConfig{}, err
+				return authn.AuthConfig{}, fmt.Errorf("unmarshal json: %w", err)
 			}
 			return authConfig, nil
 		}
@@ -304,8 +316,8 @@ func parse(rawURL string) (*url.URL, error) {
 }
 
 // Extract flattens the image to a single layer and returns ReadCloser for fetching the content
-func Extract(image v1.Image) (io.ReadCloser, error) {
-	flattenedImage, err := oci_tools.Squash(image)
+func Extract(image crv1.Image) (io.ReadCloser, error) {
+	flattenedImage, err := ocitools.Squash(image)
 	if err != nil {
 		return nil, fmt.Errorf("flattening image to a single layer: %w", err)
 	}
@@ -314,6 +326,7 @@ func Extract(image v1.Image) (io.ReadCloser, error) {
 	if err != nil {
 		return nil, fmt.Errorf("getting the image's layers: %w", err)
 	}
+
 	if len(imageLayers) != 1 {
 		return nil, fmt.Errorf("unexpected number of layers: %w", err)
 	}

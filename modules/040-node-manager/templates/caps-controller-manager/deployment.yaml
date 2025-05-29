@@ -11,7 +11,7 @@ kind: VerticalPodAutoscaler
 metadata:
   name: caps-controller-manager
   namespace: d8-cloud-instance-manager
-  {{- include "helm_lib_module_labels" (list . (dict "app" "caps-controller-manager" "workload-resource-policy.deckhouse.io" "master")) | nindent 2 }}
+  {{- include "helm_lib_module_labels" (list . (dict "app" "caps-controller-manager")) | nindent 2 }}
 spec:
   targetRef:
     apiVersion: "apps/v1"
@@ -69,6 +69,7 @@ spec:
       {{- include "helm_lib_module_pod_security_context_run_as_user_deckhouse" . | nindent 6 }}
       {{- include "helm_lib_priority_class" (tuple . "system-cluster-critical") | nindent 6 }}
       {{- include "helm_lib_pod_anti_affinity_for_ha" (list . (dict "app" "caps-controller-manager")) | nindent 6 }}
+      automountServiceAccountToken: true
       serviceAccountName: caps-controller-manager
       imagePullSecrets:
         - name: deckhouse-registry

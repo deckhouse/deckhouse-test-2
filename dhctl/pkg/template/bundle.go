@@ -19,6 +19,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	"github.com/Masterminds/semver/v3"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/util/fs"
@@ -27,12 +28,17 @@ import (
 var (
 	candiDir         = "/deckhouse/candi"
 	candiBashibleDir = candiDir + "/bashible"
-	detectBundlePath = candiBashibleDir + "/detect_bundle.sh"
 )
 
 const (
 	bashibleDir = "/var/lib/bashible"
 	stepsDir    = bashibleDir + "/bundle_steps"
+)
+
+const (
+	kubeadmV1Beta4MinKubeVersion = "1.31.0"
+	kubeadmV1Beta4               = "v1beta4"
+	kubeadmV1Beta3               = "v1beta3"
 )
 
 type saveFromTo struct {
@@ -59,20 +65,20 @@ func logTemplatesData(name string, data map[string]interface{}) {
 	log.DebugF("Data %s\n%s", name, string(formattedData))
 }
 
-func PrepareBundle(templateController *Controller, nodeIP, bundleName, devicePath string, metaConfig *config.MetaConfig) error {
+func PrepareBundle(templateController *Controller, nodeIP, devicePath string, metaConfig *config.MetaConfig) error {
 	kubeadmData, err := metaConfig.ConfigForKubeadmTemplates("")
 	if err != nil {
 		return err
 	}
 	logTemplatesData("kubeadm", kubeadmData)
 
-	bashibleData, err := metaConfig.ConfigForBashibleBundleTemplate(bundleName, nodeIP)
+	bashibleData, err := metaConfig.ConfigForBashibleBundleTemplate(nodeIP)
 	if err != nil {
 		return err
 	}
 	logTemplatesData("bashible", bashibleData)
 
-	if err := PrepareBashibleBundle(templateController, bashibleData, metaConfig.ProviderName, bundleName, devicePath); err != nil {
+	if err := PrepareBashibleBundle(templateController, bashibleData, metaConfig.ProviderName, devicePath); err != nil {
 		return err
 	}
 
@@ -85,8 +91,7 @@ func PrepareBundle(templateController *Controller, nodeIP, bundleName, devicePat
 	return templateController.RenderBashBooster(bashboosterDir, bashibleDir, bashibleData)
 }
 
-func PrepareBashibleBundle(templateController *Controller, templateData map[string]interface{}, provider, bundle, devicePath string) error {
-
+func PrepareBashibleBundle(templateController *Controller, templateData map[string]interface{}, provider, devicePath string) error {
 	saveInfo := []saveFromTo{
 		{
 			from: candiBashibleDir,
@@ -133,16 +138,37 @@ func PrepareBashibleBundle(templateController *Controller, templateData map[stri
 	return fs.CreateFileWithContent(devicePathFile, devicePath)
 }
 
+func GetKubeadmVersion(kubernetesVersion string) (string, error) {
+	v, err := semver.NewVersion(kubernetesVersion)
+	if err != nil {
+		return "", err
+	}
+
+	minConstraint, _ := semver.NewConstraint(">=" + kubeadmV1Beta4MinKubeVersion)
+
+	if minConstraint.Check(v) {
+		return kubeadmV1Beta4, nil
+	}
+	return kubeadmV1Beta3, nil
+}
+
 func PrepareKubeadmConfig(templateController *Controller, templateData map[string]interface{}) error {
+	cc := templateData["clusterConfiguration"].(map[string]interface{})
+	k8sVer := cc["kubernetesVersion"].(string)
+	kubeadmVersion, err := GetKubeadmVersion(k8sVer)
+	if err != nil {
+		return err
+	}
+
 	saveInfo := []saveFromTo{
 		{
-			from: filepath.Join(candiDir, "control-plane-kubeadm"),
-			to:   filepath.Join(bashibleDir, "kubeadm"),
+			from: filepath.Join(candiDir, "control-plane-kubeadm", kubeadmVersion),
+			to:   filepath.Join(bashibleDir, "kubeadm", kubeadmVersion),
 			data: templateData,
 		},
 		{
-			from: filepath.Join(candiDir, "control-plane-kubeadm", "patches"),
-			to:   filepath.Join(bashibleDir, "kubeadm", "patches"),
+			from: filepath.Join(candiDir, "control-plane-kubeadm", kubeadmVersion, "patches"),
+			to:   filepath.Join(bashibleDir, "kubeadm", kubeadmVersion, "patches"),
 			data: templateData,
 		},
 	}
@@ -165,17 +191,13 @@ func withoutNodeGroup(data map[string]interface{}) map[string]interface{} {
 	return filteredData
 }
 
-func RenderAndSaveDetectBundle(data map[string]interface{}) (string, error) {
-	log.DebugLn("Start render detect bundle script")
-
-	return RenderAndSaveTemplate("detect_bundle.sh", detectBundlePath, data)
-}
-
 func InitGlobalVars(pwd string) {
 	candiDir = pwd + "/deckhouse/candi"
 	candiBashibleDir = candiDir + "/bashible"
-	detectBundlePath = candiBashibleDir + "/detect_bundle.sh"
 	checkPortsScriptPath = candiBashibleDir + "/preflight/check_ports.sh.tpl"
 	checkLocalhostScriptPath = candiBashibleDir + "/preflight/check_localhost.sh.tpl"
+	checkDeckhouseUserScriptPath = candiBashibleDir + "/preflight/check_deckhouse_user.sh.tpl"
 	preflightScriptDirPath = candiBashibleDir + "/preflight/"
+	killReverseTunnelPath = candiBashibleDir + "/preflight/kill_reverse_tunnel.sh.tpl"
+	checkProxyRevTunnelOpenScriptPath = candiBashibleDir + "/preflight/check_reverse_tunnel_open.sh.tpl"
 }

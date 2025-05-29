@@ -1,0 +1,25 @@
+linters-settings:
+  container:
+    exclude-rules:
+      liveness-probe:
+        - kind: Deployment
+          name: kruise-controller-manager
+          container: kruise
+        - kind: DaemonSet
+          name: failover-cleaner
+      readiness-probe:
+        - kind: DaemonSet
+          name: failover-cleaner
+      read-only-root-filesystem:
+        - kind: DaemonSet
+          name: failover-cleaner
+          container: failover-cleaner
+  templates:
+    exclude-rules:
+      vpa:
+        - kind: DaemonSet
+          name: failover-cleaner
+  openapi:
+    exclude-rules:
+      enum:
+        - "spec.versions[*].schema.openAPIV3Schema.properties.spec.properties.geoIP2.properties.maxmindEditionIDs.items"
