@@ -464,6 +464,53 @@ function test_requirements() {
   if [ -z "${release:-}" ]; then return 1; fi
   release=${release//\"/\\\"}
 
+  # Get current version from cluster and increment minor version
+  >&2 echo "Waiting for DeckhouseRelease in 'Deployed' status..."
+  
+  # Wait for DeckhouseRelease to reach 'Deployed' status with timeout
+  timeout=600  # 10 minutes timeout
+  elapsed=0
+  current_version=""
+  
+  while [ $elapsed -lt $timeout ]; do
+    current_version=$(kubectl get deckhousereleases.deckhouse.io -o jsonpath='{.items[?(@.status.phase=="Deployed")].spec.version}' | head -1)
+    if [ -n "${current_version}" ]; then
+      >&2 echo "Found DeckhouseRelease in 'Deployed' status: ${current_version}"
+      break
+    fi
+    
+    >&2 echo "Waiting for DeckhouseRelease in 'Deployed' status... ($elapsed/$timeout seconds)"
+    sleep 10
+    elapsed=$((elapsed + 10))
+  done
+  
+  if [ $elapsed -ge $timeout ]; then
+    >&2 echo "Timeout: No DeckhouseRelease with 'Deployed' status found within $timeout seconds"
+    # Fallback to 'Delivered' status as before
+    >&2 echo "Falling back to 'Delivered' status..."
+    current_version=$(kubectl get deckhousereleases.deckhouse.io -o jsonpath='{.items[?(@.status.phase=="Delivered")].spec.version}' | head -1)
+  fi
+  
+  >&2 echo "Getting current DeckhouseRelease version from cluster..."
+  if [ -z "${current_version}" ]; then
+    >&2 echo "No DeckhouseRelease with status 'Delivered' found, using default version"
+    next_version="v1.69.3"
+  else
+    >&2 echo "Current delivered version: ${current_version}"
+    # Extract version components (assuming format like v1.69.3)
+    if [[ $current_version =~ ^v([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+      major="${BASH_REMATCH[1]}"
+      minor="${BASH_REMATCH[2]}"
+      patch="${BASH_REMATCH[3]}"
+      # Increment minor version
+      next_minor=$((minor + 1))
+      next_version="v${major}.${next_minor}.${patch}"
+      >&2 echo "Next version will be: ${next_version}"
+    else
+      >&2 echo "Unable to parse version format, using default"
+      next_version="v1.69.3"
+    fi
+  fi
 
   >&2 echo "Run script ... "
 
@@ -507,17 +554,17 @@ spec:
 
 >&2 echo "Apply deckhousereleases ..."
 
-echo 'apiVersion: deckhouse.io/v1alpha1
+echo "apiVersion: deckhouse.io/v1alpha1
 approved: false
 kind: DeckhouseRelease
 metadata:
   annotations:
-    dryrun: "true"
-  name: v1.96.3
+    dryrun: \"true\"
+  name: ${next_version}
 spec:
-  version: v1.96.3
+  version: ${next_version}
   requirements: {}
-' | \$python_binary -c "
+" | \$python_binary -c "
 import yaml, sys
 
 data = yaml.safe_load(sys.stdin)
@@ -531,16 +578,82 @@ print(yaml.dump(data))
 
 rm /tmp/releaseFile.yaml
 
->&2 echo "Sleep 5 seconds before check..."
+>&2 echo "Waiting for DeckhouseRelease to be created..."
 
-sleep 5
+# Wait for the DeckhouseRelease resource to be created (up to 60 seconds)
+timeout=60
+elapsed=0
+while [ \$elapsed -lt \$timeout ]; do
+    if kubectl get deckhousereleases.deckhouse.io ${next_version} >/dev/null 2>&1; then
+        >&2 echo "DeckhouseRelease ${next_version} created successfully"
+        break
+    fi
+    >&2 echo "Waiting for DeckhouseRelease ${next_version} to be created... (\$elapsed/\$timeout seconds)"
+    sleep 5
+    elapsed=\$((elapsed + 5))
+done
+
+if [ \$elapsed -ge \$timeout ]; then
+    >&2 echo "Timeout: DeckhouseRelease ${next_version} was not created within \$timeout seconds"
+    exit 1
+fi
+
+>&2 echo "Waiting for DeckhouseRelease ${next_version} to reach final state..."
+
+# Wait for the DeckhouseRelease to reach a final state (Deployed, Superseded, or Suspended)
+# Timeout of 10 minutes (600 seconds) to allow for release processing
+if ! kubectl wait --for=condition=jsonpath='{.status.phase}' \
+    --timeout=600s \
+    deckhousereleases.deckhouse.io/${next_version} \
+    --jsonpath-value=Deployed \
+    --jsonpath-value=Superseded \
+    --jsonpath-value=Suspended 2>/dev/null; then
+    
+    # If the above wait fails, try individual phase waits
+    >&2 echo "Waiting for DeckhouseRelease ${next_version} phase to be one of: Deployed, Superseded, Suspended"
+    
+    # Use a more robust waiting approach with timeout
+    timeout=600
+    elapsed=0
+    while [ \$elapsed -lt \$timeout ]; do
+        phase=\$(kubectl get deckhousereleases.deckhouse.io ${next_version} -o jsonpath='{.status.phase}' 2>/dev/null || echo "")
+        
+        case "\$phase" in
+            "Deployed"|"Superseded"|"Suspended")
+                >&2 echo "DeckhouseRelease ${next_version} reached final phase: \$phase"
+                break
+                ;;
+            "Pending")
+                >&2 echo "DeckhouseRelease ${next_version} is in Pending phase, continuing to wait... (\$elapsed/\$timeout seconds)"
+                ;;
+            *)
+                >&2 echo "DeckhouseRelease ${next_version} is in phase '\$phase', waiting... (\$elapsed/\$timeout seconds)"
+                ;;
+        esac
+        
+        sleep 10
+        elapsed=\$((elapsed + 10))
+    done
+    
+    if [ \$elapsed -ge \$timeout ]; then
+        >&2 echo "Timeout: DeckhouseRelease ${next_version} did not reach final state within \$timeout seconds"
+        final_phase=\$(kubectl get deckhousereleases.deckhouse.io ${next_version} -o jsonpath='{.status.phase}' 2>/dev/null || echo "unknown")
+        >&2 echo "Final phase: \$final_phase"
+        if [ ! -z "\$(kubectl get deckhousereleases.deckhouse.io ${next_version} -o jsonpath='{.status.message}' 2>/dev/null)" ]; then
+            >&2 echo "Error message: \$(kubectl get deckhousereleases.deckhouse.io ${next_version} -o jsonpath='{.status.message}')"
+        fi
+        exit 1
+    fi
+fi
 
 >&2 echo "Release status: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')"
 if [ ! -z "\$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.message}')" ]; then
   >&2 echo "Error message: \$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.message}')"
 fi
 
-[[ "\$(kubectl get deckhousereleases.deckhouse.io -o 'jsonpath={..status.phase}')" == "Deployed" ]]
+# Check if the release was successfully deployed
+final_phase=\$(kubectl get deckhousereleases.deckhouse.io ${next_version} -o jsonpath='{.status.phase}')
+[[ "\$final_phase" == "Deployed" ]]
 ENDSC
 )
 
@@ -747,6 +860,28 @@ d8 mirror pull d8 --source-login ${D8_MIRROR_USER} --source-password ${D8_MIRROR
   --source "dev-registry.deckhouse.io/sys/deckhouse-oss" --deckhouse-tag "${DEV_BRANCH}"
 # push
 d8 mirror push d8 "${IMAGES_REPO}" --registry-login mirror --registry-password $LOCAL_REGISTRY_MIRROR_PASSWORD
+
+# Checking that it's FE-UPGRADE
+# Extracting the major and minor versions from DECKHOUSE_IMAGE_TAG
+dh_version="${DECKHOUSE_IMAGE_TAG#release-}"
+dh_major="${dh_version%%.*}"
+dh_minor="${dh_version#*.}"
+
+# Extracting the major and minor versions from INITIAL_IMAGE_TAG
+initial_version="${INITIAL_IMAGE_TAG#release-}"
+initial_major="${initial_version%%.*}"
+initial_minor="${initial_version#*.}"
+
+# Check that the major versions match and the minor differs by +1
+if [[ "$dh_major" == "$initial_major" ]] && (( dh_minor == initial_minor + 1 )); then
+    >&2 echo "Pull both versions of fe-upgrade"
+    # pull
+    d8 mirror pull d8 --source-login ${D8_MIRROR_USER} --source-password ${D8_MIRROR_PASSWORD} \
+    --source "dev-registry.deckhouse.io/sys/deckhouse-oss" --deckhouse-tag "${DECKHOUSE_IMAGE_TAG}"
+    # push
+    d8 mirror push d8 "${IMAGES_REPO}" --registry-login mirror --registry-password $LOCAL_REGISTRY_MIRROR_PASSWORD    
+else
+
 set +x
 EOF
        chmod +x /tmp/install-d8-and-pull-push-images.sh
