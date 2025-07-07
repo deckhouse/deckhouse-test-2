@@ -84,6 +84,7 @@ jobs:
       label_doc_changes: ${{ steps.check_labels.outputs.label_doc_changes }}
       run_copyright: ${{ steps.check_labels.outputs.run_copyright }}
       label_copyright: ${{ steps.check_labels.outputs.label_copyright }}
+      run_doc_reference: true
       run_markdown: ${{ steps.check_labels.outputs.run_markdown }}
       label_markdown: ${{ steps.check_labels.outputs.label_markdown }}
       run_grafana_dashboard: ${{ steps.check_labels.outputs.run_grafana_dashboard }}
@@ -132,6 +133,10 @@ jobs:
   doc_spell_check:
     name: Docs Validation (spellcheck)
 {!{ tmpl.Exec "spellcheck_template" (slice $ctx) | strings.Indent 4 }!}
+
+  doc_validation_reference:
+    name: Docs Validation (reference)
+{!{ tmpl.Exec "validation_template" (slice $ctx "doc_reference") | strings.Indent 4 }!}
 
   copyright_validation:
     name: Copyright Validation
