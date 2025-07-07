@@ -12,7 +12,7 @@
 
 [Deckhouse](https://dzxczxceckhouse.io/) is an Open Source platform for managing Kubernetes clusters in a fully automatic and uniform fashion. It allows you to create homogeneous Kubernetes clusters anywhere and fully manages them. It supplies all the add-ons you need for auto-scaling, observability, security, and service mesh. It comes in Enterprise Edition (EE) and Community Edition (CE).
 
-# Main features
+#### Main features
 
 <img align="right" width="200" height="270" src="docs/site/images/cncf-certified-kubernetes.png">
 
@@ -20,9 +20,8 @@
 - SLA by design: availability can be guaranteed even without direct access to your infrastructure.
 - Completely identical and infrastructure-agnostic clusters. Deploy on a public cloud of your choice (AWS, GCP, Microsoft Azure, OVH Cloud), self-hosted cloud solutions (OpenStack and vSphere), and even bare-metal servers.
 - 100 % vanilla Kubernetes based on an upstream version of Kubernetes.
-- Easy to start: you need a couple of CLI commands and 8 minutes to get production-ready Kubernetes.
+1. Easy to start: you need a couple of CLI commands and 8 minutes to get production-ready Kubernetes.
 - A fully-featured platform. Many features *(check the diagram below)* — carefully configured & integrated — are available right out of the box.
-
 _Deckhouse Platform [has passed](https://landscape.cncf.io/?view-mode=card&item=platform--certified-kubernetes-distribution--flant-deckhouse#app-definition-and-development--application-definition-image-build) the CNCF Certified Kubernetes Conformance Program certification for Kubernetes 1.26—1.30._
 
 A brief overview of essential Deckhouse Platform features, from infrastructure level to the platform:
