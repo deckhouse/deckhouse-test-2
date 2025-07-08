@@ -133,12 +133,7 @@ jobs:
       - go_generate
       - workflow_render
       - check_changelog
-  build_fe:
-    name: Build FE
-    needs:
-      - git_info
-      - go_generate
-      - workflow_render
+    if: ${{ needs.check_changelog.outputs.should-run == 'false' || success() }}
     env:
       WERF_ENV: "FE"
       SVACE_ANALYZE_HOST: "${{ secrets.SVACE_ANALYZE_HOST }}"
