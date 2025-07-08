@@ -125,6 +125,9 @@ echo "  diff: ${affected} files affected, ${added} lines added, ${removed} lines
 
 # Run validation script using preinstalled Go.
 if ! "${VALIDATION_SCRIPT}" "${diffFile}" ; then
-  echo -e "\nFix the problem or skip the validation.\nTo skip the validation set '${SKIP_LABEL_NAME}' label onto the PR and re-run validation job (in some cases you have to re-run ALL validation jobs to take effect)."
+  # Check length SKIP_LABEL_NAME
+  if [ -n "${SKIP_LABEL_NAME}" ]; then
+    echo -e "\nFix the problem or skip the validation.\nTo skip the validation set '${SKIP_LABEL_NAME}' label onto the PR and re-run validation job (in some cases you have to re-run ALL validation jobs to take effect)."
+  fi
   exit 1
 fi
