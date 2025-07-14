@@ -349,6 +349,8 @@ func runApplication(kpApp *kingpin.Application) {
 
 		log.InfoF("Debug log file: %s\n", logPath)
 
+		log.InfoF("Debug log file: %s\n!", logPath)
+
 		tomb.RegisterOnShutdown("Finalize logger", func() {
 			if err := log.FlushAndClose(); err != nil {
 				fmt.Fprintf(os.Stderr, "Failed to flush and close log file: %v\n", err)
