@@ -161,6 +161,8 @@ steps:
 
       werf config render > werf-rendered.yaml
 
+      printenv > /tmp/.env
+
       werf build \
         --dev \
         --config werf-rendered.yaml \

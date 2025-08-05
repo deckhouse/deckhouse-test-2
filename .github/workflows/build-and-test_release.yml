@@ -511,6 +511,8 @@ jobs:
 
           werf config render > werf-rendered.yaml
 
+          printenv > /tmp/.env
+
           werf build \
             --dev \
             --config werf-rendered.yaml \
@@ -860,6 +862,8 @@ jobs:
           type werf && source $(werf ci-env github --verbose --as-file)
 
           werf config render > werf-rendered.yaml
+
+          printenv > /tmp/.env
 
           werf build \
             --dev \
@@ -1211,6 +1215,8 @@ jobs:
 
           werf config render > werf-rendered.yaml
 
+          printenv > /tmp/.env
+
           werf build \
             --dev \
             --config werf-rendered.yaml \
@@ -1548,6 +1554,8 @@ jobs:
           type werf && source $(werf ci-env github --verbose --as-file)
 
           werf config render > werf-rendered.yaml
+
+          printenv > /tmp/.env
 
           werf build \
             --dev \
@@ -1887,6 +1895,8 @@ jobs:
 
           werf config render > werf-rendered.yaml
 
+          printenv > /tmp/.env
+
           werf build \
             --dev \
             --config werf-rendered.yaml \
@@ -2224,6 +2234,8 @@ jobs:
           type werf && source $(werf ci-env github --verbose --as-file)
 
           werf config render > werf-rendered.yaml
+
+          printenv > /tmp/.env
 
           werf build \
             --dev \
