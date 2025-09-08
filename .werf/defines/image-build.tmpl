@@ -10,7 +10,18 @@
 {{- define "image-build.build" }}
 {{-   if eq $.SVACE_ENABLED "true" }}
 echo "Using svace for build"
-svace build --init --clear-build-dir {{ .BuildCommand }}
+svace build --init --clear-build-dir {{ get . "SvaceBuildOptions" }} {{ .BuildCommand }}
+{{- if hasKey . "SvaceImportSettings" }}
+  {{- $Root := . }}
+  {{- $content := "" }}
+touch .svace-dir/import-settings
+  {{- range $key, $value := .SvaceImportSettings }}
+    {{- $content = (printf "%s%s=%s\n" $content $key (get $Root $value)) }}
+  {{- end }}
+cat > .svace-dir/import-settings <<EOF
+{{ trim $content }}
+EOF
+{{- end }}
 attempt=0
 retries=5
 success=0
