@@ -115,7 +115,7 @@ jobs:
     needs:
       - build_fe
     steps:
-      - uses: deckhouse/modules-actions/svace_analyze@v4
+      - uses: deckhouse/modules-actions/svace_analyze@feat/svace-import-settings
         with:
           project_group: "DKP"
           ci_commit_ref_name: ${{ github.event.pull_request.head.ref }}
