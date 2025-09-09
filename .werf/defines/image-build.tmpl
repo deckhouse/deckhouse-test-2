@@ -14,7 +14,6 @@ svace build --init --clear-build-dir {{ get . "SvaceBuildOptions" }} {{ .BuildCo
 {{- if hasKey . "SvaceImportSettings" }}
   {{- $Root := . }}
   {{- $content := "" }}
-touch .svace-dir/import-settings
   {{- range $key, $value := .SvaceImportSettings }}
     {{- $content = (printf "%s%s=%s\n" $content $key (get $Root $value)) }}
   {{- end }}

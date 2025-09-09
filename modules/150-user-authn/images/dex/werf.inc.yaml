@@ -1,3 +1,5 @@
+{{- $dexVersion := "v2.42.0" }}
+
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}
 fromImage: common/distroless
@@ -10,8 +12,8 @@ import:
     add: /web
     to: /web
     before: setup
-git:    
-{{- include "image mount points" . }}    
+git:
+{{- include "image mount points" . }}
 imageSpec:
   config:
     entrypoint: ["/usr/local/bin/dex", "serve", "/etc/dex/config.docker.yaml"]
@@ -23,7 +25,7 @@ final: false
 git:
   - url: {{ $.SOURCE_REPO }}/dexidp/dex.git
     to: /src
-    tag: v2.42.0
+    tag: {{ $dexVersion }}
     stageDependencies:
       install:
         - '**/*.go'
@@ -63,6 +65,11 @@ shell:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=1 GOOS=linux GOARCH=amd64
     - cd /src
     - |
+      {{- $_ := set . "version" $dexVersion -}}
+      {{- $SvaceImportSettings := dict }}
+      {{- $_ := set $SvaceImportSettings "ProjectName" "ProjectName" }}
+      {{- $_ := set $SvaceImportSettings "Branch" "version" }}
+      {{- $_ := set . "SvaceImportSettings" $SvaceImportSettings }}
       {{- include "image-build.build" (set $ "BuildCommand" `go build -ldflags '-s -w' -ldflags "-linkmode external -extldflags -static" -tags netgo -o dex ./cmd/dex`) | indent 6 }}
     - chown 64535:64535 dex
     - chmod 0700 dex
