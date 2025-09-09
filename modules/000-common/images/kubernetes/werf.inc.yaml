@@ -107,7 +107,7 @@ shell:
   {{- $buildContext := deepCopy $ -}}
   {{- $_ := set $buildContext "BuildCommand" `make all WHAT=cmd/kube-apiserver GOLDFLAGS="-s -w -extldflags \"-static\"" KUBE_STATIC_OVERRIDES="kubelet"` -}}
   {{- $_ := set $buildContext "ProjectName" (printf "%s/kubernetes-api-%s" $.ModuleName $version) -}}
-  {{- $_ := set $buildContext "ImportProjectName" (printf "%s/kubernetes-api" $.ModuleName) -}}
+  {{- $_ := set $buildContext "ImportProjectName" (printf "%s/%s" $.ModuleName $.ImageName) -}}
   {{- $_ := set $buildContext "version" $version -}}
   {{- $SvaceImportSettings := dict }}
   {{- $_ := set $SvaceImportSettings "ProjectName" "ImportProjectName" }}
