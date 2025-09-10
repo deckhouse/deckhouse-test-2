@@ -75,13 +75,7 @@ shell:
   {{- $buildContext := deepCopy $ -}}
   {{- $parted_version := split "." $runc_version -}}
   {{- $_ := set $buildContext "BuildCommand" `make COMMIT="$(cat COMMIT)" static` -}}
-  {{- $_ := set $buildContext "ProjectName" (printf "%s/runc-%s.%s" $.ModuleName $parted_version._0 $parted_version._1) -}}
-  {{- $_ := set $buildContext "ImportProjectName" (printf "%s/%s/runc" $.ModuleName $.ImageName) -}}
-  {{- $_ := set $buildContext "version" (printf "%s.%s" $parted_version._0 $parted_version._1) -}}
-  {{- $SvaceImportSettings := dict }}
-  {{- $_ := set $SvaceImportSettings "ProjectName" "ImportProjectName" }}
-  {{- $_ := set $SvaceImportSettings "Branch" "version" }}
-  {{- $_ := set $buildContext "SvaceImportSettings" $SvaceImportSettings }}
+  {{- $_ := set $buildContext "ProjectName" (printf "%s/%s/runc-%s.%s" $.ModuleName $.ImageName $parted_version._0 $parted_version._1) -}}
   {{- include "image-build.build" $buildContext | indent 6 }}
   - mv runc /out/runc
   - chown -R 64535:64535 /out
