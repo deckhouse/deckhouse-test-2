@@ -389,6 +389,7 @@ check_e2e_labels:
   name: Check e2e labels
   runs-on: "regular"
   permissions:
+    contents: read
     issues: write
   outputs:
 {!{ range $criName := $ctx.criNames }!}
