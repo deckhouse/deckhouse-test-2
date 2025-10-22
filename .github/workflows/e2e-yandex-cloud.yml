@@ -238,7 +238,6 @@ jobs:
     name: Check e2e labels
     runs-on: "regular"
     permissions:
-      contents: read
       issues: write
     outputs:
 
