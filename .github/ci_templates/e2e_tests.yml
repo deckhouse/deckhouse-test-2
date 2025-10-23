@@ -390,7 +390,7 @@ check_e2e_labels:
   runs-on: "regular"
   permissions:
     issues: write
-    pull_request: write
+    pull-requests: write
     contents: read
   outputs:
 {!{ range $criName := $ctx.criNames }!}
