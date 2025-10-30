@@ -560,6 +560,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -593,6 +604,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
@@ -847,6 +859,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -880,6 +903,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
@@ -1134,6 +1158,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1167,6 +1202,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
@@ -1421,6 +1457,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1454,6 +1501,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
@@ -1708,6 +1756,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -1741,6 +1800,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
@@ -1995,6 +2055,17 @@ jobs:
             docker image rmi "${IMAGE_DST}" || true;
           }
 
+          # SRC_REGISTRY is a registry where source image can be found
+          # SRC is a source image name (stage name from werf build report).
+          # DST is a destination registry where att file should be pushed.
+          function copy_att() {
+            SRC_REGISTRY=$1
+            SRC=$2
+            DST=$3      
+            DIGEST=$(crane digest $2 |sed s#sha256:#sha256-#)
+            crane copy ${SRC_REGISTRY}:${DIGEST}.att ${DST}:${DIGEST}.att
+          }
+
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
 
@@ -2028,6 +2099,7 @@ jobs:
             echo "⚓️ 💫 [$(date -u)] Publish images to dev-registry for branch '${CI_COMMIT_BRANCH}' and edition '${WERF_ENV}' using tag '${IMAGE_TAG}' ..."
             publish_image 'dev' "${REGISTRY_PATH}:${IMAGE_TAG}"
             publish_image 'dev/install' "${REGISTRY_PATH}/install:${IMAGE_TAG}"
+            copy_att "${REGISTRY_PATH}" "$(jq -r '.Images."dev/install".DockerImageName' images_tags_werf.json)" "${REGISTRY_PATH}/install"
             publish_image 'dev/install-standalone' "${REGISTRY_PATH}/install-standalone:${IMAGE_TAG}"
             publish_image 'e2e-opentofu-eks' "${REGISTRY_PATH}/e2e-opentofu-eks:${IMAGE_TAG}"
 
