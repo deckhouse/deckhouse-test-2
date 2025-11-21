@@ -325,7 +325,7 @@ jobs:
           REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
           TRANSIT_SECRET_ENGINE_PATH: "dh-signer-dev"
-          WERF_VAULT_AUTH_JWT: ${{ steps.getjwt.outputs.VAULT_TOKEN }}
+          VAULT_JWT: ${{ steps.getjwt.outputs.VAULT_TOKEN }}
           VAULT_ADDR: ${{ steps.secrets.outputs.VAULT_ADDR }}
           WERF_VAULT_AUTH_ROLE: ${{ steps.secrets.outputs.VAULT_ROLE_ID }}
           WERF_VAULT_AUTH_PATH: "github"
