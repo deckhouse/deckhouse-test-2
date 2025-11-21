@@ -292,16 +292,16 @@ jobs:
       - name: Check generated code
         run: git diff --exit-code || (echo 'Regenerated code does not match source, please run "make generate"' && exit 1)
 
-      - name: Get JWT for werf sign
-        id: getjwt
-        uses: hashicorp/vault-action@v2
-        with: 
-          url: https://seguro.flant.com
-          path: github
-          role: "dh-signer-dev_dh-signer-dev"
-          method: jwt
-          exportToken: true
-          jwtGithubAudience: github-access-aud
+      - name: Install OIDC Client from Core Package
+        run: npm install @actions/core@1.6.0 @actions/http-client
+      - name: Get Id Token
+        uses: actions/github-script@v8
+        id: idtoken
+        with:
+          script: |
+            const coredemo = require('@actions/core')
+            let id_token = await coredemo.getIDToken()
+            coredemo.setOutput('id_token', id_token)
 
       - name: Build and push deckhouse images
         id: build
@@ -320,14 +320,12 @@ jobs:
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
           COSIGN_VAULT_KEY: "dh-2025-aug-dev"
-          COSIGN_TRANSIT_SECRET_ENGINE_PATH: "dh-signer-dev"
-          COSIGN_AUTH_ROLE: "dh-signer-dev_dh-signer-dev"
           REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
           TRANSIT_SECRET_ENGINE_PATH: "dh-signer-dev"
-          VAULT_JWT: ${{ steps.getjwt.outputs.VAULT_TOKEN }}
+          WERF_VAULT_AUTH_JWT: ${{ steps.idtoken.outputs.id_token }}
           VAULT_ADDR: ${{ steps.secrets.outputs.VAULT_ADDR }}
-          WERF_VAULT_AUTH_ROLE: ${{ steps.secrets.outputs.VAULT_ROLE_ID }}
+          WERF_VAULT_AUTH_ROLE: "dh-signer-dev_dh-signer-dev"
           WERF_VAULT_AUTH_PATH: "github"
           WERF_SIGN_CERT: ${{ steps.secrets.outputs.WERF_SIGN_CERT }}
           WERF_SIGN_INTERMEDIATES: ${{ steps.secrets.outputs.WERF_SIGN_INTERMEDIATES }}
