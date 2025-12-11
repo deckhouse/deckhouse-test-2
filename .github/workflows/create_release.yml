@@ -22,10 +22,10 @@ on:
   workflow_dispatch:
     inputs:
       tag_name:
-        description: 'Tag name for the release (e.g., v1.0.0)'
+        description: "Tag name for the release (e.g., v1.0.0)"
         required: true
 env:
-  PYTHON_VERSION: '3.9'
+  PYTHON_VERSION: "3.9"
 
 jobs:
   create-release:
@@ -33,7 +33,6 @@ jobs:
     runs-on: "regular"
 
     steps:
-
       # <template: checkout_step>
       - name: Checkout sources
         uses: actions/checkout@v3.5.2
@@ -41,7 +40,7 @@ jobs:
       # </template: checkout_step>
       - name: Collect Changelog
         id: changelog
-        uses: deckhouse/changelog-action@v2
+        uses: deckhouse/changelog-action@8c67a47b1b845033e283de0c4c0c8495a586ad56
         with:
           token: ${{ secrets.CHANGELOG_ACCESS_TOKEN }}
           repo: ${{ github.repository }}
@@ -83,4 +82,3 @@ jobs:
         run: |
           bash ./.github/scripts/send-report.sh --webhook "ci_fail"
       # </template: send_fail_report>
-

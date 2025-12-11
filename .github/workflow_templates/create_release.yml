@@ -32,7 +32,7 @@ jobs:
       {!{ tmpl.Exec "checkout_step" . | strings.Indent 6 }!}
       - name: Collect Changelog
         id: changelog
-        uses: deckhouse/changelog-action@v2
+        uses: deckhouse/changelog-action@8c67a47b1b845033e283de0c4c0c8495a586ad56
         with:
           token: ${{ secrets.CHANGELOG_ACCESS_TOKEN }}
           repo: ${{ github.repository }}
