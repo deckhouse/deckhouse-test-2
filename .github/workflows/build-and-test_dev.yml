@@ -2918,7 +2918,7 @@ jobs:
             echo "TESTS_IMAGE_NAME is empty"
             exit 1
           fi
-
+          # тест линтера
           # Decode image name from gzip+base64.
           TESTS_IMAGE_NAME=$(echo ${TESTS_IMAGE_NAME} | base64 -d | gunzip)
 
