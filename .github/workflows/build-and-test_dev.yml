@@ -2922,7 +2922,7 @@ jobs:
           # Decode image name from gzip+base64.
           TESTS_IMAGE_NAME=$(echo ${TESTS_IMAGE_NAME} | base64 -d | gunzip)
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
+          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret. Comment for test
           echo "Tests image name: '${TESTS_IMAGE_NAME}'" | tr '[:lower:]' '[:upper:]'
           echo "⚓️ 📥 [$(date -u)] Pull 'tests' image..."
           docker pull ${TESTS_IMAGE_NAME}
