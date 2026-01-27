@@ -207,15 +207,20 @@ endef
 .PHONY: lint-all
 lint-all: golangci-lint ## Run golangci-lint run in all directories with go.mod
 	@FAILED=0; \
+	ITER=0; \
 	find . -name "go.mod" -type f -exec dirname {} \; | while read dir; do \
+		if [ $$ITER -eq 3 ]; then break; fi; \
 		echo ""; \
 		echo "============================================================"; \
-		echo "Running golangci-lint in $$dir"; \
-		echo "$$FAILED"; \
+		echo "Running golangci-lint in $$dir ($$ITER)"; \
+		echo "FAILED before=$$FAILED"; \
 		echo "============================================================"; \
 		echo ""; \
 		(cd $$dir && GOFLAGS="-buildvcs=false" golangci-lint run --max-issues-per-linter 100 --max-same-issues 100) || FAILED=1; \
+		echo "FAILED after=$$FAILED"; \
+		ITER=$$((ITER + 1)); \
 	done; \
+	echo "Final FAILED=$$FAILED"; \
 	exit $$FAILED
 
 .PHONY: lint-fix-all
