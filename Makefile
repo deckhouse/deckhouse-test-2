@@ -207,7 +207,7 @@ endef
 .PHONY: lint-all
 lint-all: golangci-lint ## Run golangci-lint run in all directories with go.mod
 	@FAILED=0; \
-	for dir in $$(find . -name "go.mod" -type f -exec dirname {} \; | head -15); do \
+	for dir in $$(find . -name "go.mod" -type f -exec dirname {} \; ); do \
 		echo ""; \
 		echo "============================================================"; \
 		echo "Running golangci-lint in $$dir"; \
