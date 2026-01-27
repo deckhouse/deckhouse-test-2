@@ -221,7 +221,7 @@ lint-all: golangci-lint ## Run golangci-lint run in all directories with go.mod
 		ITER=$$((ITER + 1)); \
 	done; \
 	echo "Final FAILED=$$FAILED"; \
-	exit $$FAILED
+	exit 1
 
 .PHONY: lint-fix-all
 lint-fix-all: golangci-lint ## Run golangci-lint run --fix in all directories with go.mod
