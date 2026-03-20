@@ -58,7 +58,7 @@ jobs:
       - build_fe
     env:
       WERF_ENV: "{!{$werfEnv}!}"
-!{ tmpl.Exec "build_template" (slice $ctx "pre-release") | strings.Indent 4 }!}
+{!{ tmpl.Exec "build_template" (slice $ctx "pre-release") | strings.Indent 4 }!}
 {!{ tmpl.Exec "send_fail_report" . | strings.Indent 6 }!}   
 {!{ end }!}
 
@@ -246,8 +246,7 @@ jobs:
     needs:
       - build_fe
 {!{ range $werfEnv := slice "CE" "EE" "BE" "SE" "SE-plus" "CSE" }!}
-      - build_{!{$werfEnv}!}
-{!{ end }!}
+      - build_{!{$werfEnv}!}{!{ end }!}
     if: ${{ always() && needs.build_fe.result == 'success' }}
     runs-on: regular
     steps:
