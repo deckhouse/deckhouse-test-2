@@ -28,3 +28,4 @@ shell:
 imageSpec:
   config:
     user: "64535:64535"
+
