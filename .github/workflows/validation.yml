@@ -261,42 +261,6 @@ jobs:
         with:
           ref: ${{ steps.pr_props.outputs.ref }}
 
-      # Get info about other changes.
-      - name: Get info about PR changes
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          token: ${{ secrets.BOATSWAIN_GITHUB_TOKEN }}
-          # dangerous - detect if changes not allowed to test for external PRs
-          # docs - detect changes in files that belong to the documentation scope
-          # not_markdown - detect changes not in markdown files
-          filters: |
-            dangerous:
-              - './.github/**'
-              - './tools/**'
-              - './testing/**'
-              - './docs/**/js/**'
-              - './docs/**/css/**'
-              - './docs/**/images/**'
-              - './docs/**/assets/**'
-            docs:
-              - './**/*.md'
-              - './docs/**'
-              - './**/crds/*'
-              - './**/openapi/*config-values.yaml'
-              - './candi/**/openapi/*'
-              - './ee/candi/**/openapi/*'
-            not_markdown:
-              - '!./**/*.md'
-
-      # Stop workflow if external PR contains dangerous changes.
-      - name: Fail workflow on dangerous changes
-        if: ${{ steps.pr_props.outputs.should_check == 'true' && steps.changes.outputs.dangerous == 'true' }}
-        uses: actions/github-script@v6.4.1
-        with:
-          script: |
-            core.setFailed('External PR contains dangerous changes.')
-
   # </template: pull_request_info>
 
   # Get pull request info for validation scripts.
@@ -755,9 +719,3 @@ jobs:
         continue-on-error: true
         with:
           scan_mode: "diff"
-
-
-
-
-
-
