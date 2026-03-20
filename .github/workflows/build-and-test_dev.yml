@@ -250,7 +250,6 @@ jobs:
         with:
           ref: ${{ steps.pr_props.outputs.ref }}
 
-
   # </template: pull_request_info>
 
   # <template: git_info_job>
