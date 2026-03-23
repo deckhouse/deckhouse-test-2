@@ -35,7 +35,7 @@
       ],
       "status": "not_affected",
       "justification": "vulnerable_code_cannot_be_controlled_by_adversary",
-      "impact_statement": "Уязвимость связана с поведением kubelet при работе с GitRepo volume, cluster-autoscaler не запускает kubelet и не инициирует монтирование gitRepo, библиотека k8s.io/kubernetes используется только для типов/утилит, уязвимый код не используется в провайдере.",
+      "impact_statement": "Уязвимость связана с поведением kubelet при работе с GitRepo volume, cluster-autoscaler не запускает kubelet и не инициирует монтирование gitRepo,  библиотека k8s.io/kubernetes используется только для типов/утилит, уязвимый код не используется в провайдере.",
       "timestamp": "2025-10-16T07:13:22.026446Z"
     },
     {
