@@ -6,7 +6,7 @@ require (
 	github.com/coreos/go-iptables v0.8.0
 	github.com/deckhouse/deckhouse/pkg/log v0.0.0-20250704135428-7600b0581807
 	github.com/fsnotify/fsnotify v1.8.0
-	k8s.io/utils v0.0.0-20250321185631-1f6e0b77f77e
+	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5
 )
 
 require (

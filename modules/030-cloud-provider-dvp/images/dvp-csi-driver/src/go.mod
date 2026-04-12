@@ -13,8 +13,9 @@ require (
 	golang.org/x/sys v0.32.0
 	google.golang.org/grpc v1.70.0
 	k8s.io/apimachinery v0.33.3
+	k8s.io/cloud-provider v0.32.1
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/utils v0.0.0-20241210054802-24370beab758
+	k8s.io/utils v0.0.0-20260319190234-28399d86e0b5
 )
 
 require (
@@ -58,7 +59,6 @@ require (
 	k8s.io/api v0.33.3 // indirect
 	k8s.io/apiextensions-apiserver v0.33.3 // indirect
 	k8s.io/client-go v0.33.3 // indirect
-	k8s.io/cloud-provider v0.32.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250701173324-9bd5c66d9911 // indirect
 	kubevirt.io/api v1.3.1 // indirect
 	kubevirt.io/containerized-data-importer-api v1.57.0-alpha1 // indirect
