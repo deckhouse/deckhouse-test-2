@@ -58,6 +58,12 @@ env:
   WERF_LOG_TIME: true
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
   GOPROXY: "${{vars.GOPROXY}}"
+  #SIGN
+  VAULT_ADDR: "https://seguro.flant.com"
+  VAULT_LOGIN_NAMESPACE: "github"
+  VAULT_ROLE: "dh-signer-dev_dh-signer-dev"
+  TRANSIT_SECRET_ENGINE_PATH: "dh-signer-dev"
+
   # </template: werf_envs>
   DEPLOY_CHANNEL: rock-solid
 
