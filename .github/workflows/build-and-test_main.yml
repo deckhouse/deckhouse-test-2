@@ -309,7 +309,8 @@ jobs:
         id: build
         timeout-minutes: 120
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 3
+          WERF_PARALLEL_TASKS_LIMIT: 1
+          WERF_PARALLEL: "false"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
           DECKHOUSE_DEV_REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}

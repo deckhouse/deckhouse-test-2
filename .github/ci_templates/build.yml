@@ -83,7 +83,8 @@ steps:
     id: build
     timeout-minutes: 120
     env:
-      WERF_PARALLEL_TASKS_LIMIT: 3
+      WERF_PARALLEL_TASKS_LIMIT: 1
+      WERF_PARALLEL: "false"
       WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
 {!{- if eq $buildType "dev" }!}
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
