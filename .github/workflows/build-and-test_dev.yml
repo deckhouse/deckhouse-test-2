@@ -531,7 +531,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -610,7 +610,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -832,7 +831,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -911,7 +910,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1132,7 +1130,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -1211,7 +1209,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1432,7 +1429,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -1511,7 +1508,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1732,7 +1728,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -1811,7 +1807,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -2032,7 +2027,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -2111,7 +2106,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -2332,7 +2326,7 @@ jobs:
 
       - name: Build and push deckhouse images
         id: build
-        timeout-minutes: 120
+        timeout-minutes: 30
         env:
           WERF_PARALLEL_TASKS_LIMIT: 1
           WERF_PARALLEL: "false"
@@ -2411,7 +2405,6 @@ jobs:
 
           type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
           d8-build dk build --log-debug \
-            --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
