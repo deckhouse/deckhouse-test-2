@@ -533,8 +533,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -608,8 +608,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -833,8 +833,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -908,8 +908,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1132,8 +1132,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -1207,8 +1207,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1431,8 +1431,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -1506,8 +1506,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1730,8 +1730,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -1805,8 +1805,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -2029,8 +2029,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -2104,8 +2104,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -2328,8 +2328,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER : ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -2403,8 +2403,8 @@ jobs:
           # Use it as image tag. Add suffix to not overlap with PRs in main repo.
           IMAGE_TAG=${CI_COMMIT_REF_SLUG}${IMAGE_EDITION:+-${IMAGE_EDITION}}${REPO_SUFFIX:+-${REPO_SUFFIX}}
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 

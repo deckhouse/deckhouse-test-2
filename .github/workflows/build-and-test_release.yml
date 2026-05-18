@@ -419,8 +419,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -499,11 +499,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -746,8 +746,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -826,11 +826,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1073,8 +1073,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -1153,11 +1153,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1388,8 +1388,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -1468,11 +1468,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -1703,8 +1703,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -1783,11 +1783,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
@@ -2018,8 +2018,8 @@ jobs:
         id: build
         timeout-minutes: 30
         env:
-          WERF_PARALLEL_TASKS_LIMIT: 1
-          WERF_PARALLEL: "false"
+          WERF_PARALLEL_TASKS_LIMIT: 5
+          WERF_PARALLEL: "true"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           DECKHOUSE_REGISTRY_STAGE_USER: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_USER }}
           DECKHOUSE_REGISTRY_STAGE_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_REGISTRY_STAGE_PASSWORD }}
@@ -2098,11 +2098,11 @@ jobs:
 
           # The Git tag may contain a '+' sign, so use slugify for this situation.
           # Slugify doesn't change a tag with safe-only characters.
-          IMAGE_TAG=$(d8-build dk slugify --format docker-tag "${CI_COMMIT_TAG}")
+          IMAGE_TAG=$(werf-test slugify --format docker-tag "${CI_COMMIT_TAG}")
           export WERF_DISABLE_META_TAGS=true
 
-          type d8-build && source $(d8-build dk ci-env github --verbose --as-file)
-          d8-build dk build --log-debug \
+          type werf-test && source $(werf-test ci-env github --verbose --as-file)
+          werf-test build --log-debug \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
 
