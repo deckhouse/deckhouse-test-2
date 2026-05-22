@@ -25,11 +25,11 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-
 	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
-	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/plan"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/telemetry"
+
+	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/plan"
 )
 
 const (
