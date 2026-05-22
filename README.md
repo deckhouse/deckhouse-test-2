@@ -34,6 +34,8 @@ The diagram below illustrates how Deckhouse Kubernetes Platform features are dis
 
 ![Deckhouse Kubernetes Platform infrastructure](docs/site/images/diagrams/infrastructure.png)
 
+AAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+
 ## CE vs. EE
 
 While Deckhouse Kubernetes Platform CE is available free as an Open Source, EE is a commercial version of the platform that can be purchased with a paid subscription. EE's source is also open, but it's neither Open Source nor free to use.
