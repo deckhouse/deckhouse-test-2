@@ -18,7 +18,6 @@ import (
 	"embed"
 	"errors"
 	"os"
-
 	"github.com/deckhouse/deckhouse/dhctl/pkg/log"
 )
 
