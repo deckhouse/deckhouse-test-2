@@ -15,10 +15,10 @@
 package kpcontext
 
 import (
-	"context"
-
 	"gopkg.in/alecthomas/kingpin.v2"
+	"context"
 )
+	
 
 func SetContextToAction(ctx context.Context) kingpin.Action {
 	return func(c *kingpin.ParseContext) error {
