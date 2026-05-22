@@ -20,10 +20,10 @@ import (
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/yaml"
+	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/client"
 
 	"github.com/deckhouse/deckhouse/go_lib/registry/pki"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/client"
 )
 
 const (
