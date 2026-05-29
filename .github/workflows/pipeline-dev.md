@@ -33,3 +33,9 @@ Use 'e2e/run' labels to activate e2e test for particular provider.
 ## Web deploy
 
 Use 'deploy/web' labels to deploy site and documentation images to 'test' or 'stage' environment.
+
+
+
+
+
+
