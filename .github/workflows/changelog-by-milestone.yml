@@ -112,6 +112,8 @@ jobs:
     name: Changelog ${{ matrix.milestone.title }}
     runs-on: ubuntu-latest
     needs: milestones
+    permissions:
+      id-token: write
     strategy:
       max-parallel: 1
       matrix:

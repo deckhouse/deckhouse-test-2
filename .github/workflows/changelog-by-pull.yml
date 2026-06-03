@@ -37,6 +37,8 @@ jobs:
       )
     name: Changelog ${{ github.event.pull_request.milestone.title }}
     runs-on: "regular"
+    permissions:
+      id-token: write
     steps:
       - name: Checkout
         uses: actions/checkout@v3.5.2
