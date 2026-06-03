@@ -26,6 +26,17 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Split repository name
+        id: split
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          if [ $REPO == "deckhouse/deckhouse" ]; then
+            echo "name=deckhouse" >> $GITHUB_OUTPUT
+          else
+            echo "name=deckhouse-test" >> $GITHUB_OUTPUT
+          fi
+
       - name: Import secrets
         id: secrets
         uses: hashicorp/vault-action@v2
