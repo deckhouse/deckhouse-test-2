@@ -21,6 +21,7 @@ jobs:
     name: Milestone Changelog
     runs-on: "regular"
     permissions:
+      contents: read
       id-token: write
     steps:
       - name: Checkout
