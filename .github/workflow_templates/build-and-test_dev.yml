@@ -85,7 +85,6 @@ jobs:
     secrets: inherit
 
   build_tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Build tests image
     needs:
       - git_info
@@ -158,7 +157,6 @@ jobs:
 {!{ tmpl.Exec "web_build_template" (slice $ctx "main" "dev") | strings.Indent 4 }!}
 
   tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
     needs:
       - git_info
@@ -166,7 +164,6 @@ jobs:
 {!{ tmpl.Exec "tests_before_build_template" (slice $ctx "unit") | strings.Indent 4 }!}
 
   tests_node_controller:
-    if: ${{ needs.pull_request_info.outputs.changes_node_controller == 'true' }}
     name: Tests node-controller
     needs:
       - git_info
@@ -174,7 +171,6 @@ jobs:
 {!{ tmpl.Exec "tests_node_controller_envtest_template" (slice $ctx) | strings.Indent 4 }!}
 
   tests_python_webhooks:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests python webhooks
     needs:
       - git_info
@@ -189,7 +185,6 @@ jobs:
 {!{ tmpl.Exec "tests_dmt_lint" (slice $ctx) | strings.Indent 4 }!}
 
   dhctl_tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Dhctl Tests
     needs:
       - git_info
@@ -198,7 +193,6 @@ jobs:
 {!{ tmpl.Exec "tests_template" (slice $ctx "dhctl" "build_tests") | strings.Indent 4 }!}
 
   golint:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Go Lint Warning
     needs:
       - git_info
@@ -209,7 +203,6 @@ jobs:
 {!{ tmpl.Exec "tests_template" (slice $ctx "golint_diff" "build_tests") | strings.Indent 4 }!}
 
   openapi_test_cases:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: OpenAPI Test Cases
     needs:
       - git_info
@@ -218,7 +211,6 @@ jobs:
 {!{ tmpl.Exec "tests_template" (slice $ctx "openapi_test_cases" "build_tests") | strings.Indent 4 }!}
 
   validators:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Validators
     needs:
       - git_info
