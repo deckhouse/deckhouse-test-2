@@ -691,7 +691,6 @@ jobs:
     secrets: inherit
 
   build_tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Build tests image
     needs:
       - git_info
@@ -2921,7 +2920,6 @@ jobs:
     # </template: web_build_template>
 
   tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests
     needs:
       - git_info
@@ -3036,7 +3034,6 @@ jobs:
     # </template: tests_before_build_template>
 
   tests_node_controller:
-    if: ${{ needs.pull_request_info.outputs.changes_node_controller == 'true' }}
     name: Tests node-controller
     needs:
       - git_info
@@ -3170,7 +3167,6 @@ jobs:
     # </template: tests_node_controller_envtest_template>
 
   tests_python_webhooks:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Tests python webhooks
     needs:
       - git_info
@@ -3285,7 +3281,6 @@ jobs:
     # </template: tests_dmt_lint>
 
   dhctl_tests:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Dhctl Tests
     needs:
       - git_info
@@ -3406,7 +3401,6 @@ jobs:
     # </template: tests_template>
 
   golint:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Go Lint Warning
     needs:
       - git_info
@@ -3529,7 +3523,6 @@ jobs:
     # </template: tests_template>
 
   openapi_test_cases:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: OpenAPI Test Cases
     needs:
       - git_info
@@ -3650,7 +3643,6 @@ jobs:
     # </template: tests_template>
 
   validators:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Validators
     needs:
       - git_info
