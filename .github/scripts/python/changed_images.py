@@ -27,15 +27,14 @@ Algorithm:
   5. Read images_digests.json and map changed digests to scanner keys.
   6. Write changed_images.json and GitHub Actions outputs.
 
-Important:
-  changed_compact must use keys from images_digests.json, for example:
-    nodeManager.bashibleApiserver
+changed_compact must use keys from images_digests.json, for example:
+  nodeManager.bashibleApiserver
 
-  It must not be built from WerfImageName, for example:
-    node-manager.bashible-apiserver
+It must not be built from WerfImageName, for example:
+  node-manager.bashible-apiserver
 
-  The AV scanner and rootless scanner match ONLY_IMAGES against keys from
-  images_digests.json.
+The AV scanner and rootless scanner match ONLY_IMAGES against keys from
+images_digests.json.
 """
 
 import json
@@ -43,6 +42,24 @@ import os
 import subprocess
 import sys
 from typing import Any, Optional
+
+
+NON_MODULE_WERF_IMAGE_NAMES = {
+    "dev",
+    "dev-prebuild",
+    "dev-vex-artifact",
+    "release-channel-version",
+    "deckhouse-main",
+    "deckhouse-install",
+    "deckhouse-install-standalone",
+    "install",
+    "install-standalone",
+    "install-vex-artifact",
+}
+
+NON_MODULE_WERF_IMAGE_PREFIXES = (
+    "dev/",
+)
 
 
 def run(cmd: list[str]) -> str:
@@ -60,6 +77,7 @@ def load_build_report(path: str) -> dict:
     images = report.get("Images")
     if isinstance(images, list):
         normalized = {}
+
         for entry in images:
             if not isinstance(entry, dict):
                 continue
@@ -85,18 +103,52 @@ def load_images_digests(path: str) -> dict:
     return data
 
 
+def is_zero_sha(value: str) -> bool:
+    return bool(value) and set(value) == {"0"}
+
+
+def get_before_commit_from_event() -> Optional[str]:
+    before = os.environ.get("GITHUB_EVENT_BEFORE")
+    if before:
+        return before
+
+    event_path = os.environ.get("GITHUB_EVENT_PATH")
+    if not event_path or not os.path.exists(event_path):
+        return None
+
+    try:
+        event = load_json(event_path)
+    except (OSError, json.JSONDecodeError):
+        return None
+
+    before = event.get("before")
+    if isinstance(before, str) and before:
+        return before
+
+    return None
+
+
+def get_commits_from_range(revision_range: str) -> set[str]:
+    commits = run(["git", "log", "--format=%H", revision_range])
+    return set(commits.splitlines()) if commits else set()
+
+
 def get_pr_commits() -> set[str]:
     base_ref = os.environ.get("GITHUB_BASE_REF")
-    if not base_ref:
-        raise SystemExit("GITHUB_BASE_REF is not set")
 
-    if not base_ref.startswith("origin/"):
-        base_ref = f"origin/{base_ref}"
+    if base_ref:
+        if not base_ref.startswith("origin/"):
+            base_ref = f"origin/{base_ref}"
 
-    merge_base = run(["git", "merge-base", base_ref, "HEAD"])
-    commits = run(["git", "log", "--format=%H", f"{merge_base}..HEAD"])
+        merge_base = run(["git", "merge-base", base_ref, "HEAD"])
+        return get_commits_from_range(f"{merge_base}..HEAD")
 
-    return set(commits.splitlines()) if commits else set()
+    before = get_before_commit_from_event()
+    if before and not is_zero_sha(before):
+        return get_commits_from_range(f"{before}..HEAD")
+
+    head = run(["git", "rev-parse", "HEAD"])
+    return {head}
 
 
 def split_werf_image_name(name: str) -> tuple[str, str]:
@@ -107,9 +159,21 @@ def split_werf_image_name(name: str) -> tuple[str, str]:
     return module, image
 
 
+def normalize_digest(value: str) -> Optional[str]:
+    if not value:
+        return None
+
+    marker = "sha256:"
+    index = value.find(marker)
+    if index == -1:
+        return None
+
+    return value[index:]
+
+
 def extract_digest(value: Any) -> Optional[str]:
     if isinstance(value, str):
-        return value if value.startswith("sha256:") else None
+        return normalize_digest(value)
 
     if not isinstance(value, dict):
         return None
@@ -126,8 +190,10 @@ def extract_digest(value: Any) -> Optional[str]:
 
     for key in digest_keys:
         digest = value.get(key)
-        if isinstance(digest, str) and digest:
-            return digest
+        if isinstance(digest, str):
+            normalized = normalize_digest(digest)
+            if normalized:
+                return normalized
 
     return None
 
@@ -159,31 +225,18 @@ def build_compact_keys_by_digest(images_digests: dict) -> dict[str, list[str]]:
     return compact_keys_by_digest
 
 
-def is_static_or_non_module_werf_image(name: str) -> bool:
-    static_or_non_module_prefixes = (
-        "dev/",
-    )
-
-    static_or_non_module_names = {
-        "deckhouse-main",
-        "deckhouse-install",
-        "deckhouse-install-standalone",
-        "install",
-        "install-standalone",
-        "install-vex-artifact",
-    }
-
-    if name in static_or_non_module_names:
+def is_non_module_werf_image(name: str) -> bool:
+    if name in NON_MODULE_WERF_IMAGE_NAMES:
         return True
 
-    return name.startswith(static_or_non_module_prefixes)
+    return name.startswith(NON_MODULE_WERF_IMAGE_PREFIXES)
 
 
-def is_module_werf_image(name: str) -> bool:
+def requires_compact_key(name: str) -> bool:
     if "/" not in name:
         return False
 
-    if is_static_or_non_module_werf_image(name):
+    if is_non_module_werf_image(name):
         return False
 
     return True
@@ -207,7 +260,7 @@ def compute_changed(
         if not commit or commit not in pr_commits:
             continue
 
-        digest = entry.get("DockerImageDigest")
+        digest = normalize_digest(str(entry.get("DockerImageDigest", "")))
         if not digest:
             continue
 
@@ -236,7 +289,7 @@ def get_missing_compact_key_images(changed: list) -> list:
         werf_image_name = item.get("werf_image_name", "")
         compact_keys = item.get("compact_keys", [])
 
-        if is_module_werf_image(werf_image_name) and not compact_keys:
+        if requires_compact_key(werf_image_name) and not compact_keys:
             missing.append(item)
 
     return missing
@@ -252,25 +305,49 @@ def build_changed_compact(changed: list) -> list[str]:
     return sorted(compact)
 
 
+def build_matrix(changed: list) -> dict:
+    include = []
+
+    for item in changed:
+        include.append({
+            "module": item["module"],
+            "image": item["image"],
+            "digest": item["digest"],
+            "commit": item["commit"],
+            "werf_image_name": item["werf_image_name"],
+        })
+
+    return {"include": include}
+
+
 def emit_github_outputs(changed: list) -> None:
     out_path = os.environ.get("GITHUB_OUTPUT")
     if not out_path:
         return
 
-    missing_compact = get_missing_compact_key_images(changed)
-    if missing_compact:
-        print("ERROR: failed to map changed module images to images_digests.json keys:")
-        for item in missing_compact:
-            print(f"  {item['werf_image_name']}  {item['digest']}  {item['commit']}")
-        raise SystemExit(1)
-
-    matrix = {"include": changed}
+    matrix = build_matrix(changed)
     compact = build_changed_compact(changed)
 
     with open(out_path, "a") as fp:
         fp.write(f"changed_count={len(changed)}\n")
         fp.write(f"matrix={json.dumps(matrix, separators=(',', ':'))}\n")
         fp.write(f"changed_compact={json.dumps(compact, separators=(',', ':'))}\n")
+
+
+def print_changed(changed: list) -> None:
+    if not changed:
+        return
+
+    print("Images for scan:")
+
+    for item in changed:
+        compact_keys = item.get("compact_keys") or ["<no compact key>"]
+        print(
+            f"  {item['werf_image_name']}  "
+            f"{','.join(compact_keys)}  "
+            f"{item['commit']}  "
+            f"{item['digest']}"
+        )
 
 
 def main() -> int:
@@ -292,7 +369,8 @@ def main() -> int:
 
     images_digests = load_images_digests(images_digests_path)
     compact_keys_by_digest = build_compact_keys_by_digest(images_digests)
-    print(f"Images digests compact keys: {sum(len(v) for v in compact_keys_by_digest.values())}")
+    compact_keys_count = sum(len(keys) for keys in compact_keys_by_digest.values())
+    print(f"Images digests compact keys: {compact_keys_count}")
 
     changed = compute_changed(images, pr_commits, compact_keys_by_digest)
 
@@ -311,18 +389,9 @@ def main() -> int:
     print(f"Changed final images: {len(changed)}")
     print(f"Changed compact keys: {len(changed_compact)}")
 
-    if changed:
-        print("Images for scan:")
-        for item in changed:
-            compact_keys = item.get("compact_keys") or ["<no compact key>"]
-            print(
-                f"  {item['werf_image_name']}  "
-                f"{','.join(compact_keys)}  "
-                f"{item['commit']}  "
-                f"{item['digest']}"
-            )
-
+    print_changed(changed)
     emit_github_outputs(changed)
+
     return 0
 
 
