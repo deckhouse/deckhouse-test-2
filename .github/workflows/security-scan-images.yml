@@ -1154,7 +1154,7 @@ jobs:
   set_security_antivirus_requirement_status:
     name: Set commit status after antivirus scan run
     runs-on: "self-slim"
-    needs: [drweb-scan, kaspersky-scan]
+    needs: [changed_images, drweb-scan, kaspersky-scan]
     if: ${{ always() }}
     permissions:
       contents: read
@@ -1168,19 +1168,26 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           GH_REPO: ${{ github.repository }}
+          CHANGED_COUNT: ${{ needs.changed_images.outputs.changed_count }}
           DRWEB: ${{ needs.drweb-scan.result }}
           KASPERSKY: ${{ needs.kaspersky-scan.result }}
-          DRWEB_SKIPPED: ${{ needs.drweb-scan.outputs.skipped }}
-          KASPERSKY_SKIPPED: ${{ needs.kaspersky-scan.outputs.skipped }}
         run: |
-          echo "PR Number: $PR_NUMBER | Dr.Web: $DRWEB skipped=$DRWEB_SKIPPED | Kaspersky: $KASPERSKY skipped=$KASPERSKY_SKIPPED"
-          if [ "$DRWEB_SKIPPED" == "true" ] && [ "$KASPERSKY_SKIPPED" == "true" ]; then
-            echo "Both antivirus scans were skipped: no rebuilt images in this PR."
+          echo "PR Number: $PR_NUMBER | changed_count=$CHANGED_COUNT | Dr.Web: $DRWEB | Kaspersky: $KASPERSKY"
+
+          if [[ "$GH_REPO" != "deckhouse/deckhouse" && "$DRWEB" == "skipped" && "$KASPERSKY" == "skipped" ]]; then
+            echo "Both antivirus scans were skipped in test repository. Antivirus labels are not set."
             gh pr edit "$PR_NUMBER" --remove-label "security/antivirus/success" --remove-label "security/antivirus/failed"
-          elif [ "$DRWEB" == "success" ] && [ "$KASPERSKY" == "success" ]; then
+            exit 0
+          fi
+
+          if [[ "${CHANGED_COUNT:-0}" == "0" ]]; then
+            echo "No rebuilt images in this PR. Antivirus labels are not set."
+            gh pr edit "$PR_NUMBER" --remove-label "security/antivirus/success" --remove-label "security/antivirus/failed"
+            exit 0
+          fi
+
+          if [[ "$DRWEB" == "success" && "$KASPERSKY" == "success" ]]; then
             gh pr edit "$PR_NUMBER" --add-label "security/antivirus/success" --remove-label "security/antivirus/failed"
-          elif [ "$DRWEB" == "skipped" ] && [ "$KASPERSKY" == "skipped" ]; then
-            gh pr edit "$PR_NUMBER" --remove-label "security/antivirus/success" --remove-label "security/antivirus/failed"
           else
             gh pr edit "$PR_NUMBER" --add-label "security/antivirus/failed" --remove-label "security/antivirus/success"
           fi
