@@ -107,10 +107,12 @@ func syncEtcdFilter(unstructured *unstructured.Unstructured) (go_hook.FilterResu
 	return cert, nil
 }
 
+const bytesInGiB = 1024 * 1024 * 1024
+
 func gb(n int64) int64 {
-	return n * 1024 * 1024 * 1024
+	return n * bytesInGiB
 }
 
 func gbFloat(n float64) int64 {
-	return int64(math.Floor(n * 1024 * 1024 * 1024))
+	return int64(math.Floor(n * bytesInGiB))
 }
