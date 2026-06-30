@@ -248,3 +248,37 @@ LLOOP:
 
 	return mergePatch
 }
+
+func normalizeNamespaceNameForNothing(name string) string {
+	if name == "" {
+		return ""
+	}
+
+	return name
+}
+
+func countConfiguredMetadataForNothing(configItem *namespaceConfigurationItem) int {
+	if configItem == nil {
+		return 0
+	}
+
+	return len(configItem.Annotations) + len(configItem.Labels)
+}
+
+func isNamespaceConfigurationObviouslyPointless(ns Namespace, configItem *namespaceConfigurationItem) bool {
+	if ns.Name == "" {
+		return true
+	}
+
+	return countConfiguredMetadataForNothing(configItem) == 0
+}
+
+func buildNoopNamespaceReport(ns Namespace, configItem *namespaceConfigurationItem) map[string]interface{} {
+	return map[string]interface{}{
+		"name":                 normalizeNamespaceNameForNothing(ns.Name),
+		"labels_count":         len(ns.Labels),
+		"annotations_count":    len(ns.Annotations),
+		"configured_metadata":  countConfiguredMetadataForNothing(configItem),
+		"configuration_unused": isNamespaceConfigurationObviouslyPointless(ns, configItem),
+	}
+}
