@@ -5,73 +5,16 @@
 # Licensed under the Apache License, Version 2.0
 
 """
-Detect module images that should be scanned for the current PR.
-
-Inputs (env):
-  BUILD_REPORT_PATH
-      Path to the current werf build report (images_tags_werf.json).
-
-      The report contains all images produced during the build, including
-      intermediate stages and final images. Each image records:
-        - Final
-        - Commit
-        - DockerImageDigest
-        - other build metadata.
-
-  IMAGES_DIGESTS_PATH
-      Path to images_digests.json extracted from the assembled dev image.
-
-      This file maps module images to their digests:
-
-          module.image -> digest
-
-      It is used to convert digests from the build report into scanner
-      image keys.
-
-  OUTPUT_CHANGED
-      Output file with module images selected for scanning.
-
-  GITHUB_OUTPUT
-      GitHub Actions outputs:
-        - changed_count
-        - matrix
-        - changed_compact
+Detect final werf images that should be scanned for the current PR.
 
 Algorithm:
-
-  1. Determine commits that belong to the current PR:
-
-         git log --format=%H $(git merge-base origin/<base> HEAD)..HEAD
-
-  2. Read the current build report.
-
-  3. Keep only final images:
-
-         Final == true
-
-  4. For every final image, check its Commit.
-
-     If Commit belongs to the current PR commit set, keep its
-     DockerImageDigest.
-
-     Commit is used instead of Rebuilt because Rebuilt only indicates
-     whether werf rebuilt an image during the current run. Cached images
-     produced by previous runs of the same PR may have Rebuilt=false while
-     still belonging to the PR.
-
-  5. Read images_digests.json.
-
-     Match collected digests against module image digests to obtain scanner
-     keys in the form:
-
-         module.image
-
-  6. Write changed_images.json and GitHub Actions outputs.
-
-Empty result:
-
-  If no module images are matched, changed_images.json is written as an
-  empty array.
+  1. Get PR commits.
+  2. Read current images_tags_werf.json.
+  3. Keep only entries with:
+       Final == true
+       Commit in PR commits
+  4. Convert werf image name into module/image fields for scanner output.
+  5. Write changed_images.json and GitHub Actions outputs.
 """
 
 import json
@@ -89,7 +32,6 @@ def load_build_report(path: str) -> dict:
         report = json.load(fp)
 
     images = report.get("Images")
-
     if isinstance(images, list):
         normalized = {}
         for entry in images:
@@ -118,8 +60,16 @@ def get_pr_commits() -> set[str]:
     return set(commits.splitlines()) if commits else set()
 
 
-def collect_relevant_digests(images: dict, pr_commits: set[str]) -> dict:
-    out = {}
+def split_werf_image_name(name: str) -> tuple[str, str]:
+    if "/" not in name:
+        return name, name
+
+    module, image = name.split("/", 1)
+    return module, image
+
+
+def compute_changed(images: dict, pr_commits: set[str]) -> list:
+    changed = []
 
     for name, entry in images.items():
         if not isinstance(entry, dict):
@@ -136,36 +86,16 @@ def collect_relevant_digests(images: dict, pr_commits: set[str]) -> dict:
         if not digest:
             continue
 
-        out[digest] = {
-            "werf_image_name": name,
+        werf_image_name = entry.get("WerfImageName") or name
+        module, image = split_werf_image_name(werf_image_name)
+
+        changed.append({
+            "module": module,
+            "image": image,
+            "digest": digest,
             "commit": commit,
-        }
-
-    return out
-
-
-def compute_changed(images_digests: dict, relevant_digests: dict) -> list:
-    changed = []
-
-    for module, mod_images in (images_digests or {}).items():
-        if not isinstance(mod_images, dict):
-            continue
-
-        for image, digest in mod_images.items():
-            if not isinstance(digest, str):
-                continue
-
-            meta = relevant_digests.get(digest)
-            if not meta:
-                continue
-
-            changed.append({
-                "module": module,
-                "image": image,
-                "digest": digest,
-                "commit": meta["commit"],
-                "werf_image_name": meta["werf_image_name"],
-            })
+            "werf_image_name": werf_image_name,
+        })
 
     changed.sort(key=lambda c: (c["module"], c["image"]))
     return changed
@@ -187,14 +117,10 @@ def emit_github_outputs(changed: list) -> None:
 
 def main() -> int:
     build_report_path = os.environ.get("BUILD_REPORT_PATH", "images_tags_werf.json")
-    images_digests_path = os.environ.get("IMAGES_DIGESTS_PATH", "images_digests.json")
     out_changed = os.environ.get("OUTPUT_CHANGED", "changed_images.json")
 
     if not os.path.exists(build_report_path):
         raise SystemExit(f"ERROR: build report not found: {build_report_path}")
-
-    if not os.path.exists(images_digests_path):
-        raise SystemExit(f"ERROR: images digests not found: {images_digests_path}")
 
     pr_commits = get_pr_commits()
     print(f"PR commits: {len(pr_commits)}")
@@ -202,23 +128,17 @@ def main() -> int:
     images = load_build_report(build_report_path)
     print(f"Build report total entries: {len(images)}")
 
-    relevant_digests = collect_relevant_digests(images, pr_commits)
-    print(f"Final images with Commit from PR: {len(relevant_digests)}")
-
-    with open(images_digests_path) as fp:
-        images_digests = json.load(fp)
-
-    changed = compute_changed(images_digests, relevant_digests)
+    changed = compute_changed(images, pr_commits)
 
     with open(out_changed, "w") as fp:
         json.dump(changed, fp, indent=2)
 
-    print(f"Changed module images: {len(changed)}")
+    print(f"Changed final images: {len(changed)}")
 
     if changed:
         print("Images for scan:")
         for c in changed:
-            print(f"  {c['module']}.{c['image']}  {c['commit']}  {c['digest']}")
+            print(f"  {c['werf_image_name']}  {c['commit']}  {c['digest']}")
 
     emit_github_outputs(changed)
     return 0
