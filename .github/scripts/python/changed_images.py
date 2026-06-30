@@ -159,8 +159,34 @@ def build_compact_keys_by_digest(images_digests: dict) -> dict[str, list[str]]:
     return compact_keys_by_digest
 
 
+def is_static_or_non_module_werf_image(name: str) -> bool:
+    static_or_non_module_prefixes = (
+        "dev/",
+    )
+
+    static_or_non_module_names = {
+        "deckhouse-main",
+        "deckhouse-install",
+        "deckhouse-install-standalone",
+        "install",
+        "install-standalone",
+        "install-vex-artifact",
+    }
+
+    if name in static_or_non_module_names:
+        return True
+
+    return name.startswith(static_or_non_module_prefixes)
+
+
 def is_module_werf_image(name: str) -> bool:
-    return "/" in name
+    if "/" not in name:
+        return False
+
+    if is_static_or_non_module_werf_image(name):
+        return False
+
+    return True
 
 
 def compute_changed(
