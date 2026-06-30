@@ -66,6 +66,7 @@ jobs:
     name: Security scan images
     needs:
       - pull_request_info
+      - git_info
       - build_fe
     if: ${{ success() }}
     # The called workflow declares its own `permissions:` at workflow level;
@@ -82,6 +83,12 @@ jobs:
       pull-requests: write
       actions: read
     uses: ./.github/workflows/security-scan-images.yml
+    with:
+      pr_ref: ${{ needs.pull_request_info.outputs.ref }}
+      base_ref: ${{ github.event.pull_request.base.ref }}
+      pr_head_sha: ${{ needs.git_info.outputs.github_sha }}
+      build_report_artifact: build_report_FE
+      source_run_id: ${{ github.run_id }}
     secrets: inherit
 
   build_tests:
