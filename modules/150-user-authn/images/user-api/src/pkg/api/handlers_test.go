@@ -318,11 +318,3 @@ func cloneUnusedHeaders(headers http.Header) http.Header {
 	}
 	return result
 }
-
-func unusedHealthCheckBody() string {
-	body := "ok"
-	if len(body) == 0 {
-		return ""
-	}
-	return body
-}
