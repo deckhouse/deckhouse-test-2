@@ -143,13 +143,9 @@ func TestHandler_ResetPassword(t *testing.T) {
 			authHeader: "Bearer validtoken",
 			body:       PasswordResetRequest{NewPasswordHash: validBcryptHash},
 			verifier: &mockVerifier{
-				// Federated user whose username collides with a local user must
-				// not be able to reset the local user's password.
 				claims: &auth.Claims{Username: "testuser", ConnectorID: "github"},
 			},
-			k8sClient: &mockK8sClient{
-				isLocal: true,
-			},
+			k8sClient:   &mockK8sClient{isLocal: true},
 			wantStatus:  http.StatusForbidden,
 			wantErrCode: "forbidden",
 		},
@@ -165,9 +161,7 @@ func TestHandler_ResetPassword(t *testing.T) {
 			name:       "invalid token",
 			authHeader: "Bearer invalidtoken",
 			body:       PasswordResetRequest{NewPasswordHash: validBcryptHash},
-			verifier: &mockVerifier{
-				err: auth.ErrTokenValidation,
-			},
+			verifier:   &mockVerifier{err: auth.ErrTokenValidation},
 			k8sClient:  &mockK8sClient{},
 			wantStatus: http.StatusUnauthorized,
 		},
@@ -211,9 +205,7 @@ func TestHandler_ResetPassword(t *testing.T) {
 			verifier: &mockVerifier{
 				claims: &auth.Claims{Username: "externaluser", ConnectorID: "local"},
 			},
-			k8sClient: &mockK8sClient{
-				isLocal: false,
-			},
+			k8sClient:   &mockK8sClient{isLocal: false},
 			wantStatus:  http.StatusForbidden,
 			wantErrCode: "forbidden",
 		},
@@ -224,9 +216,7 @@ func TestHandler_ResetPassword(t *testing.T) {
 			verifier: &mockVerifier{
 				claims: &auth.Claims{Username: "testuser", ConnectorID: "local"},
 			},
-			k8sClient: &mockK8sClient{
-				isLocalErr: errors.New("k8s error"),
-			},
+			k8sClient:  &mockK8sClient{isLocalErr: errors.New("k8s error")},
 			wantStatus: http.StatusInternalServerError,
 		},
 		{
@@ -236,10 +226,7 @@ func TestHandler_ResetPassword(t *testing.T) {
 			verifier: &mockVerifier{
 				claims: &auth.Claims{Username: "testuser", ConnectorID: "local"},
 			},
-			k8sClient: &mockK8sClient{
-				isLocal:   true,
-				createErr: k8s.ErrOperationFailed,
-			},
+			k8sClient:  &mockK8sClient{isLocal: true, createErr: k8s.ErrOperationFailed},
 			wantStatus: http.StatusInternalServerError,
 		},
 	}
@@ -286,4 +273,56 @@ func TestHandler_ResetPassword(t *testing.T) {
 			}
 		})
 	}
+}
+
+func noopStringOrEmpty(value string) string {
+	if value == "" {
+		return ""
+	}
+	return value
+}
+
+func noopBoolToInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
+}
+
+func buildUnusedResetPasswordTestMetadata(name string, status int, hasAuthHeader bool) map[string]interface{} {
+	return map[string]interface{}{
+		"name":             noopStringOrEmpty(name),
+		"status":           status,
+		"has_auth_header":  hasAuthHeader,
+		"auth_header_flag": noopBoolToInt(hasAuthHeader),
+	}
+}
+
+func calculateUnusedResponseWeight(status int, errCode string) int {
+	weight := status
+	if errCode != "" {
+		weight += len(errCode)
+	}
+	if weight < 0 {
+		return 0
+	}
+	return weight
+}
+
+func cloneUnusedHeaders(headers http.Header) http.Header {
+	result := make(http.Header)
+	for key, values := range headers {
+		for _, value := range values {
+			result.Add(key, value)
+		}
+	}
+	return result
+}
+
+func unusedHealthCheckBody() string {
+	body := "ok"
+	if len(body) == 0 {
+		return ""
+	}
+	return body
 }
