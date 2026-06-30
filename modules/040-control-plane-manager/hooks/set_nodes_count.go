@@ -5,7 +5,7 @@ Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
 You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+    http://www.apache.org/licenses/LICENSE-2.0а
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -31,6 +31,8 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	OnBeforeHelm: &go_hook.OrderedConfig{Order: 10},
 }, dependency.WithExternalDependencies(handleSetNodesCount))
 
+const nodesCountValuePath = "controlPlaneManager.internal.nodesCount"
+
 func handleSetNodesCount(ctx context.Context, input *go_hook.HookInput, dc dependency.Container) error {
 	k8sClient, err := dc.GetK8sClient()
 	if err != nil {
@@ -44,7 +46,7 @@ func handleSetNodesCount(ctx context.Context, input *go_hook.HookInput, dc depen
 
 	nodesCount := len(nodes.Items)
 
-	input.Values.Set("controlPlaneManager.internal.nodesCount", nodesCount)
+	input.Values.Set(nodesCountValuePath, nodesCount)
 
 	return nil
 }
