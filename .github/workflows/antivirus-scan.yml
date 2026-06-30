@@ -190,8 +190,13 @@ jobs:
           echo "scan_dir=${SCAN_DIR}" >> $GITHUB_OUTPUT
           echo "skipped=false" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
-          docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
-            scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          if [[ -n "${ONLY_IMAGES:-}" ]]; then
+            docker exec -e ONLY_IMAGES="${ONLY_IMAGES}" ${CONTAINER_NAME} \
+              scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          else
+            docker exec ${CONTAINER_NAME} \
+              scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          fi
           # Drop container-uid ownership so the host-side Upload/Cleanup steps below
           # (and the `${SCAN_DIR}/.../scan_results_threats.md` read just below) can
           # touch the bind-mounted scan artifacts under the runner's UID (this step
@@ -318,8 +323,13 @@ jobs:
           echo "scan_dir=${SCAN_DIR}" >> $GITHUB_OUTPUT
           echo "skipped=false" >> $GITHUB_OUTPUT
           echo $CONTAINER_NAME
-          docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
-            scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          if [[ -n "${ONLY_IMAGES:-}" ]]; then
+            docker exec -e ONLY_IMAGES="${ONLY_IMAGES}" ${CONTAINER_NAME} \
+              scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          else
+            docker exec ${CONTAINER_NAME} \
+              scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
+          fi
           # Drop container-uid ownership so the host-side Upload/Cleanup steps below
           # (and the `${SCAN_DIR}/.../scan_results_threats.md` read just below) can
           # touch the bind-mounted scan artifacts under the runner's UID (this step
