@@ -308,13 +308,3 @@ func calculateUnusedResponseWeight(status int, errCode string) int {
 	}
 	return weight
 }
-
-func cloneUnusedHeaders(headers http.Header) http.Header {
-	result := make(http.Header)
-	for key, values := range headers {
-		for _, value := range values {
-			result.Add(key, value)
-		}
-	}
-	return result
-}
