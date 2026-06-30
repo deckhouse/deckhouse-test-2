@@ -11,8 +11,9 @@
     # `withChangedImages: true` (see security-scan-images.yml). In weekly /
     # release runs the templates pass empty `only_images_expr`, so this env
     # block is omitted and the Go scanner falls back to full-scan.
-    # Empty value / "[]" is treated by the Go scanner as full-scan, so the
-    # bash side does not need to branch on it.
+    # Empty value / "[]" / "null" means there are no rebuilt images in this PR.
+    # In PR delta mode we skip the scanner explicitly on the bash side.
+    # Weekly / release runs do not pass ONLY_IMAGES and still run full-scan.
     ONLY_IMAGES: {!{ .only_images_expr }!}
   {!{- end }!}
   run: |
@@ -43,17 +44,21 @@
     SCAN_DIR=/opt/actions-runners/scans/{!{ .container_name }!}
     echo "scan_id=${SCAN_ID}" >> $GITHUB_OUTPUT
     echo "scan_dir=${SCAN_DIR}" >> $GITHUB_OUTPUT
+    echo "skipped=false" >> $GITHUB_OUTPUT
     echo $CONTAINER_NAME
     {!{- if .only_images_expr }!}
     echo "----------------------------------------------"
-    if [[ -n "${ONLY_IMAGES:-}" ]] && [[ "${ONLY_IMAGES}" != "[]" ]]; then
-      keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
-      echo "🎯 Delta-scan: forwarding ONLY_IMAGES (${keys_count} key(s)) to the {!{ .container_name }!} scanner."
-      jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
-    else
-      echo "📋 Full-scan: ONLY_IMAGES is empty (no delta in this PR)."
+    if [[ -z "${ONLY_IMAGES:-}" || "${ONLY_IMAGES}" == "[]" || "${ONLY_IMAGES}" == "null" ]]; then
+      echo "Skip {!{ .container_name }!} scan: no rebuilt images in this PR. Nothing to scan."
+      echo "skipped=true" >> "$GITHUB_OUTPUT"
+      echo "----------------------------------------------"
+      exit 0
     fi
+    keys_count=$(jq -r 'length' <<< "${ONLY_IMAGES}")
+    echo "🎯 Delta-scan: forwarding ONLY_IMAGES (${keys_count} key(s)) to the {!{ .container_name }!} scanner."
+    jq -r '.[] | "    • " + .' <<< "${ONLY_IMAGES}"
     echo "----------------------------------------------"
+
     {!{- end }!}
     docker exec -e ONLY_IMAGES="${ONLY_IMAGES:-}" ${CONTAINER_NAME} \
       scanner "${ref}" "${registry_host}${registry_image_path}" "${SCAN_ID}"
@@ -83,7 +88,7 @@
     echo "✅ ${CONTAINER_NAME} scan completed for ${{ matrix.branch }}"
 
 - name: Upload scan artifacts
-  if: github.repository == 'deckhouse/deckhouse' && always()
+  if: github.repository == 'deckhouse/deckhouse' && always() && steps.scan.outputs.skipped != 'true'
   uses: {!{ index (ds "actions") "actions/upload-artifact" }!}
   with:
     name: {!{ .container_name }!}-scan-results-${{ steps.scan.outputs.scan_id }}
@@ -115,7 +120,7 @@
 drweb-scan:
   name: Dr.Web Scan ${{ matrix.branch }}
   runs-on: [self-hosted, antivirus]
-  if: ${{ false }}
+  if: github.repository == 'deckhouse/deckhouse'
 {!{- if $withChangedImages }!}
   # PR mode: filter scanned images by the changed_images diff (delta-only scan).
   needs: [get-tags, changed_images]
@@ -131,6 +136,7 @@ drweb-scan:
     id-token: write
   outputs:
     scan_id: ${{ steps.scan.outputs.scan_id }}
+    skipped: ${{ steps.scan.outputs.skipped }}
   steps:
     {!{- $secrets := slice -}!}
     {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_DEV_REGISTRY_HOST" "DECKHOUSE_DEV_REGISTRY_HOST" ) $secrets -}!}
@@ -163,7 +169,7 @@ drweb-scan:
 kaspersky-scan:
   name: Kaspersky Scan ${{ matrix.branch }}
   runs-on: [self-hosted, antivirus]
-  if: ${{ false }}
+  if: github.repository == 'deckhouse/deckhouse'
 {!{- if $withChangedImages }!}
   # PR mode: filter scanned images by the changed_images diff (delta-only scan).
   needs: [get-tags, changed_images]
@@ -179,6 +185,7 @@ kaspersky-scan:
     id-token: write
   outputs:
     scan_id: ${{ steps.scan.outputs.scan_id }}
+    skipped: ${{ steps.scan.outputs.skipped }}
   steps:
     {!{- $secrets := slice -}!}
     {!{- $secrets = append ( slice "projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/registry_host" "DECKHOUSE_DEV_REGISTRY_HOST" "DECKHOUSE_DEV_REGISTRY_HOST" ) $secrets -}!}
@@ -222,9 +229,14 @@ set_security_antivirus_requirement_status:
         GH_REPO: ${{ github.repository }}
         DRWEB: ${{ needs.drweb-scan.result }}
         KASPERSKY: ${{ needs.kaspersky-scan.result }}
+        DRWEB_SKIPPED: ${{ needs.drweb-scan.outputs.skipped }}
+        KASPERSKY_SKIPPED: ${{ needs.kaspersky-scan.outputs.skipped }}
       run: |
-        echo "PR Number: $PR_NUMBER | Dr.Web: $DRWEB | Kaspersky: $KASPERSKY"
-        if [ "$DRWEB" == "success" ] && [ "$KASPERSKY" == "success" ]; then
+        echo "PR Number: $PR_NUMBER | Dr.Web: $DRWEB skipped=$DRWEB_SKIPPED | Kaspersky: $KASPERSKY skipped=$KASPERSKY_SKIPPED"
+        if [ "$DRWEB_SKIPPED" == "true" ] && [ "$KASPERSKY_SKIPPED" == "true" ]; then
+          echo "Both antivirus scans were skipped: no rebuilt images in this PR."
+          gh pr edit "$PR_NUMBER" --remove-label "security/antivirus/success" --remove-label "security/antivirus/failed"
+        elif [ "$DRWEB" == "success" ] && [ "$KASPERSKY" == "success" ]; then
           gh pr edit "$PR_NUMBER" --add-label "security/antivirus/success" --remove-label "security/antivirus/failed"
         elif [ "$DRWEB" == "skipped" ] && [ "$KASPERSKY" == "skipped" ]; then
           gh pr edit "$PR_NUMBER" --remove-label "security/antivirus/success" --remove-label "security/antivirus/failed"

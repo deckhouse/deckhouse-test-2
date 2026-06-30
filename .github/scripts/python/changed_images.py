@@ -2,72 +2,94 @@
 
 # Copyright 2026 Flant JSC
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# Licensed under the Apache License, Version 2.0
 
 """
-Detect module images that actually changed in this PR.
+Detect module images that should be scanned for the current PR.
 
 Inputs (env):
-  BUILD_REPORT_PATH   - path to werf build report (images_tags_werf.json)
-                        from the **first successful Build FE run of this PR**
-                        (NOT the current run — see security-scan-images.yml,
-                        step "Find baseline Build FE run"). On that build,
-                        werf cache could only contain layers from main, so
-                        `Rebuilt: false` reliably means "identical to main".
-  IMAGES_DIGESTS_PATH - path to images_digests.json extracted from the
-                        assembled dev image of the **current** run
-                        (/deckhouse/modules/images_digests.json).
-  OUTPUT_OLD_DIGESTS  - where to write digests_old_main.json (default: ./digests_old_main.json).
-  OUTPUT_CHANGED      - where to write changed_images.json (default: ./changed_images.json).
-  GITHUB_OUTPUT       - if set, also emit `changed_count`, `matrix` and
-                        `changed_compact` as job outputs.
+  BUILD_REPORT_PATH
+      Path to the current werf build report (images_tags_werf.json).
 
-Why "first successful build"? werf's cache is content-addressable and
-shared across the PR's build history. On the very first build, the cache
-contains only main-published layers, so `Rebuilt: false` truly means
-"matches main". On any subsequent build, `Rebuilt: false` can also mean
-"matches a layer this PR built earlier" — which would silently mask
-images already modified by the PR. Anchoring the baseline to the first
-successful build sidesteps that.
+      The report contains all images produced during the build, including
+      intermediate stages and final images. Each image records:
+        - Final
+        - Commit
+        - DockerImageDigest
+        - other build metadata.
+
+  IMAGES_DIGESTS_PATH
+      Path to images_digests.json extracted from the assembled dev image.
+
+      This file maps module images to their digests:
+
+          module.image -> digest
+
+      It is used to convert digests from the build report into scanner
+      image keys.
+
+  OUTPUT_CHANGED
+      Output file with module images selected for scanning.
+
+  GITHUB_OUTPUT
+      GitHub Actions outputs:
+        - changed_count
+        - matrix
+        - changed_compact
 
 Algorithm:
-  1. Read the baseline build report. werf's `Images` is a map keyed by
-     werf image name in kebab-case (e.g. "node-manager/bashible-apiserver").
-     Each entry has booleans `Final` / `Rebuilt` and a content
-     `DockerImageDigest`. Keep only entries with `Final: true` and
-     `Rebuilt: false` (= final, taken from main cache on the first PR
-     build) -> "digests_old_main.json".
-  2. Read images_digests.json from the assembled dev image of the current
-     run. werf populates it with the same content `ImageDigest` values
-     produced by the current build, keyed by {moduleCamel: {imageCamel: digest}}.
-  3. Build a *set* of digests from digests_old_main.json. For every entry
-     in images_digests.json, if its digest is not in that set, mark it as
-     CHANGED. Comparing by digest (not by name) is robust:
-       - it auto-handles the kebab<->camel name conversion, and
-       - it correctly groups images whose content is bit-identical
-         (e.g. csiExternalSnapshotter127..131 share one digest in the
-         repo's real images_digests.json snapshots).
+
+  1. Determine commits that belong to the current PR:
+
+         git log --format=%H $(git merge-base origin/<base> HEAD)..HEAD
+
+  2. Read the current build report.
+
+  3. Keep only final images:
+
+         Final == true
+
+  4. For every final image, check its Commit.
+
+     If Commit belongs to the current PR commit set, keep its
+     DockerImageDigest.
+
+     Commit is used instead of Rebuilt because Rebuilt only indicates
+     whether werf rebuilt an image during the current run. Cached images
+     produced by previous runs of the same PR may have Rebuilt=false while
+     still belonging to the PR.
+
+  5. Read images_digests.json.
+
+     Match collected digests against module image digests to obtain scanner
+     keys in the form:
+
+         module.image
+
+  6. Write changed_images.json and GitHub Actions outputs.
+
+Empty result:
+
+  If no module images are matched, changed_images.json is written as an
+  empty array.
 """
 
 import json
 import os
+import subprocess
 import sys
+
+
+def run(cmd: list[str]) -> str:
+    return subprocess.check_output(cmd, text=True).strip()
 
 
 def load_build_report(path: str) -> dict:
     with open(path) as fp:
         report = json.load(fp)
+
     images = report.get("Images")
+
     if isinstance(images, list):
         normalized = {}
         for entry in images:
@@ -75,41 +97,76 @@ def load_build_report(path: str) -> dict:
             if key:
                 normalized[key] = entry
         images = normalized
+
     if not isinstance(images, dict):
         raise SystemExit(f"unexpected build report shape at {path}: no Images map")
+
     return images
 
 
-def collect_old_main_digests(images: dict) -> dict:
-    """Return { werf_image_name: { "DockerImageDigest": "..." } } for every
-    final image that werf reused from cache on the *first* PR build
-    (Final == True and Rebuilt == False)."""
+def get_pr_commits() -> set[str]:
+    base_ref = os.environ.get("GITHUB_BASE_REF")
+    if not base_ref:
+        raise SystemExit("GITHUB_BASE_REF is not set")
+
+    if not base_ref.startswith("origin/"):
+        base_ref = f"origin/{base_ref}"
+
+    merge_base = run(["git", "merge-base", base_ref, "HEAD"])
+    commits = run(["git", "log", "--format=%H", f"{merge_base}..HEAD"])
+
+    return set(commits.splitlines()) if commits else set()
+
+
+def collect_relevant_digests(images: dict, pr_commits: set[str]) -> dict:
     out = {}
+
     for name, entry in images.items():
         if not isinstance(entry, dict):
             continue
-        if not entry.get("Final"):
+
+        if entry.get("Final") is not True:
             continue
-        if entry.get("Rebuilt") is True:
+
+        commit = entry.get("Commit")
+        if not commit or commit not in pr_commits:
             continue
+
         digest = entry.get("DockerImageDigest")
         if not digest:
             continue
-        out[name] = {"DockerImageDigest": digest}
+
+        out[digest] = {
+            "werf_image_name": name,
+            "commit": commit,
+        }
+
     return out
 
 
-def compute_changed(images_digests: dict, old_digest_set: set) -> list:
+def compute_changed(images_digests: dict, relevant_digests: dict) -> list:
     changed = []
+
     for module, mod_images in (images_digests or {}).items():
         if not isinstance(mod_images, dict):
             continue
+
         for image, digest in mod_images.items():
             if not isinstance(digest, str):
                 continue
-            if digest in old_digest_set:
+
+            meta = relevant_digests.get(digest)
+            if not meta:
                 continue
-            changed.append({"module": module, "image": image, "digest": digest})
+
+            changed.append({
+                "module": module,
+                "image": image,
+                "digest": digest,
+                "commit": meta["commit"],
+                "werf_image_name": meta["werf_image_name"],
+            })
+
     changed.sort(key=lambda c: (c["module"], c["image"]))
     return changed
 
@@ -118,8 +175,10 @@ def emit_github_outputs(changed: list) -> None:
     out_path = os.environ.get("GITHUB_OUTPUT")
     if not out_path:
         return
+
     matrix = {"include": changed}
     compact = [f"{c['module']}.{c['image']}" for c in changed]
+
     with open(out_path, "a") as fp:
         fp.write(f"changed_count={len(changed)}\n")
         fp.write(f"matrix={json.dumps(matrix, separators=(',', ':'))}\n")
@@ -129,61 +188,37 @@ def emit_github_outputs(changed: list) -> None:
 def main() -> int:
     build_report_path = os.environ.get("BUILD_REPORT_PATH", "images_tags_werf.json")
     images_digests_path = os.environ.get("IMAGES_DIGESTS_PATH", "images_digests.json")
-    out_old = os.environ.get("OUTPUT_OLD_DIGESTS", "digests_old_main.json")
     out_changed = os.environ.get("OUTPUT_CHANGED", "changed_images.json")
 
     if not os.path.exists(build_report_path):
-        # The baseline build_report_FE artifact (from the first successful
-        # Build FE run of this PR) is gone — most likely older than the
-        # GitHub Actions artifact retention window. Without it we cannot
-        # compute a meaningful main-vs-PR digest diff, so we degrade
-        # gracefully: emit empty outputs. Downstream CVE / rootless /
-        # antivirus scanners treat an empty `changed_compact` as "no
-        # filter" and fall back to scanning every image.
-        print(
-            "WARNING: baseline build report not found at "
-            f"{build_report_path}.\n"
-            "  The first successful Build FE artifact of this PR has likely\n"
-            "  expired (GitHub Actions retention). A reliable diff against\n"
-            "  main cannot be computed; emitting an empty changed_compact\n"
-            "  filter. Downstream image scans will run in FULL-SCAN mode\n"
-            "  (every image scanned)."
-        )
-        with open(out_old, "w") as fp:
-            json.dump({}, fp)
-        with open(out_changed, "w") as fp:
-            json.dump([], fp)
-        emit_github_outputs([])
-        return 0
+        raise SystemExit(f"ERROR: build report not found: {build_report_path}")
+
+    if not os.path.exists(images_digests_path):
+        raise SystemExit(f"ERROR: images digests not found: {images_digests_path}")
+
+    pr_commits = get_pr_commits()
+    print(f"PR commits: {len(pr_commits)}")
 
     images = load_build_report(build_report_path)
-    old_main = collect_old_main_digests(images)
+    print(f"Build report total entries: {len(images)}")
 
-    with open(out_old, "w") as fp:
-        json.dump(old_main, fp, indent=2, sort_keys=True)
-    print(f"Baseline build report total entries: {len(images)}")
-    print(f"digests_old_main.json entries:       {len(old_main)}  (kept Final=true && Rebuilt=false)")
+    relevant_digests = collect_relevant_digests(images, pr_commits)
+    print(f"Final images with Commit from PR: {len(relevant_digests)}")
 
     with open(images_digests_path) as fp:
         images_digests = json.load(fp)
 
-    old_digest_set = {v["DockerImageDigest"] for v in old_main.values()}
-    changed = compute_changed(images_digests, old_digest_set)
+    changed = compute_changed(images_digests, relevant_digests)
 
-    total = sum(
-        1
-        for m in (images_digests or {}).values()
-        if isinstance(m, dict)
-        for _ in m.values()
-    )
     with open(out_changed, "w") as fp:
         json.dump(changed, fp, indent=2)
-    print(f"Module images in images_digests.json: {total}")
-    print(f"Changed module images:                {len(changed)}")
+
+    print(f"Changed module images: {len(changed)}")
+
     if changed:
-        print("First 10 changed:")
-        for c in changed[:10]:
-            print(f"  {c['module']}.{c['image']}  {c['digest']}")
+        print("Images for scan:")
+        for c in changed:
+            print(f"  {c['module']}.{c['image']}  {c['commit']}  {c['digest']}")
 
     emit_github_outputs(changed)
     return 0
