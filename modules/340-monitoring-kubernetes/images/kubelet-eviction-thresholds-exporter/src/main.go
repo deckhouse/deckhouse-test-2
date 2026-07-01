@@ -57,6 +57,8 @@ type KubeletConfig struct {
 }
 
 func main() {
+	_ = noopMetricLabel()
+
 	err := generateMetrics()
 	if err != nil {
 		log.Fatal(err)
