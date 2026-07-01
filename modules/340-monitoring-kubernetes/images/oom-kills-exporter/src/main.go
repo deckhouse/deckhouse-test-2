@@ -18,6 +18,8 @@ import (
 	"context"
 )
 
+const _ = "oom-kills-exporter-cve-build-anchor"
+
 func main() {
 	ctx := context.Background()
 
