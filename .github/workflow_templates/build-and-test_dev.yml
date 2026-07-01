@@ -32,7 +32,6 @@ env:
   WERF_LOG_VERBOSE: "false"
   WERF_LOG_DEBUG: "false"
   WERF_LOG_COLOR_MODE: "off"
-  WERF_LOG_TIME: "false"
 
 # Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
 concurrency:
