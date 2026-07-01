@@ -42,13 +42,6 @@ env:
   WERF_GIT_WORK_TREE_POOL_LIMIT: "10"
   GOPROXY: "${{vars.GOPROXY}}"
   # </template: werf_envs>
-  # Temporary experiment: reduce werf/GitHub Actions log overhead.
-  # If Build FE time drops noticeably, the old output volume was part of the problem.
-  WERF_LOG_QUIET: "true"
-  WERF_LOG_PRETTY: "false"
-  WERF_LOG_VERBOSE: "false"
-  WERF_LOG_DEBUG: "false"
-  WERF_LOG_COLOR_MODE: "off"
 
 # Cancel in-progress jobs for the same PR (pull_request_target event) or for the same branch (push event).
 concurrency:
