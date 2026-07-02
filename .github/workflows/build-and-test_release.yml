@@ -22,10 +22,10 @@ name: Build and test for main branch
 on:
   workflow_dispatch:
     inputs:
-      runner-label:
-        description: 'Comma-separated list of runner labels to build'
-        required: true
-        type: list
+      # runner-label:
+      #   description: 'Comma-separated list of runner labels to build'
+      #   required: true
+      #   type: string
       editions:
         description: 'Comma-separated list of editions to build'
         required: false
@@ -72,7 +72,7 @@ jobs:
     name: Get git info
     strategy:
       matrix:
-        runner: ${{ github.event.inputs.runner-label }}
+        runner: [selectel, dvp]
     runs-on: ${{ matrix.runner }}
     outputs:
       ci_commit_tag: ${{ steps.git_info.outputs.ci_commit_tag }}
@@ -156,7 +156,7 @@ jobs:
     # <template: build_template>
     strategy:
       matrix:
-        runner: ${{ github.event.inputs.runner-label }}
+        runner: [selectel, dvp]
     runs-on: ${{ matrix.runner }}
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
