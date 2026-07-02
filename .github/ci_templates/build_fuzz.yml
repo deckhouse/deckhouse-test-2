@@ -97,12 +97,9 @@ steps:
       set +e
 
       echo "=== network diag ==="
-      ip addr
-      ip route
       ip route get 10.12.3.107
-      curl -v --connect-timeout 5 http://10.12.3.107:30500/v2/
-      nc -vz -w 5 10.12.3.107 30500
-      docker info
+      ping -c 2 172.16.254.1 || true
+      nc -vz -w 3 172.16.254.1 22 || true
 
       set -e
 
