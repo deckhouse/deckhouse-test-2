@@ -358,7 +358,8 @@ jobs:
 
           # CE/EE/FE -> ce/ee/fe
           REGISTRY_SUFFIX=$(echo ${WERF_ENV} | tr '[:upper:]' '[:lower:]')
-          DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
+          DEV_REGISTRY_PATH="localhost:5000/sys/deckhouse-oss"
+          #DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
 
@@ -374,7 +375,7 @@ jobs:
           # Clean build
           docker stop registry && docker rm registry || true
           docker run -d --name registry -p 127.0.0.1:5000:5000 registry:2.8.3
-          export DEV_REGISTRY_PATH="localhost:5000/sys/deckhouse-oss"
+          
           export WERF_DOCKER_REGISTRY_DEBUG="1"
           export WERF_DISABLE_AUTO_HOST_CLEANUP="1"
           export WERF_FINAL_IMAGES_ONLY=true
