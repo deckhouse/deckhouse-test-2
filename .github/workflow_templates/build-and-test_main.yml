@@ -59,7 +59,7 @@ jobs:
       - git_info
     env:
       WERF_FUZZ_IMAGES: "fuzzing"
-{!{ tmpl.Exec "build_fuzz_template" (slice $ctx "dev") | strings.Indent 4 }!}
+{!{ tmpl.Exec "build_fuzz_template" (slice $ctx "main") | strings.Indent 4 }!}
 
   go_generate:
     name: Go Generate

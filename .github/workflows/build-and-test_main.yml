@@ -776,22 +776,26 @@ jobs:
           CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
           CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
           CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
-          CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
+          CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
         run: |
-          if [[ -z "${WERF_FUZZ_IMAGES:-}" ]]; then
-            echo "WERF_FUZZ_IMAGES is empty"
-            echo "Set it to real werf image names, for example: WERF_FUZZ_IMAGES='fuzzing'"
-            exit 1
-          fi
-
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
 
           type werf && source $(werf ci-env github --verbose --as-file)
 
+          FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" --final-images-only | grep -- '-fuzz$' || true)"
+
+          if [[ -z "${FUZZ_IMAGES}" ]]; then
+            echo "No fuzz images found"
+            exit 0
+          fi
+
+          echo "Fuzz images:"
+          echo "${FUZZ_IMAGES}"
+
           # shellcheck disable=SC2086
-          werf build ${WERF_FUZZ_IMAGES} \
+          werf build ${FUZZ_IMAGES} \
             --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --final-images-only=true \
