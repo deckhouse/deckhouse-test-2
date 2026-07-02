@@ -25,7 +25,7 @@ on:
       runner-label:
         description: 'Comma-separated list of runner labels to build'
         required: true
-        type: string
+        type: list
       editions:
         description: 'Comma-separated list of editions to build'
         required: false
