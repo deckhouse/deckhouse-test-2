@@ -2,6 +2,8 @@
 - |
   echo "Download fuzz corpus overlay from S3"
 
+  apk add --no-cache curl ca-certificates
+
   MC=/tmp/mc
   curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
   chmod +x "${MC}"
