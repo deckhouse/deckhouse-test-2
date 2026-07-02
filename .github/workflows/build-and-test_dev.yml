@@ -880,6 +880,7 @@ jobs:
           echo "tests_image_name=$(echo ${TESTS_IMAGE_NAME} | gzip | base64 -w0)" >> $GITHUB_OUTPUT
     # </template: build_tests_template>
 
+
   build_fuzz:
     if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Build fuzz images
