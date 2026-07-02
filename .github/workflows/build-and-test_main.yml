@@ -803,11 +803,6 @@ jobs:
           echo "Fuzz images:"
           echo "${FUZZ_IMAGES}"
 
-          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_BUCKET:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
-            echo "Fuzz S3 secrets are not set"
-            exit 1
-          fi
-
           MC=/tmp/mc
           curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x "${MC}"
