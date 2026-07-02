@@ -818,82 +818,13 @@ jobs:
 
           set +e
 
-          echo "=== basic host info ==="
-          hostname || true
-          whoami || true
-          date || true
-          uname -a || true
-
-          echo
-          echo "=== important env ==="
-          echo "FUZZ_REGISTRY_HOST=${FUZZ_REGISTRY_HOST:-<empty>}"
-          echo "REGISTRY_PATH=${REGISTRY_PATH:-<empty>}"
-          echo "WERF_REPO=${WERF_REPO:-<empty>}"
-          echo "WERF_INSECURE_REGISTRY=${WERF_INSECURE_REGISTRY:-<empty>}"
-          echo "WERF_SKIP_TLS_VERIFY_REGISTRY=${WERF_SKIP_TLS_VERIFY_REGISTRY:-<empty>}"
-
-          echo
-          echo "=== tools ==="
-          command -v curl || true
-          command -v nc || true
-          command -v docker || true
-          command -v werf || true
-
-          echo
-          echo "=== werf version ==="
-          werf version || true
-
-          echo
-          echo "=== network interfaces ==="
-          ip addr || true
-
-          echo
-          echo "=== routes ==="
-          ip route || true
-
-          echo
-          echo "=== resolv.conf ==="
-          cat /etc/resolv.conf || true
-
-          echo
-          echo "=== direct registry HTTP checks ==="
-          curl -v --connect-timeout 5 --max-time 10 "http://10.12.3.107:30500/v2/" || true
-          curl -v --connect-timeout 5 --max-time 10 "http://10.12.3.107:30500/v2/_catalog" || true
-
-          echo
-          echo "=== TCP check with nc ==="
-          nc -vz -w 5 10.12.3.107 30500 || true
-
-          echo
-          echo "=== TCP check with bash /dev/tcp ==="
-          timeout 5 bash -c 'cat < /dev/null > /dev/tcp/10.12.3.107/30500' \
-          && echo "TCP connect to 10.12.3.107:30500 OK" \
-          || echo "TCP connect to 10.12.3.107:30500 FAILED"
-
-          echo
-          echo "=== Docker info ==="
-          docker version || true
-          docker info || true
-
-          echo
-          echo "=== Docker registry push test ==="
-          docker pull alpine:3.22 || true
-          docker tag alpine:3.22 "10.12.3.107:30500/debug/alpine:${GITHUB_RUN_ID:-manual}" || true
-          docker push "10.12.3.107:30500/debug/alpine:${GITHUB_RUN_ID:-manual}" || true
-
-          echo
-          echo "=== Registry catalog after docker push test ==="
-          curl -v --connect-timeout 5 --max-time 10 "http://10.12.3.107:30500/v2/_catalog" || true
-          curl -v --connect-timeout 5 --max-time 10 "http://10.12.3.107:30500/v2/debug/alpine/tags/list" || true
-
-          echo
-          echo "=== Werf repo variables after setup ==="
-          echo "REGISTRY_PATH=${REGISTRY_PATH:-<empty>}"
-          echo "WERF_REPO=${WERF_REPO:-<empty>}"
-
-          echo
-          echo "=== Werf help flags check ==="
-          werf build --help | grep -E 'insecure-registry|skip-tls' || true
+          echo "=== network diag ==="
+          ip addr
+          ip route
+          ip route get 10.12.3.107
+          curl -v --connect-timeout 5 http://10.12.3.107:30500/v2/
+          nc -vz -w 5 10.12.3.107 30500
+          docker info
 
           set -e
 
