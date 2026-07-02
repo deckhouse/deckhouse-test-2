@@ -15,8 +15,13 @@
 
   mkdir -p /src
 
-  "${MC}" mirror \
-    "fuzz-s3/anomaloys-materials/corpus/" \
-    "/src/" \
-    || true
+  if "${MC}" ls "fuzz-s3/anomaloys-materials/corpus/" >/dev/null 2>&1; then
+    echo "Fuzz corpus found in S3, download overlay"
+
+    "${MC}" mirror \
+      "fuzz-s3/anomaloys-materials/corpus/" \
+      "/src/"
+  else
+    echo "No fuzz corpus found in S3 yet, skip download"
+  fi
 {{ end }}
