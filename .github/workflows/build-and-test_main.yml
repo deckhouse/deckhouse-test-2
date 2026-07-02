@@ -665,9 +665,9 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret OBSERVABILITY_SOURCE_REPO | OBSERVABILITY_SOURCE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret DECKHOUSE_PRIVATE_REPO | DECKHOUSE_PRIVATE_REPO ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/github/fox_pull_secret SOURCE_REPO_SSH_KEY | SOURCE_REPO_SSH_KEY ;
-            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 endpoint | FUZZ_S3_ENDPOINT ;
-            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 access_key | FUZZ_S3_ACCESS_KEY ;
-            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 secret_key | FUZZ_S3_SECRET_KEY ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 FUZZ_S3_ENDPOINT | FUZZ_S3_ENDPOINT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 FUZZ_S3_ACCESS_KEY | FUZZ_S3_ACCESS_KEY ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/team-ssdlc/fuzzing-s3 FUZZ_S3_SECRET_KEY | FUZZ_S3_SECRET_KEY ;
 
       # </template: import_secrets>
 
@@ -782,6 +782,10 @@ jobs:
           FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
         run: |
+          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
+            echo "Fuzz S3 secrets are not set"
+            exit 1
+          fi
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
