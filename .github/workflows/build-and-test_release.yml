@@ -70,7 +70,10 @@ jobs:
 
   git_info:
     name: Get git info
-    runs-on: ${{ github.event.inputs.runner-label }}
+    strategy:
+      matrix:
+        runner: ${{ github.event.inputs.runner-label }}
+    runs-on: ${{ matrix.runner }}
     outputs:
       ci_commit_tag: ${{ steps.git_info.outputs.ci_commit_tag }}
       ci_commit_branch: ${{ steps.git_info.outputs.ci_commit_branch }}
@@ -151,7 +154,10 @@ jobs:
     env:
       WERF_ENV: "FE"
     # <template: build_template>
-    runs-on: ${{ github.event.inputs.runner-label }}
+    strategy:
+      matrix:
+        runner: ${{ github.event.inputs.runner-label }}
+    runs-on: ${{ matrix.runner }}
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
