@@ -61,6 +61,6 @@ shell:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - cd /src
     - |
+      #BUILD
       go test ./... -run '^Fuzz' -v
-    - chown 64535:64535 user-api
-    - chmod 0700 user-api
+      go cover -run
