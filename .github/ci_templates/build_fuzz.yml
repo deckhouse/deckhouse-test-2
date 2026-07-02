@@ -59,11 +59,20 @@ steps:
 
       type werf && source $(werf ci-env github --verbose --as-file)
 
-      FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" --final-images-only | grep -- '-fuzz$' || true)"
+      echo "Rendered werf images:"
+      werf config list --env "${WERF_ENV}" --final-images-only || true
+
+      echo "Rendered werf config fuzz search:"
+      werf config render --env "${WERF_ENV}" | grep -n -C 3 -- '-fuzz' || true
+
+      FUZZ_IMAGES="$(werf config render --env "${WERF_ENV}" \
+        | awk '/^[[:space:]]*image:[[:space:]]*/ {print $2}' \
+        | grep -- '-fuzz$' \
+        || true)"
 
       if [[ -z "${FUZZ_IMAGES}" ]]; then
-        echo "No fuzz images found"
-        exit 0
+      echo "No fuzz images found in rendered werf config"
+      exit 1
       fi
 
       echo "Fuzz images:"
