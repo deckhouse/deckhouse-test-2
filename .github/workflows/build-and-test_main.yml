@@ -782,10 +782,6 @@ jobs:
           FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
         run: |
-          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
-            echo "Fuzz S3 secrets are not set"
-            exit 1
-          fi
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
           export WERF_REPO="${DEV_REGISTRY_PATH}"
@@ -807,24 +803,15 @@ jobs:
           curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
           chmod +x "${MC}"
 
+          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
+            echo "Fuzz S3 secrets are not set"
+            exit 1
+          fi
+
           "${MC}" alias set fuzz-s3 \
             "${FUZZ_S3_ENDPOINT}" \
             "${FUZZ_S3_ACCESS_KEY}" \
             "${FUZZ_S3_SECRET_KEY}"
-
-          mkdir -p .fuzz/corpus .fuzz/crashes
-
-          echo "Download fuzz corpus from S3"
-          "${MC}" mirror \
-            "fuzz-s3/${FUZZ_S3_BUCKET}/corpus/" \
-            ".fuzz/corpus/" \
-            || true
-
-          echo "Download fuzz crashes from S3"
-          "${MC}" mirror \
-            "fuzz-s3/${FUZZ_S3_BUCKET}/crashes/" \
-            ".fuzz/crashes/" \
-            || true
 
           # shellcheck disable=SC2086
           werf build ${FUZZ_IMAGES} \
@@ -834,17 +821,10 @@ jobs:
 
           cat images_fuzz_tags_werf.json
 
-          echo "Upload fuzz corpus to S3"
-          "${MC}" mirror \
-            --overwrite \
-            ".fuzz/corpus/" \
-            "fuzz-s3/${FUZZ_S3_BUCKET}/corpus/"
+          "${MC}" cp \
+            "images_fuzz_tags_werf.json" \
+            "fuzz-s3/anomaloys-materials/images_fuzz_tags_werf_${CI_COMMIT_REF_SLUG}.json"
 
-          echo "Upload fuzz crashes to S3"
-          "${MC}" mirror \
-            --overwrite \
-            ".fuzz/crashes/" \
-            "fuzz-s3/${FUZZ_S3_BUCKET}/crashes/"
     # </template: build_fuzz_template>
 
 
