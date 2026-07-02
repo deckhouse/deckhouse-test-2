@@ -22,10 +22,9 @@ name: Build and test for main branch
 on:
   workflow_dispatch:
     inputs:
-      # runner-label:
-      #   description: 'Comma-separated list of runner labels to build'
-      #   required: true
-      #   type: string
+      runner-label:
+        description: 'Comma-separated list of runner labels to build'
+        required: true
       editions:
         description: 'Comma-separated list of editions to build'
         required: false
@@ -70,10 +69,7 @@ jobs:
 
   git_info:
     name: Get git info
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     outputs:
       ci_commit_tag: ${{ steps.git_info.outputs.ci_commit_tag }}
       ci_commit_branch: ${{ steps.git_info.outputs.ci_commit_branch }}
@@ -154,10 +150,7 @@ jobs:
     env:
       WERF_ENV: "FE"
     # <template: build_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
     steps:
@@ -417,9 +410,6 @@ jobs:
     needs:
       - git_info
     # <template: build_tests_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
     runs-on: ${{ github.event.inputs.runner-label }}
     outputs:
       tests_image_name: ${{ steps.build.outputs.tests_image_name }}
@@ -668,10 +658,7 @@ jobs:
     needs:
       - git_info
     # <template: web_build_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -785,10 +772,7 @@ jobs:
     needs:
       - git_info
     # <template: web_build_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -904,10 +888,7 @@ jobs:
       - git_info
 
     # <template: tests_before_build_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1019,10 +1000,7 @@ jobs:
       - git_info
 
     # <template: tests_webhooks_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1076,10 +1054,7 @@ jobs:
     - git_info
 
     # <template: tests_dmt_lint>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1136,10 +1111,7 @@ jobs:
       - build_tests
 
     # <template: tests_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1262,10 +1234,7 @@ jobs:
       DIFF_BASE: ${{ github.event.before }}
 
     # <template: tests_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1383,10 +1352,7 @@ jobs:
       - build_tests
 
     # <template: tests_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1500,10 +1466,7 @@ jobs:
   security_scan_images:
     name: Security scan images
     if: ${{ needs.git_info.outputs.ci_commit_ref_name == 'main' }}
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     needs:
       - git_info
       - build_fe
@@ -1598,10 +1561,7 @@ jobs:
       - main_web_build
     continue-on-error: true
     # <template: web_links_test_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
@@ -1778,10 +1738,7 @@ jobs:
       - build_tests
 
     # <template: tests_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
