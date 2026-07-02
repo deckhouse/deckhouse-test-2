@@ -33,6 +33,7 @@ steps:
     id: build
     env:
       WERF_ENV: CE
+      WERF_FINAL_IMAGES_ONLY: "false"
       WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
       DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -58,6 +59,8 @@ steps:
       export WERF_REPO="${DEV_REGISTRY_PATH}"
 
       type werf && source $(werf ci-env github --verbose --as-file)
+
+      unset WERF_FINAL_IMAGES_ONLY
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
