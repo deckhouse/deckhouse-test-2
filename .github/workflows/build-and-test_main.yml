@@ -625,7 +625,6 @@ jobs:
     name: Build fuzz images
     needs:
       - git_info
-      - pull_request_info
     env:
       WERF_FUZZ_IMAGES: "fuzzing"
     # <template: build_fuzz_template>

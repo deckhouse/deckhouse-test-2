@@ -57,7 +57,6 @@ jobs:
     name: Build fuzz images
     needs:
       - git_info
-      - pull_request_info
     env:
       WERF_FUZZ_IMAGES: "fuzzing"
 {!{ tmpl.Exec "build_fuzz_template" (slice $ctx "dev") | strings.Indent 4 }!}
