@@ -15,12 +15,14 @@
 
   mkdir -p /src
 
-  if "${MC}" ls "fuzz-s3/anomaloys-materials/corpus/" >/dev/null 2>&1; then
+  CORPUS_PATH="fuzz-s3/anomaloys-materials/corpus/"
+
+  if "${MC}" ls "${CORPUS_PATH}" 2>/dev/null | grep -q .; then
     echo "Fuzz corpus found in S3, download overlay"
 
-    "${MC}" mirror \
-      "fuzz-s3/anomaloys-materials/corpus/" \
-      "/src/"
+    if ! "${MC}" mirror "${CORPUS_PATH}" "/src/"; then
+      echo "Failed to download fuzz corpus overlay, skip it"
+    fi
   else
     echo "No fuzz corpus found in S3 yet, skip download"
   fi
