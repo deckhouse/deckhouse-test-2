@@ -796,7 +796,7 @@ jobs:
             --save-build-report=true \
             --build-report-path images_fuzz_tags_werf.json
 
-          cat images_tags_werf.json
+          cat images_fuzz_tags_werf.json
     # </template: build_fuzz_template>
 
 
