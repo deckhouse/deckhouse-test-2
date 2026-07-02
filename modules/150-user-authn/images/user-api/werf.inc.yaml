@@ -63,4 +63,3 @@ shell:
     - |
       #BUILD
       go test ./... -run '^Fuzz' -v
-      go cover -run
