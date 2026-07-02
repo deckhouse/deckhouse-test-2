@@ -621,12 +621,9 @@ jobs:
 
 
   build_fuzz:
-    if: ${{ needs.pull_request_info.outputs.changes_not_markdown == 'true' }}
     name: Build fuzz images
     needs:
       - git_info
-    env:
-      WERF_FUZZ_IMAGES: "fuzzing"
     # <template: build_fuzz_template>
     runs-on: [self-hosted, large]
     steps:
