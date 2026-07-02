@@ -784,9 +784,9 @@ jobs:
           FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
         run: |
-          FUZZ_REGISTRY_PATH="${FUZZ_REGISTRY_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_PATH="${FUZZ_REGISTRY_PATH}"
-          export WERF_REPO="${FUZZ_REGISTRY_PATH}"
+          DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
+          export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          export WERF_REPO="${DEV_REGISTRY_PATH}"
 
           type werf && source $(werf ci-env github --verbose --as-file)
 
@@ -814,41 +814,7 @@ jobs:
             "${FUZZ_S3_ENDPOINT}" \
             "${FUZZ_S3_ACCESS_KEY}" \
             "${FUZZ_S3_SECRET_KEY}"
-          echo "::group::Fuzz registry debug"
 
-          echo "===== FUZZ REGISTRY DEBUG START ====="
-
-          set +e
-          set -x
-
-          echo "=== route before ==="
-          ip route get 10.12.3.107 || true
-          ip route || true
-          ip addr show eth1 || true
-
-          echo "=== check private gateway ==="
-          nc -vz -w 3 172.16.254.1 22 || true
-
-          echo "=== registry before route ==="
-          curl -v --connect-timeout 5 --max-time 10 http://10.12.3.107:30500/v2/ || true
-          nc -vz -w 5 10.12.3.107 30500 || true
-
-          echo "=== try route via 172.16.254.1 ==="
-          sudo ip route add 10.12.3.107/32 via 172.16.254.1 dev eth1 || true
-
-          echo "=== route after ==="
-          ip route get 10.12.3.107 || true
-
-          echo "=== registry after route ==="
-          curl -v --connect-timeout 5 --max-time 10 http://10.12.3.107:30500/v2/ || true
-          nc -vz -w 5 10.12.3.107 30500 || true
-
-          set +x
-          set -e
-
-          echo "===== FUZZ REGISTRY DEBUG END ====="
-
-          echo "::endgroup::"
           # shellcheck disable=SC2086
           werf build ${FUZZ_IMAGES} \
             --insecure-registry \
