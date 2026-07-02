@@ -44,7 +44,7 @@ shell:
     - chmod 0700 user-api
 ---
 image: {{ .ModuleName }}/{{ .ImageName }}-fuzz
-from: builder/golang-alpine
+fromImage: builder/golang-alpine
 final: false
 import:
   - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
