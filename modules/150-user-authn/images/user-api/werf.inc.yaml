@@ -57,10 +57,9 @@ secrets:
   - id: GOPROXY
     value: {{ .GOPROXY }}
   {{ include "fuzz corpus secrets" . }}
-
 shell:
   install:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     {{ include "fuzz corpus sync" . | nindent 4 }}
-    - cd /src
-    - go test ./... -run '^Fuzz' -v
+    - |
+      go test ./... -run '^Fuzz' -v
