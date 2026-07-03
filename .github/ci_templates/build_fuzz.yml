@@ -62,13 +62,21 @@ steps:
       CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
 {!{- end }!}
     run: |
-      DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
-      export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
-      export WERF_REPO="${DEV_REGISTRY_PATH}"
+      FUZZ_REGISTRY_PATH="${FUZZ_REGISTRY_HOST}/${REGISTRY_PATH}"
+      export REGISTRY_PATH="${FUZZ_REGISTRY_PATH}"
+      export WERF_REPO="${FUZZ_REGISTRY_PATH}"
 
       type werf && source $(werf ci-env github --verbose --as-file)
 
+      export REGISTRY_PATH="${FUZZ_REGISTRY_PATH}"
+      export WERF_REPO="${FUZZ_REGISTRY_PATH}"
+
       unset WERF_FINAL_IMAGES_ONLY
+
+      echo "FUZZ_REGISTRY_HOST=${FUZZ_REGISTRY_HOST}"
+      echo "REGISTRY_PATH=${REGISTRY_PATH}"
+      echo "WERF_REPO=${WERF_REPO}"
+      echo "WERF_INSECURE_REGISTRY=${WERF_INSECURE_REGISTRY}"
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -106,5 +114,4 @@ steps:
         "images_fuzz_tags_werf.json" \
         "fuzz-s3/anomaloys-materials/images_fuzz_tags_werf_${CI_COMMIT_REF_SLUG}.json"
 
-# </template: build_fuzz_template>
 {!{ end }!}
