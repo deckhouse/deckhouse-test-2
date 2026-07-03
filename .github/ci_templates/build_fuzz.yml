@@ -105,6 +105,7 @@ steps:
       werf build ${FUZZ_IMAGES} \
         --repo "185.120.186.221:5000/sys/deckhouse-oss" \
         --repo-container-registry default \
+        --skip-tls-verify-registry \
         --insecure-registry \
         --parallel=true --parallel-tasks-limit=10 \
         --save-build-report=true \
