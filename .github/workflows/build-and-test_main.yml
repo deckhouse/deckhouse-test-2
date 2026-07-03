@@ -837,7 +837,6 @@ jobs:
 
     # </template: build_fuzz_template>
 
-    if: ${{ false }}
 
   go_generate:
     name: Go Generate
