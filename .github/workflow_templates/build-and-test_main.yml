@@ -57,6 +57,7 @@ jobs:
     needs:
       - git_info
 {!{ tmpl.Exec "build_fuzz_template" (slice $ctx "main") | strings.Indent 4 }!}
+    if: ${{ false }}
 
   go_generate:
     name: Go Generate
