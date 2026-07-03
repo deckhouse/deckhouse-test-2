@@ -65,15 +65,16 @@ steps:
       type werf && source "$(werf ci-env github --verbose --as-file)"
 
       unset WERF_FINAL_IMAGES_ONLY
-      unset WERF_INSECURE_REGISTRY
+      unset WERF_SKIP_TLS_VERIFY_REGISTRY
 
       export FUZZ_REPO="${FUZZ_REGISTRY_HOST}/sys/deckhouse-oss"
-      export WERF_SKIP_TLS_VERIFY_REGISTRY=true
+      export WERF_INSECURE_REGISTRY=true
 
       echo "FUZZ_REGISTRY_HOST=${FUZZ_REGISTRY_HOST}"
       echo "FUZZ_REPO=${FUZZ_REPO}"
-      echo "WERF_SKIP_TLS_VERIFY_REGISTRY=${WERF_SKIP_TLS_VERIFY_REGISTRY}"
-      echo "WERF_INSECURE_REGISTRY=${WERF_INSECURE_REGISTRY:-}"
+      echo "WERF_INSECURE_REGISTRY=${WERF_INSECURE_REGISTRY}"
+
+      curl -v "http://${FUZZ_REGISTRY_HOST}/v2/"
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -98,43 +99,10 @@ steps:
         "${FUZZ_S3_ACCESS_KEY}" \
         "${FUZZ_S3_SECRET_KEY}"
 
-      REGISTRY_HOST="${FUZZ_REGISTRY_HOST}"
-
-      echo "Installing registry CA for ${REGISTRY_HOST}"
-
-      CERT_FILE="/tmp/fuzz-registry.crt"
-
-      openssl s_client \
-        -showcerts \
-        -connect "${REGISTRY_HOST}" \
-        -servername "185.120.186.221" \
-        </dev/null 2>/dev/null \
-        | sed -ne '/BEGIN CERTIFICATE/,/END CERTIFICATE/p' \
-        > "${CERT_FILE}"
-
-      test -s "${CERT_FILE}"
-
-      sudo cp "${CERT_FILE}" /usr/local/share/ca-certificates/fuzz-registry.crt
-      sudo update-ca-certificates
-
-      sudo mkdir -p "/etc/docker/certs.d/${REGISTRY_HOST}"
-      sudo cp "${CERT_FILE}" "/etc/docker/certs.d/${REGISTRY_HOST}/ca.crt"
-
-      sudo mkdir -p "/etc/containers/certs.d/${REGISTRY_HOST}"
-      sudo cp "${CERT_FILE}" "/etc/containers/certs.d/${REGISTRY_HOST}/ca.crt"
-
-      mkdir -p "${HOME}/.docker/certs.d/${REGISTRY_HOST}"
-      cp "${CERT_FILE}" "${HOME}/.docker/certs.d/${REGISTRY_HOST}/ca.crt"
-
-      sudo systemctl restart docker || true
-
-      curl -v "https://${REGISTRY_HOST}/v2/"
-
       # shellcheck disable=SC2086
       werf build ${FUZZ_IMAGES} \
         --repo "${FUZZ_REPO}" \
-        --repo-container-registry default \
-        --skip-tls-verify-registry=true \
+        --insecure-registry \
         --parallel=true --parallel-tasks-limit=10 \
         --save-build-report=true \
         --build-report-path images_fuzz_tags_werf.json
@@ -144,5 +112,6 @@ steps:
       "${MC}" cp \
         "images_fuzz_tags_werf.json" \
         "fuzz-s3/anomaloys-materials/images_fuzz_tags_werf_${CI_COMMIT_REF_SLUG}.json"
+
 # </template: build_fuzz_template>
 {!{ end }!}
