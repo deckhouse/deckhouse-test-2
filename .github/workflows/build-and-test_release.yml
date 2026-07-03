@@ -598,10 +598,7 @@ jobs:
     needs:
       - git_info
     # <template: go_generate_template>
-    strategy:
-      matrix:
-        runner: [selectel, dvp]
-    runs-on: ${{ matrix.runner }}
+    runs-on: ${{ github.event.inputs.runner-label }}
     steps:
 
       # <template: started_at_output>
