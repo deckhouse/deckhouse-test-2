@@ -113,5 +113,5 @@ steps:
       "${MC}" cp \
         "images_fuzz_tags_werf.json" \
         "fuzz-s3/anomaloys-materials/images_fuzz_tags_werf_${CI_COMMIT_REF_SLUG}.json"
-
+# </template: build_fuzz_template>
 {!{ end }!}
