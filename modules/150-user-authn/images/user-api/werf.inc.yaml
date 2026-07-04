@@ -43,23 +43,22 @@ shell:
     - chown 64535:64535 user-api
     - chmod 0700 user-api
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-fuzz6543
-fromImage: {{ index $.Images "builder/golang-alpine" }}
+image: {{ .ModuleName }}/{{ .ImageName }}-testovy
+from: {{ index $.Images ( eq $.SVACE_ENABLED "false" | ternary "builder/golang-alpine" "builder/golang-alpine-svace" ) }}
+final: false
 import:
-  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+  - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
     to: /src
     before: install
 mount:
-  {{ include "mount points for golang builds" . }}
+{{ include "mount points for golang builds" . }}
 secrets:
-  - id: GOPROXY
-    value: {{ .GOPROXY }}
-  {{ include "fuzz corpus secrets" . }}
+- id: GOPROXY
+  value: {{ .GOPROXY }}
 shell:
   install:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-    {{ include "fuzz corpus sync" . | nindent 4 }}
+    - cd /src
     - |
-      cd /src
-      go test ./... -run '^Fuzz' -v
+      go test ./... -list '^Fuzz'
