@@ -43,9 +43,8 @@ shell:
     - chown 64535:64535 user-api
     - chmod 0700 user-api
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-testovy
+image: {{ .ModuleName }}/{{ .ImageName }}-testdifftest
 from: {{ index $.Images ( eq $.SVACE_ENABLED "false" | ternary "builder/golang-alpine" "builder/golang-alpine-svace" ) }}
-final: false
 import:
   - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
