@@ -43,7 +43,7 @@ shell:
     - chown 64535:64535 user-api
     - chmod 0700 user-api
 ---
-image: {{ .ModuleName }}/{{ .ImageName }}-fuzz
+image: {{ .ModuleName }}/{{ .ImageName }}-fuzz6543
 fromImage: {{ index $.Images "builder/golang-alpine" }}
 final: false
 import:
