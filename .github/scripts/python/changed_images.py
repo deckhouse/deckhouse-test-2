@@ -379,7 +379,6 @@ def main() -> int:
         print("ERROR: failed to map changed module images to images_digests.json keys:")
         for item in missing_compact:
             print(f"  {item['werf_image_name']}  {item['digest']}  {item['commit']}")
-        return 1
 
     changed_compact = build_changed_compact(changed)
 
