@@ -13,17 +13,68 @@
     "$(cat /run/secrets/FUZZ_S3_ACCESS_KEY)" \
     "$(cat /run/secrets/FUZZ_S3_SECRET_KEY)"
 
-  mkdir -p /src
+  cd /src
 
-  CORPUS_PATH="fuzz-s3/anomaloys-materials/corpus/"
+  S3_FUZZING_PATH="fuzz-s3/anomaloys-materials/fuzzing/"
+  TMP_CORPUS="/tmp/fuzzing-s3"
 
-  if "${MC}" ls "${CORPUS_PATH}" 2>/dev/null | grep -q .; then
+  rm -rf "${TMP_CORPUS}"
+  mkdir -p "${TMP_CORPUS}"
+
+  if "${MC}" ls "${S3_FUZZING_PATH}" 2>/dev/null | grep -q .; then
     echo "Fuzz corpus found in S3, download overlay"
 
-    if ! "${MC}" mirror "${CORPUS_PATH}" "/src/"; then
+    if ! "${MC}" mirror "${S3_FUZZING_PATH}" "${TMP_CORPUS}/"; then
       echo "Failed to download fuzz corpus overlay, skip it"
+      exit 0
     fi
   else
     echo "No fuzz corpus found in S3 yet, skip download"
+    exit 0
   fi
+
+  MODULE_PATH="$(go list -m)"
+  echo "module path: ${MODULE_PATH}"
+
+  find "${TMP_CORPUS}" \
+    -type d \
+    -path "*/corpus/gocache-fuzz/${MODULE_PATH}/*" \
+    > /tmp/fuzz-target-dirs.txt || true
+
+  restored=0
+
+  while IFS= read -r target_dir; do
+    target="$(basename "${target_dir}")"
+
+    case "${target}" in
+      Fuzz*) ;;
+      *) continue ;;
+    esac
+
+    if ! find "${target_dir}" -maxdepth 1 -type f | grep -q .; then
+      continue
+    fi
+
+    prefix="/corpus/gocache-fuzz/${MODULE_PATH}/"
+    rel="${target_dir#*${prefix}}"
+
+    pkg_rel="${rel%/${target}}"
+    seed_dir="/src/${pkg_rel}/testdata/fuzz/${target}"
+
+    echo "restore corpus"
+    echo "from: ${target_dir}"
+    echo "to: ${seed_dir}"
+
+    mkdir -p "${seed_dir}"
+
+    find "${target_dir}" \
+      -maxdepth 1 \
+      -type f \
+      -exec cp {} "${seed_dir}/" \;
+
+    count="$(find "${target_dir}" -maxdepth 1 -type f | wc -l | tr -d ' ')"
+    restored=$((restored + count))
+  done < /tmp/fuzz-target-dirs.txt
+
+  echo "restored corpus files: ${restored}"
 {{ end }}
