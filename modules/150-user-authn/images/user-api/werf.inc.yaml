@@ -60,17 +60,11 @@ secrets:
 shell:
   install:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+    {{ include "fuzz corpus sync" . | nindent 4 }}
     - |
       cd /src
-      mkdir -p /work/coverage
-
-      go test \
-      -run '^Fuzz' \
-      -count=1 \
-      -v \
-      -covermode=atomic \
-      -coverpkg=./... \
-      -coverprofile=/work/coverage/coverage.out \
-      ./...
-
-      go tool cover -func=/work/coverage/coverage.out | tee /work/coverage/coverage.txt
+      go test ./pkg/api \
+        -run '^$' \
+        -fuzz=Fuzz_ResetPassword \
+        -fuzztime=3m \
+        -v
