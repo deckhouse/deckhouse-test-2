@@ -48,8 +48,6 @@ steps:
       DECKHOUSE_PRIVATE_REPO: "${{ steps.secrets.outputs.DECKHOUSE_PRIVATE_REPO }}"
       REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
       REGISTRY_PASSWORD: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_PASSWORD }}
-      FUZZ_REGISTRY_HOST: 185.120.186.221:5000
-      WERF_SKIP_TLS_VERIFY_REGISTRY: "true"
       CI_COMMIT_TAG: ${{needs.git_info.outputs.ci_commit_tag}}
       CI_COMMIT_BRANCH: ${{needs.git_info.outputs.ci_commit_branch}}
       CI_COMMIT_REF_NAME: ${{needs.git_info.outputs.ci_commit_ref_name}}
@@ -64,17 +62,13 @@ steps:
     run: |
       type werf && source "$(werf ci-env github --verbose --as-file)"
 
+      DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
+      export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+      export WERF_REPO="${DEV_REGISTRY_PATH}"
+
+      type werf && source "$(werf ci-env github --verbose --as-file)"
+
       unset WERF_FINAL_IMAGES_ONLY
-      unset WERF_SKIP_TLS_VERIFY_REGISTRY
-
-      export FUZZ_REPO="${FUZZ_REGISTRY_HOST}/sys/deckhouse-oss"
-      export WERF_INSECURE_REGISTRY=true
-
-      echo "FUZZ_REGISTRY_HOST=${FUZZ_REGISTRY_HOST}"
-      echo "FUZZ_REPO=${FUZZ_REPO}"
-      echo "WERF_INSECURE_REGISTRY=${WERF_INSECURE_REGISTRY}"
-
-      curl -v "http://${FUZZ_REGISTRY_HOST}/v2/"
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -101,8 +95,6 @@ steps:
 
       # shellcheck disable=SC2086
       werf build ${FUZZ_IMAGES} \
-        --repo "${FUZZ_REPO}" \
-        --insecure-registry \
         --parallel=true --parallel-tasks-limit=10 \
         --save-build-report=true \
         --build-report-path images_fuzz_tags_werf.json
