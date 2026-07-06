@@ -559,7 +559,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
@@ -900,7 +900,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
@@ -1241,7 +1241,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
@@ -1570,7 +1570,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
@@ -1899,7 +1899,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
@@ -2228,7 +2228,7 @@ jobs:
         run: |
           export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
           export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-          export IMAGES_TAGS_PATH=${{ steps.build.outputs.build_report_dir }}/images_tags_werf.json
+          export IMAGES_TAGS_PATH="images_tags_werf.json"
           python .github/scripts/python/copy_attestations.py
 
       - name: Save build report
