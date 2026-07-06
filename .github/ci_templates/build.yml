@@ -271,7 +271,7 @@ steps:
     run: |
       export REGISTRY_FROM="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/common"
       export REGISTRY_TO="${DECKHOUSE_REGISTRY_STAGE_HOST}/deckhouse/${WERF_ENV,,}"
-      export IMAGES_TAGS_PATH="${GITHUB_WORKSPACE}/images_tags_werf.json"
+      export IMAGES_TAGS_PATH="images_tags_werf.json"
       python .github/scripts/python/copy_attestations.py
   {!{- end }!}
 
