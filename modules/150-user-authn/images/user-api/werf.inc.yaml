@@ -62,4 +62,15 @@ shell:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     - |
       cd /src
-      go test ./... -run '^Fuzz' -count=1 -v -coverprofile
+      mkdir -p /work/coverage
+
+      go test \
+      -run '^Fuzz' \
+      -count=1 \
+      -v \
+      -covermode=atomic \
+      -coverpkg=./... \
+      -coverprofile=/work/coverage/coverage.out \
+      ./...
+
+      go tool cover -func=/work/coverage/coverage.out | tee /work/coverage/coverage.txt
