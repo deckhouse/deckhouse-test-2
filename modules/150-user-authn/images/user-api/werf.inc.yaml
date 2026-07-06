@@ -63,8 +63,4 @@ shell:
     {{ include "fuzz corpus sync" . | nindent 4 }}
     - |
       cd /src
-      go test ./pkg/api \
-        -run '^$' \
-        -fuzz=Fuzz_ResetPassword \
-        -fuzztime=3m \
-        -v
+      go test ./... -run '^Fuzz' -count=1 -v
