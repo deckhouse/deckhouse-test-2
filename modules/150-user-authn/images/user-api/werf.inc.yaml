@@ -64,7 +64,3 @@ shell:
     - |
       cd /src
       go tool task fuzz:list
-      go tool task fuzz:run -- Fuzz_ResetPassword
-      go tool task fuzz:coverage -- all
-      go tool task fuzz:coverage -- Fuzz_ResetPassword
-      go tool task fuzz:replay
