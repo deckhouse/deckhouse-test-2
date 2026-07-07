@@ -1,0 +1,119 @@
+version: '3'
+
+vars:
+  FUZZTIME: '{{default "3m" .FUZZTIME}}'
+  COVERPROFILE: '{{default "coverage.out" .COVERPROFILE}}'
+
+tasks:
+  fuzz:list:
+    desc: List Go fuzz targets
+    cmds:
+      - |
+        set -euo pipefail
+
+        for pkg in $(go list ./...); do
+          targets="$(go test "$pkg" -list '^Fuzz' 2>/dev/null | grep '^Fuzz' || true)"
+
+          if [ -n "$targets" ]; then
+            echo "$targets" | while read -r target; do
+              echo "$pkg $target"
+            done
+          fi
+        done
+
+  fuzz:run:
+    desc: Run one Go fuzz target
+    cmds:
+      - |
+        set -euo pipefail
+
+        target="{{.CLI_ARGS}}"
+
+        if [ -z "$target" ]; then
+          echo "usage: task fuzz:run -- Fuzz_TargetName"
+          exit 1
+        fi
+
+        found_pkg=""
+
+        for pkg in $(go list ./...); do
+          if go test "$pkg" -list '^Fuzz' 2>/dev/null | grep -qx "$target"; then
+            found_pkg="$pkg"
+            break
+          fi
+        done
+
+        if [ -z "$found_pkg" ]; then
+          echo "fuzz target not found: $target"
+          exit 1
+        fi
+
+        echo "running $target in $found_pkg"
+
+        go test "$found_pkg" \
+          -run '^$' \
+          -fuzz "^${target}$" \
+          -fuzztime={{.FUZZTIME}} \
+          -count=1 \
+          -v
+
+  fuzz:coverage:
+    desc: Replay fuzz corpus and collect coverage
+    cmds:
+      - |
+        set -euo pipefail
+
+        target="{{.CLI_ARGS}}"
+
+        if [ -z "$target" ]; then
+          echo "usage: task fuzz:coverage -- all"
+          echo "usage: task fuzz:coverage -- Fuzz_TargetName"
+          exit 1
+        fi
+
+        if [ "$target" = "all" ]; then
+          echo "collecting coverage for all fuzz targets"
+
+          go test ./... \
+            -run '^Fuzz' \
+            -count=1 \
+            -v \
+            -coverprofile={{.COVERPROFILE}}
+
+          exit 0
+        fi
+
+        found_pkg=""
+
+        for pkg in $(go list ./...); do
+          if go test "$pkg" -list '^Fuzz' 2>/dev/null | grep -qx "$target"; then
+            found_pkg="$pkg"
+            break
+          fi
+        done
+
+        if [ -z "$found_pkg" ]; then
+          echo "fuzz target not found: $target"
+          exit 1
+        fi
+
+        echo "collecting coverage for $target in $found_pkg"
+
+        go test "$found_pkg" \
+          -run "^${target}$" \
+          -count=1 \
+          -v \
+          -coverprofile={{.COVERPROFILE}}
+
+  fuzz:replay:
+    desc: Replay all Go fuzz targets without active fuzzing
+    cmds:
+      - |
+        set -euo pipefail
+
+        echo "replaying fuzz corpus"
+
+        go test ./... \
+          -run '^Fuzz' \
+          -count=1 \
+          -v

@@ -63,4 +63,8 @@ shell:
     {{ include "fuzz corpus sync" . | nindent 4 }}
     - |
       cd /src
-      go test ./... -run '^Fuzz' -count=1 -v
+      task list
+      task run -- Fuzz_ResetPassword
+      task coverage -- all
+      task coverage -- Fuzz_ResetPassword
+      task replay
