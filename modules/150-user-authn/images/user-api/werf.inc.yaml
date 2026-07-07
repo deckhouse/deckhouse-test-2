@@ -62,9 +62,10 @@ shell:
     - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
     {{ include "fuzz corpus sync" . | nindent 4 }}
     - |
+      go get -tool github.com/go-task/task/v3/cmd/task@v3.50.0
       cd /src
-      task list
-      task run -- Fuzz_ResetPassword
-      task coverage -- all
-      task coverage -- Fuzz_ResetPassword
-      task replay
+      task fuzz:list
+      task fuzz:run -- Fuzz_ResetPassword
+      task fuzz:coverage -- all
+      task fuzz:coverage -- Fuzz_ResetPassword
+      task fuzz:replay
