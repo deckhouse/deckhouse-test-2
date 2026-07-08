@@ -17,9 +17,12 @@
 
   S3_FUZZING_PATH="fuzz-s3/anomaloys-materials/fuzzing/"
   TMP_CORPUS="/tmp/fuzzing-s3"
+  RESTORED_FILES="/tmp/fuzz-restored-files.txt"
 
   rm -rf "${TMP_CORPUS}"
   mkdir -p "${TMP_CORPUS}"
+
+  : > "${RESTORED_FILES}"
 
   if "${MC}" ls "${S3_FUZZING_PATH}" 2>/dev/null | grep -q .; then
     echo "Fuzz corpus found in S3, download overlay"
@@ -67,14 +70,30 @@
 
     mkdir -p "${seed_dir}"
 
-    find "${target_dir}" \
-      -maxdepth 1 \
-      -type f \
-      -exec cp {} "${seed_dir}/" \;
+    copied=0
 
-    count="$(find "${target_dir}" -maxdepth 1 -type f | wc -l | tr -d ' ')"
-    restored=$((restored + count))
+    for corpus_file in "${target_dir}"/*; do
+      if [ ! -f "${corpus_file}" ]; then
+        continue
+      fi
+
+      dst="${seed_dir}/$(basename "${corpus_file}")"
+
+      if [ -e "${dst}" ]; then
+        echo "skip existing seed file: ${dst}"
+        continue
+      fi
+
+      cp "${corpus_file}" "${dst}"
+      printf '%s\n' "${dst}" >> "${RESTORED_FILES}"
+
+      copied=$((copied + 1))
+    done
+
+    echo "copied corpus files for ${target}: ${copied}"
+    restored=$((restored + copied))
   done < /tmp/fuzz-target-dirs.txt
 
   echo "restored corpus files: ${restored}"
+  echo "restored file list: ${RESTORED_FILES}"
 {{ end }}
