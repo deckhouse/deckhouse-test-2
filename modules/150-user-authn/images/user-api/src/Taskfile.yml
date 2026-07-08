@@ -41,9 +41,11 @@ tasks:
       - |
         set -e
 
+        COVERPKG="${COVERPKG:-$FUZZ_PKG}"
+
         go test "$FUZZ_PKG" \
           -run "^${FUZZ_TARGET}$" \
           -count=1 \
           -covermode=atomic \
-          -coverpkg=./... \
+          -coverpkg="$COVERPKG" \
           -coverprofile={{.COVERPROFILE}}
