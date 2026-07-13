@@ -60,7 +60,6 @@ steps:
       CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
 {!{- end }!}
     run: |
-      type werf && source "$(werf ci-env github --verbose --as-file)"
 
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
@@ -94,7 +93,6 @@ steps:
         "${FUZZ_S3_SECRET_KEY}"
 
       # shellcheck disable=SC2086
-            # shellcheck disable=SC2086
       werf build ${FUZZ_IMAGES} \
         --insecure-registry \
         --parallel=true --parallel-tasks-limit=10 \
