@@ -782,7 +782,6 @@ jobs:
           FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
           CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
         run: |
-          type werf && source "$(werf ci-env github --verbose --as-file)"
 
           DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
           export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
@@ -817,15 +816,59 @@ jobs:
 
           # shellcheck disable=SC2086
           werf build ${FUZZ_IMAGES} \
+            --insecure-registry \
             --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_fuzz_tags_werf.json
+
+          command -v jq >/dev/null 2>&1 || {
+            echo "jq is required"
+            exit 1
+          }
+
+          REPOSITORY="${GITHUB_REPOSITORY##*/}"
+          BRANCH="${CI_COMMIT_REF_NAME}"
+          BRANCH_SLUG="${CI_COMMIT_REF_SLUG}"
+          COMMIT="${GITHUB_SHA}"
+
+          if [[ -z "${REPOSITORY}" ]]; then
+            echo "Cannot determine repository from GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-}"
+            exit 1
+          fi
+
+          if [[ -z "${BRANCH}" ]]; then
+            echo "Cannot determine branch from CI_COMMIT_REF_NAME"
+            exit 1
+          fi
+
+          if [[ -z "${BRANCH_SLUG}" ]]; then
+            echo "Cannot determine branch slug from CI_COMMIT_REF_SLUG"
+            exit 1
+          fi
+
+          jq \
+            --arg repository "${REPOSITORY}" \
+            --arg branch "${BRANCH}" \
+            --arg branchSlug "${BRANCH_SLUG}" \
+            --arg commit "${COMMIT}" \
+            '
+            .Source = {
+              Repository: $repository,
+              Branch: $branch,
+              BranchSlug: $branchSlug,
+              Commit: $commit
+            }
+            ' \
+            images_fuzz_tags_werf.json \
+            > images_fuzz_tags_werf.tmp.json
+
+          mv images_fuzz_tags_werf.tmp.json images_fuzz_tags_werf.json
 
           cat images_fuzz_tags_werf.json
 
           "${MC}" cp \
             "images_fuzz_tags_werf.json" \
-            "fuzz-s3/anomaloys-materials/images_fuzz_tags_werf_${CI_COMMIT_REF_SLUG}.json"
+            "fuzz-s3/anomaloys-materials/build-reports/${REPOSITORY}/${BRANCH_SLUG}/images_fuzz_tags_werf.json"
 
     # </template: build_fuzz_template>
 
