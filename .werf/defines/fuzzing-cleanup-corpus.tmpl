@@ -1,0 +1,37 @@
+{{ define "fuzz corpus cleanup" }}
+- |
+  echo "Cleanup restored fuzz corpus from /src"
+
+  RESTORED_FILES="/tmp/fuzz-restored-files.txt"
+
+  if [ -f "${RESTORED_FILES}" ]; then
+    while IFS= read -r restored_file; do
+      if [ -n "${restored_file}" ] && [ -f "${restored_file}" ]; then
+        echo "remove restored corpus file: ${restored_file}"
+        rm -f "${restored_file}"
+      fi
+    done < "${RESTORED_FILES}"
+  else
+    echo "No restored fuzz corpus file list found, skip cleanup"
+  fi
+
+  find /src \
+    -type d \
+    -path "*/testdata/fuzz/Fuzz*" \
+    -empty \
+    -exec rmdir {} \; 2>/dev/null || true
+
+  find /src \
+    -type d \
+    -path "*/testdata/fuzz" \
+    -empty \
+    -exec rmdir {} \; 2>/dev/null || true
+
+  rm -rf /tmp/fuzzing-s3
+  rm -f /tmp/fuzz-target-dirs.txt
+  rm -f "${RESTORED_FILES}"
+
+  go clean -cache -testcache -fuzzcache 2>/dev/null || true
+
+  echo "restored fuzz corpus cleanup done"
+{{ end }}
