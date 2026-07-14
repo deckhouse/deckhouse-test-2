@@ -72,7 +72,7 @@ func discoverDexClusterIP(_ context.Context, input *go_hook.HookInput) error {
 	}
 
 	if clusterIP == v1.ClusterIPNone {
-		// Migration, delete after rolling it on all clusters
+		// TODO: migration cleanup; delete after rolling it on all clusters.
 		input.PatchCollector.Delete("v1", "Service", "d8-user-authn", "dex")
 		return nil
 	}
