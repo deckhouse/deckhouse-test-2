@@ -1,0 +1,51 @@
+version: '3'
+
+vars:
+  COVERPROFILE: '{{default "/work/out/coverage.out" .COVERPROFILE}}'
+
+tasks:
+  fuzz:list:
+    silent: true
+    cmds:
+      - |
+        set -e
+
+        go list ./... | while IFS= read -r pkg; do
+          go test "$pkg" -list '^Fuzz' 2>/dev/null \
+            | awk -v pkg="$pkg" '$1 ~ /^Fuzz[A-Za-z0-9_]+$/ { print pkg "\t" $1 }'
+        done
+
+  fuzz:replay:
+    cmds:
+      - |
+        set -e
+
+        go test ./... \
+          -run '^Fuzz' \
+          -count=1 \
+          -v
+
+  fuzz:run:
+    cmds:
+      - |
+        set -e
+
+        go test "$FUZZ_PKG" \
+          -run '^$' \
+          -fuzz "^${FUZZ_TARGET}$" \
+          -count=1 \
+          -v
+
+  fuzz:coverage:
+    cmds:
+      - |
+        set -e
+
+        COVERPKG="${COVERPKG:-$FUZZ_PKG}"
+
+        go test "$FUZZ_PKG" \
+          -run "^${FUZZ_TARGET}$" \
+          -count=1 \
+          -covermode=atomic \
+          -coverpkg="$COVERPKG" \
+          -coverprofile={{.COVERPROFILE}}

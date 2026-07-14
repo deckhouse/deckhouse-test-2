@@ -42,3 +42,39 @@ shell:
       {{- include "image-build.build" $buildContext | indent 6 }}
     - chown 64535:64535 user-api
     - chmod 0700 user-api
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-fuzz
+fromImage: {{ index $.Images "builder/golang-alpine" }}
+final: false
+
+imageSpec:
+  config:
+    labels:
+      io.deckhouse.fuzz.engine: "go"
+
+import:
+  - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
+    add: /src
+    to: /src
+    before: install
+mount:
+  {{ include "mount points for golang builds" . }}
+secrets:
+  - id: GOPROXY
+    value: {{ .GOPROXY }}
+  {{ include "fuzz corpus secrets" . }}
+shell:
+  install:
+    - export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+
+    {{ include "fuzz corpus sync" . | nindent 4 }}
+
+    - |
+      cd /src
+      go tool task fuzz:replay
+
+    {{ include "fuzz corpus cleanup" . | nindent 4 }}
+
+    - |
+      cd /src
+      go tool task fuzz:list
