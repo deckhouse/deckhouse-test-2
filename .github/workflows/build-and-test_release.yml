@@ -366,6 +366,12 @@ jobs:
           WERF_ANNOTATE_LAYERS_WITH_DM_VERITY_ROOT_HASH: "1"
           WERF_VAULT_AUTH_PATH: "github"
           WERF_ACTIONS_AUDIENCE: "github-access-aud"
+          WERF_LOG_QUIET: "true"
+          WERF_LOG_PRETTY: "false"
+          WERF_LOG_VERBOSE: "false"
+          WERF_LOG_DEBUG: "false"
+          WERF_LOG_COLOR_MODE: "off"
+          WERF_LOG_TIME: "false"
         run: |
           # Extract REPO_SUFFIX from repository name: trim prefix 'deckhouse/deckhouse-'.
           REPO_SUFFIX=${GITHUB_REPOSITORY#deckhouse/deckhouse-}
