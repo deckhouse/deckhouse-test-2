@@ -21,6 +21,8 @@ config:
       - FUZZ_S3_ACCESS_KEY
       - FUZZ_S3_SECRET_KEY
       - FUZZ_ENABLE_RUN
+      - FUZZ_PKG
+      - FUZZ_TARGET
       - FUZZ_TIME
     allowUncommittedFiles: ["tools/build_includes/*"]
   secrets:
@@ -40,6 +42,8 @@ config:
       - FUZZ_S3_ACCESS_KEY
       - FUZZ_S3_SECRET_KEY
       - FUZZ_ENABLE_RUN
+      - FUZZ_PKG
+      - FUZZ_TARGET
       - FUZZ_TIME
     allowValueIds:
       - SOURCE_REPO

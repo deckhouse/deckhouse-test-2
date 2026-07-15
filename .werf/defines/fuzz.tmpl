@@ -9,13 +9,15 @@
 #                currently supported: "go"
 #
 # Optional pipeline controls (werf secrets / CI env):
-#   FUZZ_ENABLE_RUN — "true"/"1"/"yes" to run active fuzzing after replay (default: off)
-#   FUZZ_TIME       — per-target budget for go test -fuzztime (default: 30s)
+#   FUZZ_ENABLE_RUN — "true"/"1"/"yes" to run one active fuzz target after replay
+#   FUZZ_PKG        — package path (required when FUZZ_ENABLE_RUN is on), e.g. ./pkg/api
+#   FUZZ_TARGET     — fuzz function name (required when FUZZ_ENABLE_RUN is on), e.g. FuzzFoo
+#   FUZZ_TIME       — go test -fuzztime budget (default: 30s)
 #
 # Build steps:
 #   1. sync corpus overlay from S3 (ok if empty — first run)
 #   2. replay corpus
-#   3. optional active fuzzing (FUZZ_ENABLE_RUN)
+#   3. optional single-target fuzzing (FUZZ_ENABLE_RUN + FUZZ_PKG + FUZZ_TARGET)
 #   4. cleanup restored corpus
 #   5. list fuzz targets
 {{- define "fuzz image" }}
@@ -29,7 +31,7 @@
 {{- if eq $engine "go" }}
   {{- $replay = "go tool task fuzz:replay" }}
   {{- $list = "go tool task fuzz:list" }}
-  {{- $run = "go tool task fuzz:run-all" }}
+  {{- $run = "go tool task fuzz:run" }}
 {{- else }}
   {{- fail (printf "fuzz image: unsupported FuzzEngine %q (supported: go)" $engine) }}
 {{- end }}
@@ -57,10 +59,14 @@ secrets:
     env: FUZZ_S3_ACCESS_KEY
   - id: FUZZ_S3_SECRET_KEY
     env: FUZZ_S3_SECRET_KEY
-  # Optional active fuzzing switch (CI: vars.FUZZ_ENABLE_RUN / FUZZ_TIME).
+  # Optional single-target active fuzzing (CI Variables).
   # Defaults keep local/CI builds non-blocking when vars are unset.
   - id: FUZZ_ENABLE_RUN
     value: {{ env "FUZZ_ENABLE_RUN" "false" | quote }}
+  - id: FUZZ_PKG
+    value: {{ env "FUZZ_PKG" "" | quote }}
+  - id: FUZZ_TARGET
+    value: {{ env "FUZZ_TARGET" "" | quote }}
   - id: FUZZ_TIME
     value: {{ env "FUZZ_TIME" "30s" | quote }}
 shell:
@@ -169,13 +175,19 @@ shell:
     {{ $replay }}
 
     FUZZ_ENABLE_RUN="$(cat /run/secrets/FUZZ_ENABLE_RUN 2>/dev/null || true)"
+    FUZZ_PKG="$(cat /run/secrets/FUZZ_PKG 2>/dev/null || true)"
+    FUZZ_TARGET="$(cat /run/secrets/FUZZ_TARGET 2>/dev/null || true)"
     FUZZ_TIME="$(cat /run/secrets/FUZZ_TIME 2>/dev/null || true)"
     FUZZ_TIME="${FUZZ_TIME:-30s}"
 
     case "${FUZZ_ENABLE_RUN}" in
       true|TRUE|1|yes|YES)
-        echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN}: run active fuzzing (FUZZ_TIME=${FUZZ_TIME})"
-        export FUZZ_TIME
+        if [ -z "${FUZZ_PKG}" ] || [ -z "${FUZZ_TARGET}" ]; then
+          echo "FUZZ_ENABLE_RUN is set, but FUZZ_PKG and FUZZ_TARGET are required" >&2
+          exit 1
+        fi
+        echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN}: fuzz:run pkg=${FUZZ_PKG} target=${FUZZ_TARGET} time=${FUZZ_TIME}"
+        export FUZZ_PKG FUZZ_TARGET FUZZ_TIME
         {{ $run }}
         ;;
       *)
