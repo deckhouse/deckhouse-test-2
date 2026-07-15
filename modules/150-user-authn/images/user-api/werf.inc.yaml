@@ -42,5 +42,51 @@ shell:
       {{- include "image-build.build" $buildContext | indent 6 }}
     - chown 64535:64535 user-api
     - chmod 0700 user-api
+#
+# Fuzz image via shared template "fuzz image" (.werf/defines/fuzz.tmpl).
+#
+# Required in werf.inc.yaml:
+#   FuzzEngine — fuzz engine id for label io.deckhouse.fuzz.engine
+#                currently supported: "go"
+#                missing / unknown value fails template rendering
+#
+# Minimal usage (this module) — always builds user-authn/user-api-fuzz:
+#   {{- $_ := set . "FuzzEngine" "go" }}
+#   {{- include "fuzz image" . }}
+#
+# What the image build always does:
+#   1. sync corpus overlay from S3 (empty corpus is OK — first run)
+#   2. fuzz:replay   — go test ./... -run '^Fuzz'
+#   3. cleanup restored corpus files
+#   4. fuzz:list     — print available Fuzz* targets
+#
+# Optional active fuzzing of ONE target (CI repo Variables / env for werf build):
+#   FUZZ_ENABLE_RUN=true          # off by default; also accepts 1/yes
+#   FUZZ_PKG=./pkg/api            # required when ENABLE_RUN is on (Go package path)
+#   FUZZ_TARGET=FuzzHandler       # required when ENABLE_RUN is on (exact Fuzz* name)
+#   FUZZ_TIME=30s                 # optional, default 30s (-fuzztime)
+#
+# Examples:
+#   # replay-only (default CI / local build)
+#   unset FUZZ_ENABLE_RUN FUZZ_PKG FUZZ_TARGET
+#   werf build user-authn/user-api-fuzz --env CE ...
+#
+#   # also run one fuzz target during the same image build
+#   export FUZZ_ENABLE_RUN=true
+#   export FUZZ_PKG=./pkg/api
+#   export FUZZ_TARGET=FuzzHandler
+#   export FUZZ_TIME=1m
+#   werf build user-authn/user-api-fuzz --env CE ...
+#
+#   # same knobs in GitHub Actions via repository Variables:
+#   #   FUZZ_ENABLE_RUN / FUZZ_PKG / FUZZ_TARGET / FUZZ_TIME
+#   # wired in .github/ci_templates/build_fuzz.yml
+#
+# Local Taskfile helpers (inside images/user-api/src):
+#   go tool task fuzz:list
+#   go tool task fuzz:replay
+#   FUZZ_PKG=./pkg/api FUZZ_TARGET=FuzzHandler FUZZ_TIME=30s go tool task fuzz:run
+#   FUZZ_PKG=./pkg/api FUZZ_TARGET=FuzzHandler go tool task fuzz:coverage
+#
 {{- $_ := set . "FuzzEngine" "go" }}
 {{- include "fuzz image" . }}
