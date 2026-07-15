@@ -32,8 +32,8 @@ var _ = sdk.RegisterFunc(&go_hook.HookConfig{
 	OnBeforeHelm: &go_hook.OrderedConfig{Order: 10},
 }, kubeconfigNamesHandler)
 
-// kubeconfigPublishAPIClientID is the client_id of the OAuth2Client that
-// covers the publishAPI kubeconfig entry. Mirrored verbatim in
+// kubeconfigPublishAPIClientID is the client_id of the OAuth2Client used for
+// the publishAPI kubeconfig entry. Mirrored verbatim in
 // `templates/dex/kubeconfig-oauth2clients.yaml`,
 // `templates/dex/kubernetes-dex-client-configuration.yaml` and the trustedPeers
 // list in `templates/dex/oauth2client.yaml`. Keep them in sync.
