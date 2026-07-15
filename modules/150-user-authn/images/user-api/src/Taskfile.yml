@@ -33,8 +33,31 @@ tasks:
         go test "$FUZZ_PKG" \
           -run '^$' \
           -fuzz "^${FUZZ_TARGET}$" \
+          -fuzztime "${FUZZ_TIME:-30s}" \
           -count=1 \
           -v
+
+  fuzz:run-all:
+    cmds:
+      - |
+        set -e
+
+        FUZZ_TIME="${FUZZ_TIME:-30s}"
+        echo "Active fuzzing all targets with FUZZ_TIME=${FUZZ_TIME}"
+
+        go list ./... | while IFS= read -r pkg; do
+          go test "$pkg" -list '^Fuzz' 2>/dev/null \
+            | awk '$1 ~ /^Fuzz[A-Za-z0-9_]+$/ { print $1 }' \
+            | while IFS= read -r target; do
+                echo "fuzz: ${pkg} ${target}"
+                go test "$pkg" \
+                  -run '^$' \
+                  -fuzz "^${target}$" \
+                  -fuzztime "${FUZZ_TIME}" \
+                  -count=1 \
+                  -v
+              done
+        done
 
   fuzz:coverage:
     cmds:

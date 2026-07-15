@@ -55,6 +55,10 @@ steps:
       FUZZ_S3_ENDPOINT: ${{ steps.secrets.outputs.FUZZ_S3_ENDPOINT }}
       FUZZ_S3_ACCESS_KEY: ${{ steps.secrets.outputs.FUZZ_S3_ACCESS_KEY }}
       FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
+      # Optional active fuzzing during werf build (repo Variables or workflow env).
+      # Default: replay-only. Set FUZZ_ENABLE_RUN=true to also run fuzz:run-all.
+      FUZZ_ENABLE_RUN: ${{ vars.FUZZ_ENABLE_RUN || 'false' }}
+      FUZZ_TIME: ${{ vars.FUZZ_TIME || '30s' }}
 {!{- if eq $buildType "dev" }!}
       CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
 {!{- else }!}
@@ -69,6 +73,10 @@ steps:
       type werf && source "$(werf ci-env github --verbose --as-file)"
 
       unset WERF_FINAL_IMAGES_ONLY
+
+      export FUZZ_ENABLE_RUN="${FUZZ_ENABLE_RUN:-false}"
+      export FUZZ_TIME="${FUZZ_TIME:-30s}"
+      echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN} FUZZ_TIME=${FUZZ_TIME}"
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
