@@ -926,14 +926,28 @@ jobs:
         run: |
           set -euo pipefail
 
-          DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
-          export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
-          export WERF_REPO="${DEV_REGISTRY_PATH}"
-
           type werf && source "$(werf ci-env github --as-file)"
 
           # ci-env re-exports FINAL_IMAGES_ONLY=true from werf_envs.yml — drop it for *-fuzz
           unset WERF_FINAL_IMAGES_ONLY
+
+          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
+            echo "Fuzz S3 secrets are not set (required for in-image corpus sync)"
+            exit 1
+          fi
+
+          # Corpus lives under s3://anomaloys-materials/<repository>/<branch slug>/...
+          export FUZZ_S3_REPOSITORY="${GITHUB_REPOSITORY##*/}"
+          export FUZZ_S3_BRANCH_SLUG="${CI_COMMIT_REF_SLUG}"
+          if [[ -z "${FUZZ_S3_REPOSITORY}" || -z "${FUZZ_S3_BRANCH_SLUG}" ]]; then
+            echo "FUZZ_S3_REPOSITORY / FUZZ_S3_BRANCH_SLUG could not be determined"
+            exit 1
+          fi
+          echo "Corpus replay path prefix: anomaloys-materials/${FUZZ_S3_REPOSITORY}/${FUZZ_S3_BRANCH_SLUG}/"
+          DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
+          export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
+          export WERF_REPO="${DEV_REGISTRY_PATH}"
+          echo "main fuzz build: push to ${WERF_REPO}"
 
           FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
           if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -944,18 +958,12 @@ jobs:
           echo "Building fuzz images:"
           echo "${FUZZ_IMAGES}"
 
-          if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
-            echo "Fuzz S3 secrets are not set"
-            exit 1
-          fi
-
           # shellcheck disable=SC2086
           werf build ${FUZZ_IMAGES} \
             --insecure-registry \
             --parallel=true --parallel-tasks-limit=10 \
             --save-build-report=true \
             --build-report-path images_fuzz_tags_werf.json
-
           command -v jq >/dev/null 2>&1 || {
             echo "jq is required"
             exit 1

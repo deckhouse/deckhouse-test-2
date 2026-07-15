@@ -52,6 +52,12 @@ secrets:
     env: FUZZ_S3_ACCESS_KEY
   - id: FUZZ_S3_SECRET_KEY
     env: FUZZ_S3_SECRET_KEY
+  # Corpus layout: s3://anomaloys-materials/<repository>/<branch slug>/...
+  # CI sets FUZZ_S3_BRANCH_SLUG=main for _dev (PR builds never publish corpus).
+  - id: FUZZ_S3_REPOSITORY
+    env: FUZZ_S3_REPOSITORY
+  - id: FUZZ_S3_BRANCH_SLUG
+    env: FUZZ_S3_BRANCH_SLUG
   - id: FUZZ_ENABLE_RUN
     value: {{ $fuzzRun | quote }}
   - id: FUZZ_PKG
@@ -63,7 +69,7 @@ secrets:
 shell:
   install:
   - |
-    set -e
+    set -eu
     export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
 
     echo "Download fuzz corpus overlay from S3"
@@ -81,7 +87,16 @@ shell:
 
     cd /src
 
-    S3_FUZZING_PATH="fuzz-s3/anomaloys-materials/fuzzing/"
+    FUZZ_S3_REPOSITORY="$(cat /run/secrets/FUZZ_S3_REPOSITORY)"
+    FUZZ_S3_BRANCH_SLUG="$(cat /run/secrets/FUZZ_S3_BRANCH_SLUG)"
+    if [ -z "${FUZZ_S3_REPOSITORY}" ] || [ -z "${FUZZ_S3_BRANCH_SLUG}" ]; then
+      echo "FUZZ_S3_REPOSITORY and FUZZ_S3_BRANCH_SLUG are required for corpus sync" >&2
+      exit 1
+    fi
+
+    # s3://anomaloys-materials/<repository>/<branch slug>/<component path>/<s3_key>/
+    S3_FUZZING_PATH="fuzz-s3/anomaloys-materials/${FUZZ_S3_REPOSITORY}/${FUZZ_S3_BRANCH_SLUG}/"
+    echo "Corpus S3 path: ${S3_FUZZING_PATH}"
     TMP_CORPUS="/tmp/fuzzing-s3"
     RESTORED_FILES="/tmp/fuzz-restored-files.txt"
 

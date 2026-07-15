@@ -12,7 +12,7 @@ tasks:
 
         go list ./... | while IFS= read -r pkg; do
           go test "$pkg" -list '^Fuzz' 2>/dev/null \
-            | grep '^Fuzz' \
+            | grep -E '^Fuzz[A-Za-z0-9_]+$' \
             | while IFS= read -r target; do
                 printf '%s\t%s\n' "$pkg" "$target"
               done
