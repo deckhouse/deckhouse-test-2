@@ -1,30 +1,23 @@
 # Unified fuzz image template.
 #
-# Usage in module werf.inc.yaml:
-#   {{- $_ := set . "FuzzEngine" "go" -}}
+# In module werf.inc.yaml:
+#   {{- $_ := set . "FuzzEngine" "go" }}
+#   {{- $_ := set . "FuzzRun" "true" }}            # optional
+#   {{- $_ := set . "FuzzPkg" "./pkg/api" }}        # required if FuzzRun
+#   {{- $_ := set . "FuzzTarget" "FuzzHandler" }}   # required if FuzzRun
+#   {{- $_ := set . "FuzzTime" "30s" }}             # optional, default 30s
 #   {{- include "fuzz image" . }}
 #
-# Required:
-#   FuzzEngine — fuzz tool/language id, used in label io.deckhouse.fuzz.engine
-#                currently supported: "go"
-#
-# Optional pipeline controls (werf secrets / CI env):
-#   FUZZ_ENABLE_RUN — "true"/"1"/"yes" to run one active fuzz target after replay
-#   FUZZ_PKG        — package path (required when FUZZ_ENABLE_RUN is on), e.g. ./pkg/api
-#   FUZZ_TARGET     — fuzz function name (required when FUZZ_ENABLE_RUN is on), e.g. FuzzFoo
-#   FUZZ_TIME       — go test -fuzztime budget (default: 30s)
-#
-# Build steps:
-#   1. sync corpus overlay from S3 (ok if empty — first run)
-#   2. replay corpus
-#   3. optional single-target fuzzing (FUZZ_ENABLE_RUN + FUZZ_PKG + FUZZ_TARGET)
-#   4. cleanup restored corpus
-#   5. list fuzz targets
+# Context wins over CI env (FUZZ_ENABLE_RUN / FUZZ_PKG / FUZZ_TARGET / FUZZ_TIME).
 {{- define "fuzz image" }}
 {{- if not .FuzzEngine }}
   {{- fail "fuzz image: FuzzEngine is required (set .FuzzEngine before include, e.g. \"go\")" }}
 {{- end }}
 {{- $engine := .FuzzEngine }}
+{{- $fuzzRun := .FuzzRun | default (env "FUZZ_ENABLE_RUN" "false") }}
+{{- $fuzzPkg := .FuzzPkg | default (env "FUZZ_PKG" "") }}
+{{- $fuzzTarget := .FuzzTarget | default (env "FUZZ_TARGET" "") }}
+{{- $fuzzTime := .FuzzTime | default (env "FUZZ_TIME" "30s") }}
 {{- $replay := "" }}
 {{- $list := "" }}
 {{- $run := "" }}
@@ -59,16 +52,14 @@ secrets:
     env: FUZZ_S3_ACCESS_KEY
   - id: FUZZ_S3_SECRET_KEY
     env: FUZZ_S3_SECRET_KEY
-  # Optional single-target active fuzzing (CI Variables).
-  # Defaults keep local/CI builds non-blocking when vars are unset.
   - id: FUZZ_ENABLE_RUN
-    value: {{ env "FUZZ_ENABLE_RUN" "false" | quote }}
+    value: {{ $fuzzRun | quote }}
   - id: FUZZ_PKG
-    value: {{ env "FUZZ_PKG" "" | quote }}
+    value: {{ $fuzzPkg | quote }}
   - id: FUZZ_TARGET
-    value: {{ env "FUZZ_TARGET" "" | quote }}
+    value: {{ $fuzzTarget | quote }}
   - id: FUZZ_TIME
-    value: {{ env "FUZZ_TIME" "30s" | quote }}
+    value: {{ $fuzzTime | quote }}
 shell:
   install:
   - |
