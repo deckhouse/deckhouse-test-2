@@ -4,7 +4,9 @@
 
 {!{/* build_fuzz_template
      A focused werf build of fuzzing images.
-     Fuzzing images are detected by the "-fuzz" suffix in rendered werf config. */}!}
+     Fuzzing images are detected by the "-fuzz" suffix in rendered werf config.
+     Optional single-target fuzz (FuzzRun/FuzzPkg/FuzzTarget/FuzzTime) is set
+     in module werf.inc.yaml, not here. */}!}
 {!{ define "build_fuzz_template" }!}
 {!{- $ctx := index . 0 -}!}
 {!{- $buildType := index . 1 -}!}
@@ -37,7 +39,6 @@ steps:
     id: build
     env:
       WERF_ENV: CE
-      WERF_FINAL_IMAGES_ONLY: "false"
       WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
       WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
       DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -55,36 +56,22 @@ steps:
       FUZZ_S3_ENDPOINT: ${{ steps.secrets.outputs.FUZZ_S3_ENDPOINT }}
       FUZZ_S3_ACCESS_KEY: ${{ steps.secrets.outputs.FUZZ_S3_ACCESS_KEY }}
       FUZZ_S3_SECRET_KEY: ${{ steps.secrets.outputs.FUZZ_S3_SECRET_KEY }}
-      # Optional single-target active fuzzing during werf build.
-      # Default: replay-only. To fuzz one function set:
-      #   FUZZ_ENABLE_RUN=true
-      #   FUZZ_PKG=./pkg/api
-      #   FUZZ_TARGET=FuzzFoo
-      #   FUZZ_TIME=30s   (optional)
-      FUZZ_ENABLE_RUN: ${{ vars.FUZZ_ENABLE_RUN || 'false' }}
-      FUZZ_PKG: ${{ vars.FUZZ_PKG || '' }}
-      FUZZ_TARGET: ${{ vars.FUZZ_TARGET || '' }}
-      FUZZ_TIME: ${{ vars.FUZZ_TIME || '30s' }}
 {!{- if eq $buildType "dev" }!}
       CI_COMMIT_REF_SLUG: ${{needs.pull_request_info.outputs.ref_slug}}
 {!{- else }!}
       CI_COMMIT_REF_SLUG: ${{needs.git_info.outputs.ci_commit_ref_slug}}
 {!{- end }!}
     run: |
+      set -euo pipefail
 
       DEV_REGISTRY_PATH="${DECKHOUSE_DEV_REGISTRY_HOST}/${REGISTRY_PATH}"
       export REGISTRY_PATH="${DEV_REGISTRY_PATH}"
       export WERF_REPO="${DEV_REGISTRY_PATH}"
 
-      type werf && source "$(werf ci-env github --verbose --as-file)"
+      type werf && source "$(werf ci-env github --as-file)"
 
+      # intermediate *-fuzz images must be built
       unset WERF_FINAL_IMAGES_ONLY
-
-      export FUZZ_ENABLE_RUN="${FUZZ_ENABLE_RUN:-false}"
-      export FUZZ_PKG="${FUZZ_PKG:-}"
-      export FUZZ_TARGET="${FUZZ_TARGET:-}"
-      export FUZZ_TIME="${FUZZ_TIME:-30s}"
-      echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN} FUZZ_PKG=${FUZZ_PKG} FUZZ_TARGET=${FUZZ_TARGET} FUZZ_TIME=${FUZZ_TIME}"
 
       FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
       if [[ -z "${FUZZ_IMAGES}" ]]; then
@@ -92,22 +79,13 @@ steps:
         exit 1
       fi
 
-      echo "Fuzz images:"
+      echo "Building fuzz images:"
       echo "${FUZZ_IMAGES}"
-
-      MC=/tmp/mc
-      curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
-      chmod +x "${MC}"
 
       if [[ -z "${FUZZ_S3_ENDPOINT:-}" || -z "${FUZZ_S3_ACCESS_KEY:-}" || -z "${FUZZ_S3_SECRET_KEY:-}" ]]; then
         echo "Fuzz S3 secrets are not set"
         exit 1
       fi
-
-      "${MC}" alias set fuzz-s3 \
-        "${FUZZ_S3_ENDPOINT}" \
-        "${FUZZ_S3_ACCESS_KEY}" \
-        "${FUZZ_S3_SECRET_KEY}"
 
       # shellcheck disable=SC2086
       werf build ${FUZZ_IMAGES} \
@@ -126,18 +104,8 @@ steps:
       BRANCH_SLUG="${CI_COMMIT_REF_SLUG}"
       COMMIT="${GITHUB_SHA}"
 
-      if [[ -z "${REPOSITORY}" ]]; then
-        echo "Cannot determine repository from GITHUB_REPOSITORY=${GITHUB_REPOSITORY:-}"
-        exit 1
-      fi
-
-      if [[ -z "${BRANCH}" ]]; then
-        echo "Cannot determine branch from CI_COMMIT_REF_NAME"
-        exit 1
-      fi
-
-      if [[ -z "${BRANCH_SLUG}" ]]; then
-        echo "Cannot determine branch slug from CI_COMMIT_REF_SLUG"
+      if [[ -z "${REPOSITORY}" || -z "${BRANCH}" || -z "${BRANCH_SLUG}" ]]; then
+        echo "Cannot determine repository/branch for fuzz build report upload"
         exit 1
       fi
 
@@ -156,10 +124,16 @@ steps:
         ' \
         images_fuzz_tags_werf.json \
         > images_fuzz_tags_werf.tmp.json
-
       mv images_fuzz_tags_werf.tmp.json images_fuzz_tags_werf.json
 
-      cat images_fuzz_tags_werf.json
+      MC=/tmp/mc
+      curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
+      chmod +x "${MC}"
+
+      "${MC}" alias set fuzz-s3 \
+        "${FUZZ_S3_ENDPOINT}" \
+        "${FUZZ_S3_ACCESS_KEY}" \
+        "${FUZZ_S3_SECRET_KEY}"
 
       "${MC}" cp \
         "images_fuzz_tags_werf.json" \
