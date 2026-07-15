@@ -7,39 +7,18 @@ tasks:
   fuzz:list:
     silent: true
     cmds:
-      - |
-        set -e
-
-        go list ./... | while IFS= read -r pkg; do
-          go test "$pkg" -list '^Fuzz' 2>/dev/null \
-            | grep -E '^Fuzz[A-Za-z0-9_]+$' \
-            | while IFS= read -r target; do
-                printf '%s\t%s\n' "$pkg" "$target"
-              done
-        done
+      - go test ./... -list '^Fuzz'
 
   fuzz:replay:
+    silent: true
     cmds:
       - |
-        set -e
-
-        go test ./... \
-          -run '^Fuzz' \
-          -count=1 \
-          -v
+        go test ./... -run '^Fuzz' -v
 
   fuzz:run:
+    silent: true
     cmds:
       - |
-        set -e
-
-        if [ -z "${FUZZ_PKG:-}" ] || [ -z "${FUZZ_TARGET:-}" ]; then
-          echo "FUZZ_PKG and FUZZ_TARGET are required for fuzz:run" >&2
-          exit 1
-        fi
-
-        echo "fuzz:run pkg=${FUZZ_PKG} target=${FUZZ_TARGET} time=${FUZZ_TIME:-30s}"
-
         go test "$FUZZ_PKG" \
           -run '^$' \
           -fuzz "^${FUZZ_TARGET}$" \
@@ -48,20 +27,12 @@ tasks:
           -v
 
   fuzz:coverage:
+    silent: true
     cmds:
       - |
-        set -e
-
-        if [ -z "${FUZZ_PKG:-}" ] || [ -z "${FUZZ_TARGET:-}" ]; then
-          echo "FUZZ_PKG and FUZZ_TARGET are required for fuzz:coverage" >&2
-          exit 1
-        fi
-
-        COVERPKG="${COVERPKG:-$FUZZ_PKG}"
-
         go test "$FUZZ_PKG" \
           -run "^${FUZZ_TARGET}$" \
           -count=1 \
           -covermode=atomic \
-          -coverpkg="$COVERPKG" \
+          -coverpkg=./... \
           -coverprofile={{.COVERPROFILE}}
