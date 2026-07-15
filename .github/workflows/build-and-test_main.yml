@@ -903,6 +903,8 @@ jobs:
         id: build
         env:
           WERF_ENV: CE
+          # *-fuzz images are intermediate (final: false); ci-env may force FINAL_IMAGES_ONLY=true
+          WERF_FINAL_IMAGES_ONLY: "false"
           WERF_EXPERIMENTAL_IMPORT_BY_SOURCE_IMAGE_TAG: 1
           WERF_DISABLE_PUBLISH_TAG_CACHE_SYNC: 1
           DECKHOUSE_DEV_REGISTRY_USER: ${{ steps.secrets.outputs.DECKHOUSE_DEV_REGISTRY_USER }}
@@ -930,7 +932,7 @@ jobs:
 
           type werf && source "$(werf ci-env github --as-file)"
 
-          # intermediate *-fuzz images must be built
+          # ci-env re-exports FINAL_IMAGES_ONLY=true from werf_envs.yml — drop it for *-fuzz
           unset WERF_FINAL_IMAGES_ONLY
 
           FUZZ_IMAGES="$(werf config list --env "${WERF_ENV}" | grep -- '-fuzz$' || true)"
