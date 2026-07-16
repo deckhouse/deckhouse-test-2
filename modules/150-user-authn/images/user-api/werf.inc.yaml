@@ -45,9 +45,9 @@ shell:
 # Fuzz image (.werf/defines/fuzz.tmpl). FuzzEngine is required ("go").
 # {{- $_ := set . "FuzzEngine" "go" }}
 # Optional single-target fuzz during build:
-# {{- $_ := set . "FuzzRun" "true" }}
-# {{- $_ := set . "FuzzPkg" "./pkg/api" }}
-# {{- $_ := set . "FuzzTarget" "FuzzHandler" }}
-# {{- $_ := set . "FuzzTime" "30s" }}
+{{- $_ := set . "FuzzRun" "true" }}
+{{- $_ := set . "FuzzPkg" "./pkg/api" }}
+{{- $_ := set . "FuzzTarget" "FuzzHandler" }}
+{{- $_ := set . "FuzzTime" "30s" }}
 {{- $_ := set . "FuzzEngine" "go" }}
 {{- include "fuzz image" . }}
