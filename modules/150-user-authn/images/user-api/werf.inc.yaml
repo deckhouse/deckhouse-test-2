@@ -47,7 +47,7 @@ shell:
 # Optional single-target fuzz during build:
 # {{- $_ := set . "FuzzRun" "true" }}
 # {{- $_ := set . "FuzzPkg" "./pkg/api" }}
-# {{- $_ := set . "FuzzTarget" "FuzzHandler" }}
+# {{- $_ := set . "FuzzTarget" "Fuzz_ResetPassword" }}
 # {{- $_ := set . "FuzzTime" "30s" }}
 {{- $_ := set . "FuzzEngine" "go" }}
 {{- include "fuzz image" . }}

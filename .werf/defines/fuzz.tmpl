@@ -4,7 +4,7 @@
 #   {{- $_ := set . "FuzzEngine" "go" }}
 #   {{- $_ := set . "FuzzRun" "true" }}            # optional
 #   {{- $_ := set . "FuzzPkg" "./pkg/api" }}        # required if FuzzRun
-#   {{- $_ := set . "FuzzTarget" "FuzzHandler" }}   # required if FuzzRun
+#   {{- $_ := set . "FuzzTarget" "FuzzXxx" }}        # required if FuzzRun — real Fuzz* name
 #   {{- $_ := set . "FuzzTime" "30s" }}             # optional, default 30s
 #   {{- include "fuzz image" . }}
 #
