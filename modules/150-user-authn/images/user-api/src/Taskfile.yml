@@ -1,0 +1,38 @@
+version: '3'
+
+vars:
+  COVERPROFILE: '{{default "/work/out/coverage.out" .COVERPROFILE}}'
+
+tasks:
+  fuzz:list:
+    silent: true
+    cmds:
+      - go test ./... -list '^Fuzz'
+
+  fuzz:replay:
+    silent: true
+    cmds:
+      - |
+        go test ./... -run '^Fuzz' -v
+
+  fuzz:run:
+    silent: true
+    cmds:
+      - |
+        go test "$FUZZ_PKG" \
+          -run '^$' \
+          -fuzz "^${FUZZ_TARGET}$" \
+          -fuzztime "${FUZZ_TIME:-30s}" \
+          -count=1 \
+          -v
+
+  fuzz:coverage:
+    silent: true
+    cmds:
+      - |
+        go test "$FUZZ_PKG" \
+          -run "^${FUZZ_TARGET}$" \
+          -count=1 \
+          -covermode=atomic \
+          -coverpkg=./... \
+          -coverprofile={{.COVERPROFILE}}
