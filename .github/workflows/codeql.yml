@@ -59,7 +59,7 @@ jobs:
         # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
 
-    if: ${{ github.repository == 'deckhouse/deckhouse' }}
+    if: ${{ github.repository == 'deckhouse/deckhouse-test-2' }}
 
     steps:
     - name: Checkout repository
@@ -97,3 +97,4 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         category: "/language:${{matrix.language}}"
+        upload: 'failure-only'
