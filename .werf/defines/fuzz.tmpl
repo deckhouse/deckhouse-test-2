@@ -1,0 +1,240 @@
+# Unified fuzz image template.
+#
+# In module werf.inc.yaml:
+#   {{- $_ := set . "FuzzEngine" "go" }}
+#   {{- $_ := set . "FuzzRun" "true" }}            # optional
+#   {{- $_ := set . "FuzzPkg" "./pkg/api" }}        # required if FuzzRun
+#   {{- $_ := set . "FuzzTarget" "FuzzXxx" }}        # required if FuzzRun — real Fuzz* name
+#   {{- $_ := set . "FuzzTime" "30s" }}             # optional, default 30s
+#   {{- include "fuzz image" . }}
+#
+# Context wins over CI env (FUZZ_ENABLE_RUN / FUZZ_PKG / FUZZ_TARGET / FUZZ_TIME).
+{{- define "fuzz image" }}
+{{- if not .FuzzEngine }}
+  {{- fail "fuzz image: FuzzEngine is required (set .FuzzEngine before include, e.g. \"go\")" }}
+{{- end }}
+{{- $engine := .FuzzEngine }}
+{{- $fuzzRun := .FuzzRun | default (env "FUZZ_ENABLE_RUN" "false") }}
+{{- $fuzzPkg := .FuzzPkg | default (env "FUZZ_PKG" "") }}
+{{- $fuzzTarget := .FuzzTarget | default (env "FUZZ_TARGET" "") }}
+{{- $fuzzTime := .FuzzTime | default (env "FUZZ_TIME" "30s") }}
+{{- $replay := "" }}
+{{- $list := "" }}
+{{- $run := "" }}
+{{- if eq $engine "go" }}
+  {{- $replay = "go tool task fuzz:replay" }}
+  {{- $list = "go tool task fuzz:list" }}
+  {{- $run = "go tool task fuzz:run" }}
+{{- else }}
+  {{- fail (printf "fuzz image: unsupported FuzzEngine %q (supported: go)" $engine) }}
+{{- end }}
+---
+image: {{ .ModuleName }}/{{ .ImageName }}-fuzz
+fromImage: {{ index .Images "builder/golang-alpine" }}
+final: false
+imageSpec:
+  config:
+    labels:
+      io.deckhouse.fuzz.engine: {{ $engine | quote }}
+import:
+  - image: {{ .ModuleName }}/{{ .ImageName }}-artifact
+    add: /src
+    to: /src
+    before: install
+mount:
+{{ include "mount points for golang builds" . }}
+secrets:
+  - id: GOPROXY
+    value: {{ .GOPROXY }}
+  - id: FUZZ_S3_ENDPOINT
+    env: FUZZ_S3_ENDPOINT
+  - id: FUZZ_S3_ACCESS_KEY
+    env: FUZZ_S3_ACCESS_KEY
+  - id: FUZZ_S3_SECRET_KEY
+    env: FUZZ_S3_SECRET_KEY
+  # Corpus layout: s3://anomaloys-materials/<repository>/<branch slug>/...
+  # CI sets FUZZ_S3_BRANCH_SLUG=main for _dev (PR builds never publish corpus).
+  - id: FUZZ_S3_REPOSITORY
+    env: FUZZ_S3_REPOSITORY
+  - id: FUZZ_S3_BRANCH_SLUG
+    env: FUZZ_S3_BRANCH_SLUG
+  - id: FUZZ_ENABLE_RUN
+    value: {{ $fuzzRun | quote }}
+  - id: FUZZ_PKG
+    value: {{ $fuzzPkg | quote }}
+  - id: FUZZ_TARGET
+    value: {{ $fuzzTarget | quote }}
+  - id: FUZZ_TIME
+    value: {{ $fuzzTime | quote }}
+shell:
+  install:
+  - |
+    set -eu
+    export GOPROXY=$(cat /run/secrets/GOPROXY) CGO_ENABLED=0 GOOS=linux GOARCH=amd64
+
+    echo "Download fuzz corpus overlay from S3"
+
+    apk add --no-cache curl ca-certificates
+
+    MC=/tmp/mc
+    curl -fsSL -o "${MC}" https://dl.min.io/client/mc/release/linux-amd64/mc
+    chmod +x "${MC}"
+
+    "${MC}" alias set fuzz-s3 \
+      "$(cat /run/secrets/FUZZ_S3_ENDPOINT)" \
+      "$(cat /run/secrets/FUZZ_S3_ACCESS_KEY)" \
+      "$(cat /run/secrets/FUZZ_S3_SECRET_KEY)"
+
+    cd /src
+
+    FUZZ_S3_REPOSITORY="$(cat /run/secrets/FUZZ_S3_REPOSITORY)"
+    FUZZ_S3_BRANCH_SLUG="$(cat /run/secrets/FUZZ_S3_BRANCH_SLUG)"
+    if [ -z "${FUZZ_S3_REPOSITORY}" ] || [ -z "${FUZZ_S3_BRANCH_SLUG}" ]; then
+      echo "FUZZ_S3_REPOSITORY and FUZZ_S3_BRANCH_SLUG are required for corpus sync" >&2
+      exit 1
+    fi
+
+    # s3://anomaloys-materials/<repository>/<branch slug>/<component path>/<s3_key>/
+    S3_FUZZING_PATH="fuzz-s3/anomaloys-materials/${FUZZ_S3_REPOSITORY}/${FUZZ_S3_BRANCH_SLUG}/"
+    echo "Corpus S3 path: ${S3_FUZZING_PATH}"
+    TMP_CORPUS="/tmp/fuzzing-s3"
+    RESTORED_FILES="/tmp/fuzz-restored-files.txt"
+
+    rm -rf "${TMP_CORPUS}"
+    mkdir -p "${TMP_CORPUS}"
+    : > "${RESTORED_FILES}"
+
+    # Empty/missing corpus is normal for a first run — continue to replay.
+    if "${MC}" ls "${S3_FUZZING_PATH}" 2>/dev/null | grep -q .; then
+      echo "Fuzz corpus found in S3, download overlay"
+
+      if "${MC}" mirror "${S3_FUZZING_PATH}" "${TMP_CORPUS}/"; then
+        MODULE_PATH="$(go list -m)"
+        echo "module path: ${MODULE_PATH}"
+
+        find "${TMP_CORPUS}" \
+          -type d \
+          -path "*/corpus/gocache-fuzz/${MODULE_PATH}/*" \
+          > /tmp/fuzz-target-dirs.txt || true
+
+        restored=0
+
+        while IFS= read -r target_dir; do
+          target="$(basename "${target_dir}")"
+
+          case "${target}" in
+            Fuzz*) ;;
+            *) continue ;;
+          esac
+
+          if ! find "${target_dir}" -maxdepth 1 -type f | grep -q .; then
+            continue
+          fi
+
+          prefix="/corpus/gocache-fuzz/${MODULE_PATH}/"
+          rel="${target_dir#*${prefix}}"
+
+          pkg_rel="${rel%/${target}}"
+          seed_dir="/src/${pkg_rel}/testdata/fuzz/${target}"
+
+          echo "restore corpus"
+          echo "from: ${target_dir}"
+          echo "to: ${seed_dir}"
+
+          mkdir -p "${seed_dir}"
+
+          copied=0
+
+          for corpus_file in "${target_dir}"/*; do
+            if [ ! -f "${corpus_file}" ]; then
+              continue
+            fi
+
+            dst="${seed_dir}/$(basename "${corpus_file}")"
+
+            if [ -e "${dst}" ]; then
+              echo "skip existing seed file: ${dst}"
+              continue
+            fi
+
+            cp "${corpus_file}" "${dst}"
+            printf '%s\n' "${dst}" >> "${RESTORED_FILES}"
+
+            copied=$((copied + 1))
+          done
+
+          echo "copied corpus files for ${target}: ${copied}"
+          restored=$((restored + copied))
+        done < /tmp/fuzz-target-dirs.txt
+
+        echo "restored corpus files: ${restored}"
+        echo "restored file list: ${RESTORED_FILES}"
+      else
+        echo "Failed to download fuzz corpus overlay, continue without it"
+      fi
+    else
+      echo "No fuzz corpus found in S3 yet, continue without it"
+    fi
+
+    echo "Run fuzz replay"
+    cd /src
+    {{ $replay }}
+
+    FUZZ_ENABLE_RUN="$(cat /run/secrets/FUZZ_ENABLE_RUN 2>/dev/null || true)"
+    FUZZ_PKG="$(cat /run/secrets/FUZZ_PKG 2>/dev/null || true)"
+    FUZZ_TARGET="$(cat /run/secrets/FUZZ_TARGET 2>/dev/null || true)"
+    FUZZ_TIME="$(cat /run/secrets/FUZZ_TIME 2>/dev/null || true)"
+    FUZZ_TIME="${FUZZ_TIME:-30s}"
+
+    case "${FUZZ_ENABLE_RUN}" in
+      true|TRUE|1|yes|YES)
+        if [ -z "${FUZZ_PKG}" ] || [ -z "${FUZZ_TARGET}" ]; then
+          echo "FUZZ_ENABLE_RUN is set, but FUZZ_PKG and FUZZ_TARGET are required" >&2
+          exit 1
+        fi
+        echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN}: fuzz:run pkg=${FUZZ_PKG} target=${FUZZ_TARGET} time=${FUZZ_TIME}"
+        export FUZZ_PKG FUZZ_TARGET FUZZ_TIME
+        {{ $run }}
+        ;;
+      *)
+        echo "FUZZ_ENABLE_RUN=${FUZZ_ENABLE_RUN:-false}: skip active fuzzing"
+        ;;
+    esac
+
+    echo "Cleanup restored fuzz corpus from /src"
+
+    if [ -f "${RESTORED_FILES}" ]; then
+      while IFS= read -r restored_file; do
+        if [ -n "${restored_file}" ] && [ -f "${restored_file}" ]; then
+          echo "remove restored corpus file: ${restored_file}"
+          rm -f "${restored_file}"
+        fi
+      done < "${RESTORED_FILES}"
+    else
+      echo "No restored fuzz corpus file list found, skip cleanup"
+    fi
+
+    find /src \
+      -type d \
+      -path "*/testdata/fuzz/Fuzz*" \
+      -empty \
+      -exec rmdir {} \; 2>/dev/null || true
+
+    find /src \
+      -type d \
+      -path "*/testdata/fuzz" \
+      -empty \
+      -exec rmdir {} \; 2>/dev/null || true
+
+    rm -rf "${TMP_CORPUS}"
+    rm -f /tmp/fuzz-target-dirs.txt
+    rm -f "${RESTORED_FILES}"
+
+    go clean -cache -testcache -fuzzcache 2>/dev/null || true
+
+    echo "restored fuzz corpus cleanup done"
+
+    echo "List fuzz targets"
+    cd /src
+    {{ $list }}
+{{- end }}
