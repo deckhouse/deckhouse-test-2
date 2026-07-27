@@ -42,3 +42,12 @@ shell:
       {{- include "image-build.build" $buildContext | indent 6 }}
     - chown 64535:64535 user-api
     - chmod 0700 user-api
+# Fuzz image (.werf/defines/fuzz.tmpl). FuzzEngine is required ("go").
+# {{- $_ := set . "FuzzEngine" "go" }}
+# Optional single-target fuzz during build:
+{{- $_ := set . "FuzzRun" "true" }}
+{{- $_ := set . "FuzzPkg" "./pkg/api" }}
+{{- $_ := set . "FuzzTarget" "Fuzz_ResetPassword" }}
+{{- $_ := set . "FuzzTime" "30s" }}
+{{- $_ := set . "FuzzEngine" "go" }}
+{{- include "fuzz image" . }}
