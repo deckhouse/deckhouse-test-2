@@ -1031,6 +1031,11 @@ module.exports.runWorkflowForPullRequest = async ({ github, context, core, ref }
       command.workflows = ['build-and-test_dev.yml'];
       command.rerunWorkflow = true;
     }
+    // Rerun build workflow to start the CVE job when the label is added.
+    if (labelType === 'cve' && event.action === 'labeled') {
+      command.workflows = ['build-and-test_dev.yml'];
+      command.rerunWorkflow = true;
+    }
   } finally {
     core.endGroup();
   }

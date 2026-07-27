@@ -4866,14 +4866,11 @@ jobs:
 
   # ============================================================================
   # CVE — Trivy scan on PR images.
-  # TEMPORARILY DISABLED:
-  # Re-enable by set the `if: ${{ needs.changed_images.outputs.changed_count != '0' }}`
-  # guard once the underlying script is fixed. While disabled, the aggregator
-  # below explicitly allows `cve: skipped`, so it does not block PR merges.
+  # Runs on a workflow rerun requested by the `security/cve` PR label.
   # ============================================================================
   test_cve_report_main:
     name: Trivy scan dev images
-    if: ${{ false }}
+    if: ${{ contains(fromJSON(needs.pull_request_info.outputs.labels).*.name, 'security/cve') }}
     # External/fork PRs gated by 'status/ok-to-test' via pull_request_info (setFailed → this job is skipped).
     needs:
       - pull_request_info
