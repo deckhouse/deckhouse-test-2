@@ -5020,7 +5020,7 @@ jobs:
         run: |
           rm -r ${{ env.WORKDIR }}
       # </template: cve_tests_upload_reports_artifacts>
-
+# блабалабалбалабалабалаб
       # <template: unlink_bin_step>
       - name: Unlink binary cache
         id: unlink_bin_step
