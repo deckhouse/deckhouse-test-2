@@ -315,7 +315,7 @@ jobs:
       KUBERNETES_VERSION: "1.32"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -380,6 +380,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -487,16 +489,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -579,15 +571,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -610,7 +597,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -718,7 +704,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -768,17 +753,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_1_32
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -800,17 +774,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -870,7 +833,7 @@ jobs:
       KUBERNETES_VERSION: "1.33"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -935,6 +898,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -1042,16 +1007,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -1134,15 +1089,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -1165,7 +1115,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -1273,7 +1222,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -1323,17 +1271,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_1_33
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -1355,17 +1292,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -1425,7 +1351,7 @@ jobs:
       KUBERNETES_VERSION: "1.34"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -1490,6 +1416,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -1597,16 +1525,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -1689,15 +1607,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -1720,7 +1633,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -1828,7 +1740,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -1878,17 +1789,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_1_34
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -1910,17 +1810,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -1980,7 +1869,7 @@ jobs:
       KUBERNETES_VERSION: "1.35"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -2045,6 +1934,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -2152,16 +2043,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -2244,15 +2125,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -2275,7 +2151,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -2383,7 +2258,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -2433,17 +2307,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_1_35
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -2465,17 +2328,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -2535,7 +2387,7 @@ jobs:
       KUBERNETES_VERSION: "1.36"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -2600,6 +2452,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -2707,16 +2561,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -2799,15 +2643,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -2830,7 +2669,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -2938,7 +2776,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -2988,17 +2825,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_1_36
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -3020,17 +2846,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -3090,7 +2905,7 @@ jobs:
       KUBERNETES_VERSION: "Automatic"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -3155,6 +2970,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -3262,16 +3079,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -3354,15 +3161,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -3385,7 +3187,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -3493,7 +3294,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -3543,17 +3343,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerd_Automatic
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -3575,17 +3364,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -3645,7 +3423,7 @@ jobs:
       KUBERNETES_VERSION: "1.32"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -3710,6 +3488,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -3817,16 +3597,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -3909,15 +3679,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -3940,7 +3705,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -4048,7 +3812,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -4098,17 +3861,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_1_32
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -4130,17 +3882,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -4200,7 +3941,7 @@ jobs:
       KUBERNETES_VERSION: "1.33"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -4265,6 +4006,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -4372,16 +4115,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -4464,15 +4197,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -4495,7 +4223,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -4603,7 +4330,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -4653,17 +4379,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_1_33
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -4685,17 +4400,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -4755,7 +4459,7 @@ jobs:
       KUBERNETES_VERSION: "1.34"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -4820,6 +4524,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -4927,16 +4633,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -5019,15 +4715,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -5050,7 +4741,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -5158,7 +4848,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -5208,17 +4897,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_1_34
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -5240,17 +4918,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -5310,7 +4977,7 @@ jobs:
       KUBERNETES_VERSION: "1.35"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -5375,6 +5042,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -5482,16 +5151,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -5574,15 +5233,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -5605,7 +5259,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -5713,7 +5366,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -5763,17 +5415,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_1_35
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -5795,17 +5436,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -5865,7 +5495,7 @@ jobs:
       KUBERNETES_VERSION: "1.36"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -5930,6 +5560,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -6037,16 +5669,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -6129,15 +5751,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -6160,7 +5777,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -6268,7 +5884,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -6318,17 +5933,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_1_36
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -6350,17 +5954,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish
@@ -6420,7 +6013,7 @@ jobs:
       KUBERNETES_VERSION: "Automatic"
       EVENT_LABEL: ${{ github.event.label.name }}
       WERF_ENV: "${{ needs.check_e2e_labels.outputs.edition || fromJson(inputs.test_config).edition }}"
-    runs-on: [self-hosted, e2e-common]
+    runs-on: [self-hosted, regular]
     steps:
 
       # <template: started_at_output>
@@ -6485,6 +6078,8 @@ jobs:
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-id-rsa id_rsa_b64 | LAYOUT_SSH_KEY ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent e2e_log_agent_token | E2E_LOG_AGENT_TOKEN ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/e2e-log-agent pull_artifact_token | E2E_LOG_AGENT_PULL_ARTIFACT ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_TOKEN | E2E_COMMANDER_TOKEN ;
+            projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/commander/environment_variables E2E_NEW_COMMANDER_HOST | E2E_COMMANDER_HOST ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keyId | LAYOUT_HUAWEI_KEY_ID ;
             projects/data/6db2f1ee-9b6f-4f4f-8381-2fb43060478a/e2e/cloud-ru keySecret | LAYOUT_HUAWEI_KEY_SECRET ;
 
@@ -6592,16 +6187,6 @@ jobs:
           # because it prefix will use for k8s resources names (nodes, for example)
           DHCTL_PREFIX=$(echo "$DHCTL_PREFIX" | tr '.' '-' | tr '[:upper:]' '[:lower:]')
 
-          # Create tmppath for test script.
-          TMP_DIR_PATH=/tmp/cloud-layouts/layouts/${DHCTL_PREFIX}
-          if [[ -d "${TMP_DIR_PATH}" ]] ; then
-            echo "Temporary dir already exists: ${TMP_DIR_PATH}. ERROR!"
-            ls -la ${TMP_DIR_PATH}
-            exit 1
-          else
-            echo "Create temporary dir for job: ${TMP_DIR_PATH}."
-            mkdir -p "${TMP_DIR_PATH}"
-          fi
 
           ## Source: ci_templates/build.yml
 
@@ -6684,15 +6269,10 @@ jobs:
           fi
           echo "Multimaster set ${MULTIMASTER}, MASTERS_COUNT set ${MASTERS_COUNT}"
 
-          # Print image name in uppercase to prevent hiding non-secret registry host stored in secret.
-          echo "⚓️ [$(date -u)] Pull 'dev/install' image '${SAFE_IMAGE_NAME}'."
-          docker pull "${INSTALL_IMAGE_NAME}"
 
           IMAGE_INSTALL_PATH="/${INSTALL_IMAGE_NAME#*/}"
 
           echo '::echo::on'
-          echo "tmp-dir-path=${TMP_DIR_PATH}" >> $GITHUB_OUTPUT
-          echo "dhctl-log-file=${TMP_DIR_PATH}/dhctl.log" >> $GITHUB_OUTPUT
           echo "dhctl-prefix=${DHCTL_PREFIX}" >> $GITHUB_OUTPUT
           echo "install-image-name=${INSTALL_IMAGE_NAME}" >> $GITHUB_OUTPUT
           echo "deckhouse-image-tag=${IMAGE_TAG}" >> $GITHUB_OUTPUT
@@ -6715,7 +6295,6 @@ jobs:
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
           E2E_LOG_AGENT_PULL_ARTIFACT: ${{ steps.secrets.outputs.E2E_LOG_AGENT_PULL_ARTIFACT }}
           E2E_LOG_AGENT_TOKEN: ${{ steps.secrets.outputs.E2E_LOG_AGENT_TOKEN }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count}}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -6823,7 +6402,6 @@ jobs:
           LAYOUT_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_DECKHOUSE_DOCKERCFG }}
           LAYOUT_STAGE_DECKHOUSE_DOCKERCFG: ${{ steps.secrets.outputs.LAYOUT_STAGE_DECKHOUSE_DOCKERCFG }}
           LAYOUT_SSH_KEY: ${{ steps.secrets.outputs.LAYOUT_SSH_KEY }}
-          TMP_DIR_PATH: ${{ steps.setup.outputs.tmp-dir-path}}
           PREFIX: ${{ steps.setup.outputs.dhctl-prefix}}
           MASTERS_COUNT: ${{ steps.setup.outputs.masters-count }}
           INSTALL_IMAGE_NAME: ${{ steps.setup.outputs.install-image-name }}
@@ -6873,17 +6451,6 @@ jobs:
 
         # </template: e2e_run_template>
 
-      - name: Save dhctl state
-        id: save_failed_cluster_state
-        if: ${{ !success() }}
-        uses: actions/upload-artifact@v4.4.0
-        with:
-          name: failed_cluster_state_huawei_containerdv2_Automatic
-          path: |
-            ${{ steps.setup.outputs.tmp-dir-path}}/dhctl
-            ${{ steps.setup.outputs.tmp-dir-path}}/*.tfstate
-            ${{ steps.setup.outputs.tmp-dir-path}}/logs
-
       - name: Save test results
         if: ${{ steps.setup.outputs.dhctl-log-file }}
         uses: actions/upload-artifact@v4.4.0
@@ -6905,17 +6472,6 @@ jobs:
             rm -rf "${TMPPATH}"
           else
             echo Not a directory.
-          fi
-          if [ -n $USER_RUNNER_ID ]; then
-            echo "Fix temp directories owner..."
-            chown -R $USER_RUNNER_ID "$(pwd)/testing" || true
-            chown -R $USER_RUNNER_ID "/deckhouse/testing" || true
-            chown -R $USER_RUNNER_ID /tmp || true
-          else
-            echo "Fix temp directories permissions..."
-            chmod -f -R 777 "$(pwd)/testing" || true
-            chmod -f -R 777 "/deckhouse/testing" || true
-            chmod -f -R 777 /tmp || true
           fi
       # <template: update_comment_on_finish>
       - name: Update comment on finish

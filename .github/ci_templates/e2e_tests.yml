@@ -466,8 +466,8 @@ check_e2e_labels:
 {!{- define "e2e_run_job_template" -}!}
 {!{- $ctx := . -}!}
 {!{- $provider := $ctx.provider -}!}
-{!{- $commanderProviders := slice "yandex-cloud" "aws" "azure" "gcp" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" -}!}
-{!{- $newCommanderProviders := slice "yandex-cloud" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" -}!}
+{!{- $commanderProviders := slice "yandex-cloud" "aws" "azure" "gcp" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" "huawei" -}!}
+{!{- $newCommanderProviders := slice "yandex-cloud" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" "huawei" -}!}
 {!{- $runsOnLabel := "e2e-common" -}!}
 {!{- if has $newCommanderProviders $ctx.provider }!}
 {!{-   $runsOnLabel = "regular" -}!}
@@ -932,8 +932,8 @@ check_e2e_labels:
 {!{- $ctx := . -}!}
 {!{- $runsOnLabel := "e2e-common" -}!}
 {!{- $provider := $ctx.provider -}!}
-{!{- $commanderProviders := slice "yandex-cloud" "aws" "azure" "gcp" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" -}!}
-{!{- $newCommanderProviders := slice "yandex-cloud" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" -}!}
+{!{- $commanderProviders := slice "yandex-cloud" "aws" "azure" "gcp" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" "huawei" -}!}
+{!{- $newCommanderProviders := slice "yandex-cloud" "openstack" "static" "vsphere" "vcd" "dvp" "zvirt" "huawei" -}!}
 {!{- if has $newCommanderProviders $ctx.provider }!}
 {!{-   $runsOnLabel = "regular" -}!}
 {!{- end -}!}
