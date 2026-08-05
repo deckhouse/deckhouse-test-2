@@ -695,7 +695,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -1434,7 +1434,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -1829,7 +1829,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -2224,7 +2224,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -2619,7 +2619,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -3014,7 +3014,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
@@ -3409,7 +3409,7 @@ jobs:
           fi
 
           type werf && source $(werf ci-env github --verbose --as-file)
-          werf build \
+          WERF_DEBUG=true WERF_DEBUG_TEMPLATES=true werf build \
             --parallel=true --parallel-tasks-limit=5 \
             --save-build-report=true \
             --build-report-path images_tags_werf.json
