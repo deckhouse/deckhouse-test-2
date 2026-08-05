@@ -70,6 +70,9 @@ const labels = {
   // Allow running workflows for external PRs.
   'status/ok-to-test': { type: 'ok-to-test' },
 
+  // Run CVE scan for PR images.
+  'security/cve': { type: 'cve' },
+
   // Deploy documentation and site to test or stage.
   'deploy/web/test': { type: 'deploy-web', env: 'test' },
   'deploy/web/test2': { type: 'deploy-web', env: 'test2' },
