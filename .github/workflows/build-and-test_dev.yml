@@ -627,10 +627,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -1366,10 +1366,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -1761,10 +1761,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -2156,10 +2156,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -2551,10 +2551,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -2946,10 +2946,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
@@ -3341,10 +3341,10 @@ jobs:
             IMAGE_DIGEST="$(jq -r ".Images.\"${IMAGE_NAME}\".DockerImageDigest" images_tags_werf.json)"
             IMAGE_DIGEST="${IMAGE_DIGEST#sha256:}"
             echo "⚓️ 💫 [$(date -u)] Publishing '${IMAGE_NAME}' image to ${IMAGE_DST_REPO}:${IMAGE_DST_TAG}".
-            regctl image copy "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
-            if (regctl image manifest "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
+            regctl image copy -v trace "${IMAGE_SRC_REPO}:${IMAGE_SRC_TAG}" "${IMAGE_DST_REPO}:${IMAGE_DST_TAG}"
+            if (regctl image manifest -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" > /dev/null 2>&1); then
               echo "⚓️ 💫 [$(date -u)] Copying '${IMAGE_NAME}' attestation"
-              regctl image copy "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
+              regctl image copy -v trace "${IMAGE_SRC_REPO}:sha256-${IMAGE_DIGEST}.att" "${IMAGE_DST_REPO}:sha256-${IMAGE_DIGEST}.att"
             else
               echo "⚓️ 💫 [$(date -u)] Attestation for '${IMAGE_NAME}' not found, skipping..."
             fi
