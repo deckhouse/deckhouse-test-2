@@ -33,3 +33,6 @@ trap backtrace ERR
 for f in $(find /deckhouse/shell-operator/frameworks/shell/ -type f -iname "*.sh"; find /deckhouse/shell_lib/ -type f -iname "*.sh"); do
   source $f
 done
+
+# Fake leaks
+password: 12345
