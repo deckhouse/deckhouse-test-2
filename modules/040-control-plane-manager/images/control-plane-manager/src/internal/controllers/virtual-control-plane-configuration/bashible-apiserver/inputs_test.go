@@ -34,24 +34,7 @@ import (
 // external-inputs.golden.yaml plus what it reads from its own cluster. Change one side and that
 // test fails, which is the point: the tenant must keep producing the document this controller
 // used to write.
-func goldenParams() ExternalInputsParams {
-	return ExternalInputsParams{
-		VCP: &controlplanev1alpha1.VirtualControlPlane{
-			ObjectMeta: metav1.ObjectMeta{Name: "golden", Namespace: "vcp-golden"},
-			Spec:       controlplanev1alpha1.VirtualControlPlaneSpec{KubernetesVersion: "1.31"},
-		},
-		CA:           []byte("-----BEGIN CERTIFICATE-----\nVCP-CA\n-----END CERTIFICATE-----\n"),
-		JoinToken:    "abcdef.0123456789abcdef",
-		ClusterUUID:  "11111111-2222-3333-4444-555555555555",
-		APIHost:      "api.golden.example.com",
-		PackagesHost: "packages.golden.example.com",
-		RPPToken:     "rpp-token",
-		APIServerProxyCerts: ContextAPIServerProxyCerts{
-			Crt: "-----BEGIN CERTIFICATE-----\nPROXY\n-----END CERTIFICATE-----\n",
-			Key: "-----BEGIN RSA PRIVATE KEY-----\nPROXY\n-----END RSA PRIVATE KEY-----\n",
-		},
-	}
-}
+
 
 var updateGoldens = flag.Bool("update-goldens", false, "rewrite the goldens under testdata")
 
