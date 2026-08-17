@@ -97,13 +97,10 @@ func consumeProgress(ctx context.Context, l *slog.Logger, progressCh chan Progre
 		}
 
 		if inc == 0 || lastCompleted == "" {
-			// calculate increment
-			phasesCount := len(msg.Phases)
-			for _, p := range msg.Phases {
-				phasesCount += len(p.SubPhases)
-			}
-			if phasesCount > 0 {
-				inc = 100 / phasesCount
+			// calculate increment: the bar steps once per node of the whole walk, phases and
+			// sub-phases alike, so unlike the fractions in progress.go it counts them all.
+			if nodes := traversalLen(msg.Phases); nodes > 0 {
+				inc = 100 / nodes
 			}
 
 			text := phaseToString(msg, false)
@@ -115,7 +112,11 @@ func consumeProgress(ctx context.Context, l *slog.Logger, progressCh chan Progre
 		if msg.CompletedPhase != "" {
 			completed := phaseToString(msg, true)
 
-			if completed == lastCompleted {
+			// A repeated title still moves the bar when the record carries more progress: the
+			// final Complete event names the last phase that RAN, which is the phase already
+			// announced whenever the declared tail was skipped.
+			repeated := completed == lastCompleted
+			if repeated && int(math.Round(msg.Progress*100)) <= current {
 				continue
 			}
 
@@ -132,8 +133,13 @@ func consumeProgress(ctx context.Context, l *slog.Logger, progressCh chan Progre
 			current += increment
 			lastCompleted = completed
 
-			// The successful phase transition is THE only thing tagged for the compact view.
-			l.InfoContext(ctx, strings.TrimSpace(completed), dhlog.ShowInCompacted(), dhlog.BadgeSuccess())
+			// The successful phase transition is THE only thing tagged for the compact view. A
+			// repeated title reaches here only to carry the bar the rest of the way, and the
+			// phase it names was announced on the pass that first completed it.
+			if !repeated {
+				l.InfoContext(ctx, strings.TrimSpace(completed), dhlog.ShowInCompacted(), dhlog.BadgeSuccess())
+			}
+
 			dhlog.Progress(ctx, l, float64(current)/100, phaseToString(msg, false))
 		}
 	}
@@ -144,13 +150,18 @@ func consumeProgress(ctx context.Context, l *slog.Logger, progressCh chan Progre
 func phaseToString(p Progress, completed bool) string {
 	// Butify bootstrap: phases with subphases
 	phasesMap := make(map[OperationPhase]string)
+	phasesMap[PreparationPhase] = "Prepare the installation"
 	phasesMap[PreInfraPreflightsPhase] = "Common preflight checks"
 	phasesMap[PostInfraPreflightsPhase] = "Static and post-infra preflight checks"
+	phasesMap[ParseResourcesPhase] = "Prepare resources to create"
+	phasesMap[WaitForSSHOnMasterPhase] = "Wait for SSH on master to become ready"
 	phasesMap[BaseInfraPhase] = "Base Infrastructure"
+	phasesMap[FirstMasterPhase] = "First master node"
 	phasesMap[InstallKubernetesPhase] = "Install Kubernetes on the first master node"
 	phasesMap[InstallDeckhousePhase] = "Install Deckhouse"
 	phasesMap[CreateResourcesPhase] = "Create resources"
 	phasesMap[InstallAdditionalMastersAndStaticNodes] = "Install additional master nodes and CloudPermanent nodes"
+	phasesMap[WaitForControlPlaneManagerReadinessPhase] = "Wait for control plane manager become ready"
 	phasesMap[ExecPostBootstrapPhase] = "Execute post-bootstrap script"
 	phasesMap[DeleteResourcesPhase] = "Delete resources"
 	phasesMap[AllNodesPhase] = "Process all nodes"
@@ -168,39 +179,54 @@ func phaseToString(p Progress, completed bool) string {
 	phasesMap[CommanderUUIDWasChecked] = "Commander UUID was checked"
 
 	subphasesMap := make(map[OperationSubPhase]string)
+	subphasesMap[PreparationSubPhaseImagesDownload] = "Download images"
+	subphasesMap[PreparationSubPhaseConfigValidation] = "Validate configuration"
+	subphasesMap[PreparationSubPhaseCachePreparation] = "Prepare cache"
+	subphasesMap[PreparationSubPhaseStatePreparation] = "Prepare state"
 	subphasesMap[InstallDeckhouseSubPhaseConnect] = "Connect to master host"
 	subphasesMap[InstallDeckhouseSubPhaseInstall] = "Install..."
 	subphasesMap[InstallDeckhouseSubPhaseWait] = "Wait for the first master readiness"
-	subphasesMap[OperationSubPhase(CheckInfra)] = "Check Infrastructure"
-	subphasesMap[OperationSubPhase(CheckConfiguration)] = "Check configuration"
+	subphasesMap[CheckInfra] = "Check Infrastructure"
+	subphasesMap[CheckConfiguration] = "Check configuration"
 	subphasesMap[BaseInfraSubPhaseBaseInfra] = "Base Infrastructure"
-	subphasesMap[BaseInfraSubPhaseFirstMaster] = "First master node"
 	subphasesMap[InstallKubernetesSubPhaseBundlePreparation] = "Prepare bashible bundle"
 	subphasesMap[InstallKubernetesSubPhaseRegistryPackagesProxy] = "Prepare registry packages proxy"
 	subphasesMap[InstallKubernetesSubPhaseNodePreparation] = "Prepare node"
+	subphasesMap[InstallKubernetesSubPhaseModulesPreparation] = "Prepare modules"
 	subphasesMap[InstallKubernetesSubPhaseExecuteBashibleBundle] = "Execute bashible bundle"
 	subphasesMap[InstallAdditionalMastersAndStaticNodesSubPhaseAdditionalMasters] = "Install additional master nodes"
 	subphasesMap[InstallAdditionalMastersAndStaticNodeSubPhaseStaticNodes] = "Install additional static nodes"
-	subphasesMap[InstallAdditionalMastersAndStaticNodesSubPhaseWait] = "Wait for control plane manager become ready"
 
 	msg := ""
 	if completed {
 		if p.CompletedSubPhase != "" {
-			msg = fmt.Sprintf("%s: %s", phasesMap[p.CurrentPhase], subphasesMap[p.CompletedSubPhase])
+			msg = fmt.Sprintf("%s: %s", title(phasesMap, p.CurrentPhase), title(subphasesMap, p.CompletedSubPhase))
 		} else {
-			msg = phasesMap[p.CompletedPhase]
+			msg = title(phasesMap, p.CompletedPhase)
 		}
 	} else {
 		if p.CurrentSubPhase != "" {
-			msg = fmt.Sprintf("%s: %s", phasesMap[p.CurrentPhase], subphasesMap[p.CurrentSubPhase])
+			msg = fmt.Sprintf("%s: %s", title(phasesMap, p.CurrentPhase), title(subphasesMap, p.CurrentSubPhase))
 		} else {
 			if p.CurrentPhase != "" {
-				msg = phasesMap[p.CurrentPhase]
+				msg = title(phasesMap, p.CurrentPhase)
 			} else {
-				msg = phasesMap[p.CompletedPhase]
+				msg = title(phasesMap, p.CompletedPhase)
 			}
 		}
 	}
 
 	return fmt.Sprintf("%-60s", msg)
+}
+
+// title looks up the human-readable name of a phase or a sub-phase, falling back
+// to the raw name. Without the fallback an unnamed phase renders as blank padding
+// and, since the bar advances only when the rendered title changes
+// (consumeProgress compares it with the previous one), also freezes the bar.
+func title[K ~string](titles map[K]string, key K) string {
+	if t, ok := titles[key]; ok {
+		return t
+	}
+
+	return string(key)
 }
