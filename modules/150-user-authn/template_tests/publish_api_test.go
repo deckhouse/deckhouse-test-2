@@ -52,11 +52,8 @@ var _ = Describe("Module :: user-authn :: helm template :: publish api", func() 
 		BeforeEach(func() {
 			hec.HelmRender()
 		})
-		It("Should render the Kubernetes dex client configuration and no kubeconfig-generator web UI", func() {
-			Expect(hec.RenderError).ToNot(HaveOccurred())
-
-			Expect(hec.KubernetesResource("Secret", "d8-user-authn", "kubernetes-dex-client-configuration").Exists()).To(BeTrue())
-			Expect(hec.KubernetesResource("Deployment", "d8-user-authn", "kubeconfig-generator").Exists()).To(BeFalse())
+		It("Should deploy publish api and kubeconfig generator", func() {
+			Expect(hec.KubernetesResource("Deployment", "d8-user-authn", "kubeconfig-generator").Exists()).To(BeTrue())
 		})
 	})
 
@@ -117,6 +114,8 @@ var _ = Describe("Module :: user-authn :: helm template :: publish api", func() 
 			Expect(hec.RenderError).ToNot(HaveOccurred())
 
 			Expect(hec.KubernetesResource("Deployment", "d8-user-authn", "basic-auth-proxy").Exists()).To(BeTrue())
+			Expect(hec.KubernetesResource("Deployment", "d8-user-authn", "kubeconfig-generator").Exists()).To(BeTrue())
+
 		})
 	})
 })

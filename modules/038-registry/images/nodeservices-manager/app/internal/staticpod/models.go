@@ -19,7 +19,6 @@ package staticpod
 import (
 	validation "github.com/go-ozzo/ozzo-validation/v4"
 
-	"github.com/deckhouse/deckhouse/go_lib/registry/helpers"
 	nodeservices "github.com/deckhouse/deckhouse/go_lib/registry/models/node-services"
 )
 
@@ -31,12 +30,6 @@ type NodeServicesConfigModel struct {
 func (value NodeServicesConfigModel) Validate() error {
 	return validation.ValidateStruct(&value,
 		validation.Field(&value.Config, validation.Required),
-		// Version arrives in the same secret as the configuration and is
-		// substituted into the static pod manifest through `quote`, which has no
-		// representation for invalid UTF-8 and returns an error. Unchecked, that
-		// error only appears while rendering and fails the whole reconcile
-		// rather than this one field.
-		validation.Field(&value.Version, validation.By(helpers.EncodableString)),
 	)
 }
 

@@ -23,7 +23,6 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/iancoleman/strcase"
 	"github.com/spf13/cobra"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -35,11 +34,6 @@ import (
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/app"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/apis/deckhouse.io/v1alpha1"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/controller/module-controllers/utils"
-	dhregistry "github.com/deckhouse/deckhouse/pkg/deckhouse-registry"
-	"github.com/deckhouse/deckhouse/pkg/deckhouse-registry/deckhouse"
-	"github.com/deckhouse/deckhouse/pkg/deckhouse-registry/definition"
-	"github.com/deckhouse/deckhouse/pkg/deckhouse-registry/module"
-	"github.com/deckhouse/deckhouse/pkg/deckhouse-registry/service"
 	"github.com/deckhouse/deckhouse/pkg/log"
 )
 
@@ -89,15 +83,12 @@ func registerReleaseCommand(parent *cobra.Command, logger *log.Logger) {
 		RunE: func(_ *cobra.Command, _ []string) error {
 			ctx := context.TODO()
 
-			registry, channel, rconf, err := getDeckhouseRegistry(ctx, logger)
+			registry, channel, rconf, err := getDeckhouseRegistry(ctx)
 			if err != nil {
 				return fmt.Errorf("get deckhouse registry: %w", err)
 			}
 
-			reg, err := deckhouseRegistry(registry, rconf, logger)
-			if err != nil {
-				return fmt.Errorf("open deckhouse registry: %w", err)
-			}
+			svc := newDeckhouseReleaseService(registry, rconf, logger)
 
 			if releaseChannel != "" {
 				if releaseChannel != ReleaseChannelAuto {
@@ -108,10 +99,10 @@ func registerReleaseCommand(parent *cobra.Command, logger *log.Logger) {
 					channel = ReleaseChannelStable
 				}
 
-				return handleGetDeckhouseRelease(ctx, reg.Deckhouse().Releases(), channel, all)
+				return handleGetDeckhouseRelease(ctx, svc, channel, all)
 			}
 
-			return handleListDeckhouseReleases(ctx, reg.Deckhouse().BasicService, all)
+			return handleListDeckhouseReleases(ctx, svc, all)
 		},
 	}
 	releasesCmd.Flags().StringVarP(&releaseChannel, "channel", "c",
@@ -131,8 +122,8 @@ func registerReleaseCommand(parent *cobra.Command, logger *log.Logger) {
 	parent.AddCommand(releasesCmd)
 }
 
-func handleListDeckhouseReleases(ctx context.Context, svc *service.BasicService, all bool) error {
-	ls, err := svc.ListTags(ctx)
+func handleListDeckhouseReleases(ctx context.Context, svc *deckhouseReleaseService, all bool) error {
+	ls, err := svc.ListDeckhouseReleases(ctx)
 	if err != nil {
 		return fmt.Errorf("list deckhouse releases: %w", err)
 	}
@@ -164,23 +155,14 @@ func handleListDeckhouseReleases(ctx context.Context, svc *service.BasicService,
 	return nil
 }
 
-func handleGetDeckhouseRelease(ctx context.Context, svc *deckhouse.ReleaseService, channel string, all bool) error {
-	rel, err := svc.Fetch(ctx, strcase.ToKebab(channel))
-	if err != nil {
-		if errors.Is(err, dhregistry.ErrImageNotFound) {
-			return fmt.Errorf("deckhouse release with channel '%s' is not found", channel)
-		}
-
+func handleGetDeckhouseRelease(ctx context.Context, svc *deckhouseReleaseService, channel string, all bool) error {
+	meta, err := svc.GetDeckhouseRelease(ctx, channel)
+	if err != nil && !errors.Is(err, ErrChannelIsNotFound) {
 		return fmt.Errorf("get deckhouse release: %w", err)
 	}
 
-	meta, err := rel.Metadata()
 	if err != nil {
-		return fmt.Errorf("get deckhouse release: %w", err)
-	}
-
-	if meta.Version == "" {
-		return errors.New("release metadata malformed: no version found")
+		return fmt.Errorf("deckhouse release with channel '%s' is not found", channel)
 	}
 
 	if !all {
@@ -189,16 +171,13 @@ func handleGetDeckhouseRelease(ctx context.Context, svc *deckhouse.ReleaseServic
 		return nil
 	}
 
-	// Raw is the version.json the release image carries, printed as-is so the
-	// output is whatever the registry holds rather than a re-encoding of it.
-	return printJSON(meta.Raw)
-}
-
-// printJSON writes raw JSON re-indented for a terminal.
-func printJSON(raw []byte) error {
 	buffer := &bytes.Buffer{}
-	if err := json.Indent(buffer, raw, "", "    "); err != nil {
-		return fmt.Errorf("indent json: %w", err)
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "    ")
+	err = encoder.Encode(meta)
+	if err != nil {
+		return fmt.Errorf("marshall indent: %w", err)
 	}
 
 	fmt.Printf("%s\n", buffer.String())
@@ -262,25 +241,22 @@ func registerModuleCommand(parent *cobra.Command, logger *log.Logger) {
 				moduleName = args[1]
 			}
 
-			registry, rconf, err := getModuleRegistry(ctx, moduleSource, logger)
+			registry, rconf, err := getModuleRegistry(ctx, moduleSource)
 			if err != nil {
 				return fmt.Errorf("get module registry: %w", err)
 			}
 
-			catalog, err := moduleCatalog(registry, rconf, logger)
-			if err != nil {
-				return fmt.Errorf("open module catalog: %w", err)
-			}
+			svc := newModuleReleaseService(registry, rconf, logger)
 
 			if moduleName != "" {
 				if moduleChannel != "" {
-					return handleGetModuleInfoInChannel(ctx, catalog, moduleName, moduleChannel, all)
+					return handleGetModuleInfoInChannel(ctx, svc, moduleName, moduleChannel, all)
 				}
 
-				return handleListModulesVersions(ctx, catalog, moduleName, all)
+				return handleListModulesVersions(ctx, svc, moduleName, all)
 			}
 
-			return handleListModulesNames(ctx, catalog, all)
+			return handleListModulesNames(ctx, svc, all)
 		},
 	}
 	modulesCmd.Flags().StringVarP(&moduleChannel, "channel", "c", "",
@@ -300,7 +276,7 @@ func registerModuleCommand(parent *cobra.Command, logger *log.Logger) {
 // validateEnumFlag returns an error when the named flag is set to a value
 // outside the allowed set. Empty values are treated as "unset" and skip the
 // check, matching kingpin's behavior for optional Enum flags.
-func validateEnumFlag(_ *cobra.Command, name, value string, allowed ...string) error { //nolint:unparam // general helper; only the channel flag uses it today
+func validateEnumFlag(_ *cobra.Command, name, value string, allowed ...string) error {
 	if value == "" {
 		return nil
 	}
@@ -312,63 +288,44 @@ func validateEnumFlag(_ *cobra.Command, name, value string, allowed ...string) e
 	return fmt.Errorf("flag --%s must be one of: %s", name, strings.Join(allowed, ", "))
 }
 
-func handleGetModuleInfoInChannel(ctx context.Context, catalog *module.Catalog, name string, channel string, all bool) error {
-	// One pull: the release image is fetched once and both the version and the
-	// manifest are read from the snapshot.
-	rel, err := catalog.Module(name).Releases().Fetch(ctx, strcase.ToKebab(channel))
-	if err != nil {
-		if errors.Is(err, dhregistry.ErrImageNotFound) {
-			return fmt.Errorf("module release with name '%s' and channel '%s' is not found", name, channel)
-		}
-
+func handleGetModuleInfoInChannel(ctx context.Context, svc *moduleReleaseService, name string, channel string, all bool) error {
+	meta, err := svc.GetModuleRelease(ctx, name, channel)
+	if err != nil && !errors.Is(err, ErrChannelIsNotFound) {
 		return fmt.Errorf("get module release %s: %w", name, err)
 	}
 
-	version, err := rel.Version()
 	if err != nil {
-		if errors.Is(err, dhregistry.ErrNoVersionMetadata) {
-			return fmt.Errorf("module release %q metadata malformed: no version found", name)
-		}
-
-		return fmt.Errorf("get module release %s: %w", name, err)
+		return fmt.Errorf("module release with name '%s' and channel '%s' is not found", name, channel)
 	}
 
 	if !all {
-		fmt.Printf("Module version in channel '%s': %s\n", channel, version)
+		fmt.Printf("Module version in channel '%s': %s\n", channel, meta.Version)
 
 		return nil
 	}
 
-	info := struct {
-		Version    string             `json:"version"`
-		Definition *definition.Module `json:"module,omitempty"`
-	}{Version: version}
-
-	// The manifest is optional: older releases ship none and it has to be read
-	// from the module image instead.
-	def, err := rel.Definition()
-	if err != nil && !errors.Is(err, dhregistry.ErrFileNotFound) {
-		return fmt.Errorf("get module definition: %w", err)
-	}
-
-	info.Definition = def
-
-	raw, err := json.Marshal(info)
+	buffer := &bytes.Buffer{}
+	encoder := json.NewEncoder(buffer)
+	encoder.SetEscapeHTML(false)
+	encoder.SetIndent("", "    ")
+	err = encoder.Encode(meta)
 	if err != nil {
-		return fmt.Errorf("marshal module release: %w", err)
+		return fmt.Errorf("marshall indent: %w", err)
 	}
 
-	return printJSON(raw)
+	fmt.Printf("%s\n", buffer.String())
+
+	return nil
 }
 
-func handleListModulesVersions(ctx context.Context, catalog *module.Catalog, name string, all bool) error {
-	ls, err := catalog.Module(name).ListTags(ctx)
-	if err != nil {
-		if errors.Is(err, dhregistry.ErrImageNotFound) {
-			return fmt.Errorf("module release with name '%s' is not found", name)
-		}
-
+func handleListModulesVersions(ctx context.Context, svc *moduleReleaseService, name string, all bool) error {
+	ls, err := svc.ListModuleTags(ctx, name)
+	if err != nil && !errors.Is(err, ErrModuleIsNotFound) {
 		return fmt.Errorf("list module tags: %w", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("module release with name '%s' is not found", name)
 	}
 
 	// if we need full tags list, not only semVer
@@ -398,8 +355,8 @@ func handleListModulesVersions(ctx context.Context, catalog *module.Catalog, nam
 	return nil
 }
 
-func handleListModulesNames(ctx context.Context, catalog *module.Catalog, all bool) error {
-	modules, err := catalog.List(ctx)
+func handleListModulesNames(ctx context.Context, svc *moduleReleaseService, all bool) error {
+	modules, err := svc.ListModules(ctx)
 	if err != nil {
 		return fmt.Errorf("list modules: %w", err)
 	}
@@ -440,7 +397,7 @@ func newKubernetesClient() (client.Client, error) {
 	return k8sClient, nil
 }
 
-func getDeckhouseRegistry(ctx context.Context, logger *log.Logger) (string, string, *utils.RegistryConfig, error) {
+func getDeckhouseRegistry(ctx context.Context) (string, string, *utils.RegistryConfig, error) {
 	k8sClient, err := newKubernetesClient()
 	if err != nil {
 		panic(err)
@@ -470,10 +427,17 @@ func getDeckhouseRegistry(ctx context.Context, logger *log.Logger) (string, stri
 
 	releaseChannel := string(discoverySecret.Data["releaseChannel"])
 
-	return drs.Fetch(), releaseChannel, drs.RegistryConfig(string(clusterUUID), logger), nil
+	rconf := &utils.RegistryConfig{
+		DockerConfig: drs.DockerConfig,
+		Scheme:       drs.Scheme,
+		UserAgent:    string(clusterUUID),
+		CA:           drs.CA,
+	}
+
+	return drs.ImageRegistry, releaseChannel, rconf, nil
 }
 
-func getModuleRegistry(ctx context.Context, moduleSource string, logger *log.Logger) (string, *utils.RegistryConfig, error) {
+func getModuleRegistry(ctx context.Context, moduleSource string) (string, *utils.RegistryConfig, error) {
 	k8sClient, err := newKubernetesClient()
 	if err != nil {
 		panic(err)
@@ -494,7 +458,7 @@ func getModuleRegistry(ctx context.Context, moduleSource string, logger *log.Log
 		UserAgent:    clusterUUID,
 	}
 
-	return utils.Dial(ms.Spec.Registry.Repo), rconf.ForRepository(ms.Spec.Registry.Repo, logger), nil
+	return ms.Spec.Registry.Repo, rconf, nil
 }
 
 func getClusterUUID(ctx context.Context, client client.Client) (string, error) {

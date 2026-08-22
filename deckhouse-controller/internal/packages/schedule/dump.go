@@ -18,10 +18,12 @@ import (
 	"maps"
 	"slices"
 
+	"sigs.k8s.io/yaml"
+
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/schedule/rule"
 )
 
-// dump is the serialization envelope for the scheduler endpoint.
+// dump is the serialization envelope for the debug endpoint.
 type dump struct {
 	Nodes map[string]nodeDump `json:"nodes" yaml:"nodes"`
 }
@@ -42,17 +44,17 @@ func sortedKeys(set map[string]struct{}) []string {
 	return slices.Sorted(maps.Keys(set))
 }
 
-// Dump returns a snapshot of all nodes and their current state.
-func (s *Scheduler) Dump() any {
+// Dump returns a YAML snapshot of all nodes and their current state.
+func (s *Scheduler) Dump() []byte {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	snapshot := &dump{
+	d := &dump{
 		Nodes: make(map[string]nodeDump, len(s.nodes)),
 	}
 
 	for _, n := range s.nodes {
-		snapshot.Nodes[n.name] = nodeDump{
+		d.Nodes[n.name] = nodeDump{
 			Version:       n.version.String(),
 			Order:         n.order,
 			State:         n.state,
@@ -63,24 +65,25 @@ func (s *Scheduler) Dump() any {
 		}
 	}
 
-	return snapshot
+	marshalled, _ := yaml.Marshal(d)
+	return marshalled
 }
 
-// DumpByName returns a snapshot of a single scheduler node by name.
-// Returns nil if the node is not found.
-// It is used by the scheduler endpoint to inspect the scheduling state of an
+// DumpByName returns a YAML snapshot of a single scheduler node by name.
+// Returns empty bytes if the node is not found.
+// It is used by the debug endpoint to inspect the scheduling state of an
 // individual package without dumping the entire graph.
-func (s *Scheduler) DumpByName(name string) any {
+func (s *Scheduler) DumpByName(name string) []byte {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	// Look up the node in the scheduler graph; return early if absent.
 	n, ok := s.nodes[name]
 	if !ok {
-		return nil
+		return []byte{}
 	}
 
-	snapshot := nodeDump{
+	d := nodeDump{
 		Version:       n.version.String(),
 		Order:         n.order,
 		State:         n.state,
@@ -90,5 +93,8 @@ func (s *Scheduler) DumpByName(name string) any {
 		Subscribers:   sortedKeys(n.subscribers),
 	}
 
-	return snapshot
+	// Marshal to YAML; errors are intentionally ignored because nodeDump
+	// contains only primitive/simple types that always serialize successfully.
+	marshalled, _ := yaml.Marshal(d)
+	return marshalled
 }

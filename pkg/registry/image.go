@@ -31,14 +31,6 @@ type ManifestResult interface {
 	GetManifest() (Manifest, error)
 	GetIndexManifest() (IndexManifest, error)
 	GetDescriptor() Descriptor
-
-	// GetRaw returns the manifest exactly as the registry served it.
-	//
-	// Signature verification and audit trails need the original bytes: a
-	// manifest decoded and re-encoded through the typed getters no longer
-	// hashes to its own digest, so anything that pipes a manifest into cosign
-	// or stores it for later comparison has to read it from here.
-	GetRaw() []byte
 }
 
 // ManifestInterface defines methods for accessing manifest information

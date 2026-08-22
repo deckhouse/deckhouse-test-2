@@ -5,16 +5,10 @@
 {{- end -}}
 
 {{- define "vsphere_ccm_pdb_annotations" -}}
-{{- if eq (include "vsphere_has_caBundle" .) "true" }}
-checksum/ca: {{ include (print $.Template.BasePath "/ca-secret.yaml") . | sha256sum }}
-{{- end }}
 checksum/config: {{ include (print $.Template.BasePath "/cloud-controller-manager/secret.yaml") . | sha256sum }}
 {{- end -}}
 
 {{- define "vsphere_ccm_pod_annotations" -}}
-{{- if eq (include "vsphere_has_caBundle" .) "true" }}
-checksum/ca: {{ include (print $.Template.BasePath "/ca-secret.yaml") . | sha256sum }}
-{{- end }}
 checksum/config: {{ include (print $.Template.BasePath "/cloud-controller-manager/secret.yaml") . | sha256sum }}
 {{- end -}}
 
@@ -36,11 +30,6 @@ checksum/config: {{ include (print $.Template.BasePath "/cloud-controller-manage
   readOnly: true
 - mountPath: /tmp
   name: tmp
-{{- if eq (include "vsphere_has_caBundle" .) "true" }}
-- mountPath: /etc/vsphere-certs
-  name: vsphere-certs
-  readOnly: true
-{{- end }}
 {{- end -}}
 
 {{- define "vsphere_ccm_volumes" -}}
@@ -53,11 +42,6 @@ checksum/config: {{ include (print $.Template.BasePath "/cloud-controller-manage
     secretName: cloud-controller-manager
 - name: tmp
   emptyDir: {}
-{{- if eq (include "vsphere_has_caBundle" .) "true" }}
-- name: vsphere-certs
-  secret:
-    secretName: vsphere-ca-certs
-{{- end }}
 {{- end -}}
 
 {{- $kubernetesSemVer := semver .Values.global.discovery.kubernetesVersion }}

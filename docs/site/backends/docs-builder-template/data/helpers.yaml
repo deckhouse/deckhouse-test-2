@@ -23,98 +23,39 @@ moduleAllowedStages:
 
 # It is used for sorting editions (e.g. to calculate editions list from minimal available one)
 editions:
-  - id: "core"
-    name: "Core"
-    title: "Core"
   - id: "ce"
-    name: "Open/CE"
-    title: "Open/Community Edition"
+    name: "CE"
+    title: "Community Edition"
     weight: 1
   - id: "be"
     name: "BE"
     title: "Basic Edition"
-    weight: 3
+    weight: 2
   - id: "se"
     name: "SE"
     title: "Standard Edition"
-    weight: 7
+    weight: 3
   - id: "se-plus"
     name: "SE+"
     title: "Standard Edition+"
-    weight: 9
+    weight: 4
   - id: "ee"
-    name: "Ultimate/EE"
-    title: "Ultimate/Enterprise Edition"
-    weight: 11
+    name: "EE"
+    title: "Enterprise Edition"
+    weight: 7
   - id: "cse-lite"
-    name: "Certified Core/CSE Lite"
-    name_version: "Certified Core/CSE Lite (1.73)"
-    title: "Certified Core/CSE Lite (1.73)"
+    name: "CSE Lite"
+    name_version: "CSE Lite (1.73)"
+    title: "Certified Security Edition Lite (1.73)"
+    title_version: "Certified Security Edition Lite"
     weight: 14
     languages:
       - "ru"
   - id: "cse-pro"
-    name: "Certified Pro/CSE Pro"
-    name_version: "Certified  Pro/CSE Pro (1.73)"
-    title: "Certified Pro/CSE Pro"
+    name: "CSE Pro"
+    name_version: "CSE Pro (1.73)"
+    title: "Certified Security Edition Pro"
+    title_version: "Certified Security Edition Pro (1.73)"
     weight: 15
     languages:
       - "ru"
-
-extensions:
-  storage:
-    title:
-      en: Core Storage
-      ru: Хранение данных
-  advanced_storage:
-    title:
-      en: Advanced Storage
-      ru: Продвинутое хранение данных
-  storage_integration:
-    title:
-      en: Storage Integration
-      ru: Интеграция с системами хранения данных
-  managed_services:
-    title:
-      en: Managed Services
-      ru: Управляемые сервисы обработки данных
-  billing:
-    title:
-      en: Billing
-      ru: Биллинг
-  cluster_union:
-    title:
-      en: Cluster Union
-      ru: Продвинутое межкластерное взаимодействие
-  multitenancy:
-    title:
-      en: Multitenancy
-      ru: Мультиарендность
-  advanced_security:
-    title:
-      en: Advanced Infrastructure Security
-      ru: Продвинутая защита инфраструктуры
-  secrets_management:
-    title:
-      en: Secrets Management
-      ru: Управление секретами
-  advanced_networking:
-    title:
-      en: Advanced Networking
-      ru: Продвинутые сетевые возможности
-  network_security:
-    title:
-      en: Network Security
-      ru: Сетевая безопасность
-  on_prem_iaas:
-    title:
-      en: On-prem IaaS
-      ru: Интеграция с провайдерами для частной инфраструктуры
-  gpu_management:
-    title:
-      en: GPU Management
-      ru: Управление GPU
-  ai_inference:
-    title:
-      en: AI Inference
-      ru: Сервисы ИИ-инференса

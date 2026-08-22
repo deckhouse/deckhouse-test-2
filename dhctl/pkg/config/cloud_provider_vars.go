@@ -28,7 +28,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 
-	validatev1 "github.com/deckhouse/deckhouse/go_lib/dhctl-provider-protocol/api/validate/v1"
+	proto "github.com/deckhouse/deckhouse/go_lib/dhctl-provider-protocol"
 
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/client"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/telemetry"
@@ -48,16 +48,16 @@ func init() {
 	gob.Register([]interface{}{})
 }
 
-type CloudProviderVars = validatev1.CloudProviderVars
+type CloudProviderVars = proto.CloudProviderVars
 
-const CloudProviderCredentialsSecretType = corev1.SecretType(validatev1.CredentialsSecretType)
+const CloudProviderCredentialsSecretType = corev1.SecretType(proto.CredentialsSecretType)
 
 var nodeGroupGVR = schema.GroupVersionResource{Group: "deckhouse.io", Version: "v1", Resource: "nodegroups"}
 
 // CloudProviderVarsFromCluster fetches NodeGroups, InstanceClasses and
 // credential Secrets from the cluster. Settings stays empty here and is filled
 // later by applyCloudProviderModuleSettings from the provider ModuleConfig.
-func CloudProviderVarsFromCluster(ctx context.Context, kubeCl *client.KubernetesClient, providerName string) (*validatev1.CloudProviderVars, error) {
+func CloudProviderVarsFromCluster(ctx context.Context, kubeCl *client.KubernetesClient, providerName string) (*proto.CloudProviderVars, error) {
 	ctx, span := telemetry.StartSpan(ctx, "CloudProviderVarsFromCluster")
 	defer span.End()
 
@@ -84,7 +84,7 @@ func CloudProviderVarsFromCluster(ctx context.Context, kubeCl *client.Kubernetes
 		otattribute.Int("provider.secretsCount", len(secrets)),
 	)
 
-	return &validatev1.CloudProviderVars{
+	return &proto.CloudProviderVars{
 		NodeGroups:      nodeGroups,
 		InstanceClasses: instanceClasses,
 		Secrets:         secrets,

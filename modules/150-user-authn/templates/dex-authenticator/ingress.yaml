@@ -1,5 +1,4 @@
 {{- $context := . }}
-{{- if eq (include "helm_lib_module_ingress_enabled" $context) "true" }}
 {{- $dexAuthenticatorNames := .Values.userAuthn.internal.dexAuthenticatorNames | default dict -}}
 {{- range $crd := .Values.userAuthn.internal.dexAuthenticatorCRDs }}
   {{- if not .spec.applications }}
@@ -33,7 +32,7 @@ metadata:
     nginx.ingress.kubernetes.io/configuration-snippet: |-
       {{- include "helm_lib_module_ingress_configuration_snippet" $ | nindent 6 }}
   name: {{ $ingName }}
-  namespace: {{ $crd.namespace | quote }}
+  namespace: {{ $crd.namespace }}
   {{- $labels := dict "app" "dex-authenticator" "deckhouse.io/dex-authenticator-for" $crd.name }}
   {{- if $ingTruncated }}
   {{- $_ := set $labels "deckhouse.io/name-truncated" "true" }}
@@ -77,7 +76,7 @@ metadata:
     nginx.ingress.kubernetes.io/configuration-snippet: |-
       {{- include "helm_lib_module_ingress_configuration_snippet" $ | nindent 6 }}
   name: {{ $signOutIngressName }}
-  namespace: {{ $crd.namespace | quote }}
+  namespace: {{ $crd.namespace }}
   {{- $labels := dict "app" "dex-authenticator" "deckhouse.io/dex-authenticator-for" $crd.name }}
   {{- if $signOutIngTruncated }}
   {{- $_ := set $labels "deckhouse.io/name-truncated" "true" }}
@@ -107,5 +106,4 @@ spec:
     {{- end }}
   {{- end }}
   {{- end }}
-{{- end }}
 {{- end }}

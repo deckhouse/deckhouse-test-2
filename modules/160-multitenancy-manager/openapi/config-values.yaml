@@ -3,9 +3,8 @@ properties:
   allowNamespacesWithoutProjects:
     type: boolean
     default: true
-    deprecated: true
     description: |
-      Deprecated and ignored: every non-system namespace outside a project is now adopted into a project of its own. The parameter is kept for one release so existing ModuleConfigs keep applying, and will be removed in the next one.
+      If this option is disabled - prohibit to create a namespace which is not a part of a Project.
 
   highAvailability:
     type: boolean

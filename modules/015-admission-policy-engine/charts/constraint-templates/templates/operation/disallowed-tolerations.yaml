@@ -56,7 +56,10 @@ spec:
               package d8.operation_policies
 
               import data.lib.common.has_field
-              import data.lib.common.pod_spec
+
+              is_pod if {
+                input.review.kind.kind == "Pod"
+              }
 
               # k8s default NoExecute tolerations that get injected for all pods
               is_default_noexecute(t) if {
@@ -71,7 +74,7 @@ spec:
 
               # Collect pod tolerations but skip the default NoExecute ones
               pod_tolerations contains t if {
-                t := pod_spec.tolerations[_]
+                t := input.review.object.spec.tolerations[_]
                 not is_default_noexecute(t)
               }
 
@@ -117,8 +120,9 @@ spec:
 
               violation contains {"msg": msg} if {
                 not input.review.operation == "DELETE"
+                is_pod
                 rt := input.parameters.tolerations[_]
                 pt := pod_tolerations[_]
                 tol_match(rt, pt)
-                msg := sprintf("Workload <%v> has a disallowed toleration matching %v", [input.review.object.metadata.name, rt])
+                msg := sprintf("Pod <%v> has a disallowed toleration matching %v", [input.review.object.metadata.name, rt])
               }

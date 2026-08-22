@@ -41,7 +41,6 @@ metadata:
   labels:
     component: kube-scheduler
     tier: control-plane
-    security.deckhouse.io/security-policy-exception: kube-scheduler
   name: kube-scheduler
   namespace: kube-system
 spec:
@@ -94,7 +93,6 @@ spec:
         cpu: "{{ $c.milliCPU | default (div (mul $millicpu 10) 100) }}m"
         memory: "{{ $c.memoryBytes | default (div (mul $memory 10) 100) }}"
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL

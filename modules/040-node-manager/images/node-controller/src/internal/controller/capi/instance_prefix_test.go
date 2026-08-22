@@ -30,8 +30,7 @@ import (
 	"github.com/deckhouse/node-controller/internal/register"
 )
 
-// fakeReconciler is a reconciler over a fake cluster seeded with objs.
-func fakeReconciler(t *testing.T, objs ...runtime.Object) *MachineDeploymentReconciler {
+func prefixReconciler(t *testing.T, objs ...runtime.Object) *MachineDeploymentReconciler {
 	t.Helper()
 	scheme := runtime.NewScheme()
 	if err := clientgoscheme.AddToScheme(scheme); err != nil {
@@ -61,7 +60,7 @@ func clusterConfigSecret(data string) *corev1.Secret {
 // breaking the shared fixture. Only the reader's contract is asserted, never which calls it made.
 func TestReadInstancePrefix_FailsClosed(t *testing.T) {
 	t.Run("secret missing", func(t *testing.T) {
-		r := fakeReconciler(t)
+		r := prefixReconciler(t)
 		got, err := r.readInstancePrefix(t.Context())
 		require.ErrorContains(t, err, "get cluster-configuration secret", "prefix was %q", got)
 	})
@@ -71,14 +70,14 @@ func TestReadInstancePrefix_FailsClosed(t *testing.T) {
 			ObjectMeta: metav1.ObjectMeta{Name: clusterConfigSecretName, Namespace: clusterConfigSecretNamespace},
 			Data:       map[string][]byte{"other.yaml": []byte("{}")},
 		}
-		r := fakeReconciler(t, secret)
+		r := prefixReconciler(t, secret)
 		got, err := r.readInstancePrefix(t.Context())
 		require.ErrorContains(t, err, "no cluster-configuration.yaml key", "prefix was %q", got)
 	})
 }
 
 func TestReadInstancePrefix_ReadsPrefix(t *testing.T) {
-	r := fakeReconciler(t, clusterConfigSecret("cloud:\n  prefix: myprefix\n"))
+	r := prefixReconciler(t, clusterConfigSecret("cloud:\n  prefix: myprefix\n"))
 	got, err := r.readInstancePrefix(t.Context())
 	if err != nil {
 		t.Fatalf("readInstancePrefix: %v", err)
@@ -91,7 +90,7 @@ func TestReadInstancePrefix_ReadsPrefix(t *testing.T) {
 // A configuration that parsed and simply carries no cloud.prefix is legitimate — only read
 // failures are errors.
 func TestReadInstancePrefix_EmptyPrefixIsValid(t *testing.T) {
-	r := fakeReconciler(t, clusterConfigSecret("clusterType: Static\n"))
+	r := prefixReconciler(t, clusterConfigSecret("clusterType: Static\n"))
 	got, err := r.readInstancePrefix(t.Context())
 	if err != nil {
 		t.Fatalf("readInstancePrefix: %v", err)

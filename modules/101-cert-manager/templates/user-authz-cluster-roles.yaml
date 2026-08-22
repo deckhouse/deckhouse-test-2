@@ -40,6 +40,7 @@ rules:
   - cert-manager.io
   resources:
   - certificates
+  - issuers
   verbs:
   - create
   - delete
@@ -55,16 +56,6 @@ metadata:
   name: d8:user-authz:cert-manager:admin
   {{- include "helm_lib_module_labels" (list .) | nindent 2 }}
 rules:
-- apiGroups:
-  - cert-manager.io
-  resources:
-  - issuers
-  verbs:
-  - create
-  - delete
-  - deletecollection
-  - patch
-  - update
 - apiGroups:
   - cert-manager.io
   resources:

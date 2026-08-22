@@ -41,12 +41,6 @@ func NewTaskManager() *Manager {
 	}
 }
 
-// taskKey builds the map key for a task. The separator keeps ("x", "yz") and ("xy", "z")
-// apart, which a bare concatenation does not.
-func taskKey(id, taskType string) string {
-	return id + "/" + taskType
-}
-
 // Spawn spawns a new task if it doesn't exist yet.
 //
 //nolint:nonamedreturns
@@ -57,15 +51,13 @@ func (m *Manager) Spawn(ctx context.Context, id, taskType string, data any, task
 	)
 	ctx = ctrl.LoggerInto(ctx, log)
 
-	key := taskKey(id, taskType)
-
 	m.mu.Lock()
-	t, ok := m.tasks[key]
+	t, ok := m.tasks[id+taskType]
 	if !ok {
 		t = &taskEntry{
 			ch: make(chan bool, 1),
 		}
-		m.tasks[key] = t
+		m.tasks[id+taskType] = t
 
 		go func() {
 			log := ctrl.LoggerFrom(ctx)
@@ -88,7 +80,7 @@ func (m *Manager) Spawn(ctx context.Context, id, taskType string, data any, task
 	case <-t.ch:
 		m.mu.Lock()
 		res := t.res
-		delete(m.tasks, key)
+		delete(m.tasks, id+taskType)
 		m.mu.Unlock()
 		return res, true
 	default:

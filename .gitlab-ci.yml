@@ -4,18 +4,13 @@ stages:
   - build
   - test
   - deploy
-  - e2e-ensure-build
-  - e2e-prestart
-  - e2e-create
-  - e2e-tests
-  - e2e-delete
   - .post
 
 include:
   - .gitlab/**.yml
 
 variables:
-  CI_IMAGES_TAG: "v11"
+  CI_IMAGES_TAG: "v7"
 
 default:
   tags:

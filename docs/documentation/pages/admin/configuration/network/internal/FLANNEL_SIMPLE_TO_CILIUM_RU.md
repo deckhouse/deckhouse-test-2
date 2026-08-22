@@ -5,9 +5,9 @@ lang: ru
 ---
 
 {% alert level="info" %}
-Инструкция актуальна для Deckhouse Platform версии 1.75 и ниже.
+Инструкция актуальна для Deckhouse Kubernetes Platform версии 1.75 и ниже.
 
-Для DP версии 1.76 и выше используйте руководство [«Переключение CNI в кластере»](/products/kubernetes-platform/guides/cni-migration.html).
+Для DKP версии 1.76 и выше используйте руководство [«Переключение CNI в кластере»](/products/kubernetes-platform/guides/cni-migration.html).
 {% endalert %}
 
 {% alert level="warning" %}

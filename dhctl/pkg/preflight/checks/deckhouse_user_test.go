@@ -71,10 +71,7 @@ func TestChecker_CheckDeckhouseUser(t *testing.T) {
 			mockScript := &mocks.MockScript{}
 			tt.setupMock(mockNode, mockScript)
 
-			check := DeckhouseUserCheck{
-				NodeInterface: mockNode,
-				globalOptions: candiOptionsFor(t, "check_deckhouse_user.sh.tpl"),
-			}
+			check := DeckhouseUserCheck{NodeInterface: mockNode}
 			err := check.Run(t.Context())
 
 			if tt.expectedError != "" {

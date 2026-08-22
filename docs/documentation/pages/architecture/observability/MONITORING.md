@@ -1,19 +1,19 @@
 ---
-title: "Architecture of monitoring in the Deckhouse Platform"
+title: "Architecture of monitoring in the Deckhouse Kubernetes Platform"
 permalink: en/architecture/observability/monitoring.html
 search: monitoring architecture, prometheus architecture, monitoring components, observability architecture
-description: Architecture of the monitoring in Deckhouse Platform.
+description: Architecture of the monitoring in Deckhouse Kubernetes Platform.
 ---
 
 ## Composition and interaction scheme of monitoring components
 
 ![Interaction diagram](../../images/prometheus/prometheus_monitoring.svg)
 
-### Components installed by DP
+### Components installed by DKP
 
 | Component                   | Description                                                                                                                                                                                                                                                                                        |
 |-----------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **prometheus-operator**     | DP module responsible for running Prometheus in the cluster.                                                                                                                                                                                                                                   |
+| **prometheus-operator**     | DKP module responsible for running Prometheus in the cluster.                                                                                                                                                                                                                                   |
 | **prometheus-main**         | Main Prometheus that performs scraping every 30 seconds (can be changed using the `scrapeInterval` parameter). It processes all rules, sends alerts and is the main data source.                                                                        |
 | **prometheus-longterm**     | Additional Prometheus storing sparse data samples from the main prometheus-main                                                                                                                                                                                                      |
 | **aggregating-proxy**       | Aggregating and caching proxy that combines main and longterm into one source. Helps avoid data gaps when one of the Prometheus instances is unavailable.                                                                                                                                     |
@@ -21,17 +21,17 @@ description: Architecture of the monitoring in Deckhouse Platform.
 | **grafana**                 | UI for displaying metrics in dashboard format.                                                                                                                                                                                                                                                  |
 | **metrics-adapter**         | Component providing Kubernetes API for accessing metrics. Required for proper VPA operation.                                                                                                                                                                                          |
 | **Various exporters**    | Set of ready-made Prometheus exporters for all necessary metrics: `kube-state-metrics`, `node-exporter`, `oomkill-exporter`, `image-availability-exporter`.                                                                                                                                     |
-| **upmeter**                 | Module for assessing DP component availability.                                                                                                                                                                                                                                                  |
+| **upmeter**                 | Module for assessing DKP component availability.                                                                                                                                                                                                                                                  |
 | **trickster**               | Caching proxy that reduces load on Prometheus. Will be deprecated soon.                                                                                                                                                                                                       |
 
 ### External components
 
-DP can integrate with a large number of diverse solutions in the following ways:
+DKP can integrate with a large number of diverse solutions in the following ways:
 
 | Name                       | Description|
 |--------------------------------|--------------------------------------------------------------------------|
-| **Alertmanagers**              | Alertmanagers can be connected to Prometheus and Grafana and be located both in the DP cluster and outside it.|
-| **Long-term metrics storages** | Using the `remote write` protocol, it is possible to send metrics from DP to a large number of storage systems, including [Cortex](https://www.cortex.io/), [Thanos](https://thanos.io/), [VictoriaMetrics](https://victoriametrics.com/products/open-source/).|
+| **Alertmanagers**              | Alertmanagers can be connected to Prometheus and Grafana and be located both in the DKP cluster and outside it.|
+| **Long-term metrics storages** | Using the `remote write` protocol, it is possible to send metrics from DKP to a large number of storage systems, including [Cortex](https://www.cortex.io/), [Thanos](https://thanos.io/), [VictoriaMetrics](https://victoriametrics.com/products/open-source/).|
 
 ## Prometheus
 
@@ -42,7 +42,7 @@ Prometheus collects metrics and executes rules:
   * sends alerts;
   * or saves new metrics (result of rule execution) to its database.
 
-Prometheus is installed by the `prometheus-operator` module of DP, which performs the following functions:
+Prometheus is installed by the `prometheus-operator` module of DKP, which performs the following functions:
 - Defines the following custom resources:
   - `Prometheus`: Defines the installation (cluster) of *Prometheus*.
   - `ServiceMonitor`: Defines how to collect metrics from services.
@@ -180,9 +180,9 @@ Prometheus is installed by the `prometheus-operator` module of DP, which perform
    - Sends an HTTP request to Prometheus to reload.
 1. Prometheus re-reads the config and sees the changed *rules*.
 
-## Architecture of DP component availability assessment (upmeter)
+## Architecture of DKP component availability assessment (upmeter)
 
-Availability assessment in DP is performed by the [upmeter](/modules/upmeter/) module.
+Availability assessment in DKP is performed by the [upmeter](/modules/upmeter/) module.
 
 Composition of the [upmeter](/modules/upmeter/) module:
 
@@ -193,4 +193,4 @@ Composition of the [upmeter](/modules/upmeter/) module:
   - **webui**: Shows a dashboard with statistics on probes and availability groups (requires authorization).
 - **smoke-mini**: Maintains continuous *smoke testing* using StatefulSet.
 
-The module sends about 100 metric readings every 5 minutes. This value depends on the number of enabled Deckhouse Platform modules.
+The module sends about 100 metric readings every 5 minutes. This value depends on the number of enabled Deckhouse Kubernetes Platform modules.

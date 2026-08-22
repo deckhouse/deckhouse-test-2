@@ -39,9 +39,6 @@ func addKnownTypes(scheme *runtime.Scheme) error {
 		&BulkSubjectAccessReview{},
 		&AccessibleNamespace{},
 		&AccessibleNamespaceList{},
-		&WhoCan{},
-		&SubjectAccessReport{},
-		&RoleAccessReport{},
 	)
 	metav1.AddToGroupVersion(scheme, SchemeGroupVersion)
 	return nil

@@ -41,7 +41,7 @@ func MachineToNodeGroup(_ context.Context, obj client.Object) []reconcile.Reques
 	labels := obj.GetLabels()
 	ngName := labels[NodeGroupLabel]
 	if ngName == "" {
-		ngName = labels[MachineDeploymentNodeGroupLabel]
+		ngName = labels["node-group"]
 	}
 	if ngName == "" {
 		return nil
@@ -50,7 +50,7 @@ func MachineToNodeGroup(_ context.Context, obj client.Object) []reconcile.Reques
 }
 
 func MachineDeploymentToNodeGroup(_ context.Context, obj client.Object) []reconcile.Request {
-	ngName := obj.GetLabels()[MachineDeploymentNodeGroupLabel]
+	ngName := obj.GetLabels()["node-group"]
 	if ngName == "" {
 		return nil
 	}

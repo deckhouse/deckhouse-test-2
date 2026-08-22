@@ -40,13 +40,12 @@ const (
 	kubernetesEndpointSliceName = "kubernetes"
 )
 
-// Endpoints are the master addresses every bootstrapping node is handed.
-type Endpoints struct {
-	APIServerEndpoints     []string
-	ClusterMasterEndpoints []map[string]interface{}
+type endpoints struct {
+	apiserverEndpoints     []string
+	clusterMasterEndpoints []map[string]interface{}
 }
 
-func (s *Service) ReadEndpoints(ctx context.Context) (Endpoints, error) {
+func (s *Service) readEndpoints(ctx context.Context) (endpoints, error) {
 	set := make(map[string]struct{})
 	var discoveryErrs []error
 
@@ -95,9 +94,9 @@ func (s *Service) ReadEndpoints(ctx context.Context) (Endpoints, error) {
 	}
 	sort.Strings(list)
 
-	res := Endpoints{
-		APIServerEndpoints:     list,
-		ClusterMasterEndpoints: make([]map[string]interface{}, 0, len(list)),
+	res := endpoints{
+		apiserverEndpoints:     list,
+		clusterMasterEndpoints: make([]map[string]interface{}, 0, len(list)),
 	}
 	for _, ep := range list {
 		address, port, err := net.SplitHostPort(ep)
@@ -108,19 +107,19 @@ func (s *Service) ReadEndpoints(ctx context.Context) (Endpoints, error) {
 		if err != nil {
 			continue
 		}
-		res.ClusterMasterEndpoints = append(res.ClusterMasterEndpoints, map[string]interface{}{
+		res.clusterMasterEndpoints = append(res.clusterMasterEndpoints, map[string]interface{}{
 			"address":                address,
 			"kubeApiPort":            kubeAPIPort,
 			"rppServerPort":          packagesProxyPort,
 			"rppBootstrapServerPort": packagesProxyBootstrapPort,
 		})
 	}
-	if len(res.APIServerEndpoints) == 0 || len(res.ClusterMasterEndpoints) == 0 {
+	if len(res.apiserverEndpoints) == 0 || len(res.clusterMasterEndpoints) == 0 {
 		err := errors.Join(discoveryErrs...)
 		if err == nil {
 			err = errors.New("no kube-apiserver endpoints discovered")
 		}
-		return Endpoints{}, err
+		return endpoints{}, err
 	}
 	return res, nil
 }

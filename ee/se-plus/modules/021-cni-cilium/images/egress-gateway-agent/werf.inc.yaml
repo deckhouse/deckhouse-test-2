@@ -39,8 +39,10 @@ secrets:
 shell:
   install:
     - cd /src
-    - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0 GOPROXY=$(cat /run/secrets/GOPROXY)
-    - go mod download
+    - GOPROXY=$(cat /run/secrets/GOPROXY) go mod download
+  setup:
+    - cd /src
+    - export GOOS=linux GOARCH=amd64 CGO_ENABLED=0
     - |
       {{- $buildContext := deepCopy $ -}}
       {{- $_ := set $buildContext "SvaceBuildOptions" "--enable-ptrace-all" -}}

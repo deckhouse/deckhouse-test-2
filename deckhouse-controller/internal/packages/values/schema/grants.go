@@ -16,7 +16,6 @@ package schema
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/go-openapi/spec"
 )
@@ -106,12 +105,10 @@ func extractGrantExtension(s *spec.Schema) (string, bool) {
 	return str, true
 }
 
-// joinPath renders a property path for error messages. Array index segments are
-// bracketed already, so they attach without a separating dot: nodes[0].storageClass.
 func joinPath(path []string) string {
 	res := ""
 	for i, p := range path {
-		if i > 0 && !strings.HasPrefix(p, "[") {
+		if i > 0 {
 			res += "."
 		}
 		res += p

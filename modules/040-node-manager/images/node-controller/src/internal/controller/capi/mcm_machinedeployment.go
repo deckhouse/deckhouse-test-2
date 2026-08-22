@@ -21,7 +21,6 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 
-	ngcommon "github.com/deckhouse/node-controller/internal/controller/nodegroup/common"
 	"github.com/deckhouse/node-controller/internal/controller/nodegroup/derived_status"
 )
 
@@ -55,9 +54,9 @@ func buildMCMMachineDeployment(in mcmMachineDeploymentInput) *unstructured.Unstr
 	}
 
 	labels := map[string]interface{}{
-		"heritage":                               "deckhouse",
-		"module":                                 "node-manager",
-		ngcommon.MachineDeploymentNodeGroupLabel: in.ngName,
+		"heritage":   "deckhouse",
+		"module":     "node-manager",
+		"node-group": in.ngName,
 	}
 
 	instanceGroup := fmt.Sprintf("%s-%s", in.ngName, in.zone)

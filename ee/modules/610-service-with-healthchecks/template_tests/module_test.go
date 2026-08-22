@@ -41,7 +41,6 @@ verboseStatus: true
 `
 	desiredDaemonSetContainerSpecA = `
 - args:
-  - --metrics-bind-address=127.0.0.1:9874
   - --verbose-status=true
   env:
   - name: NODE_NAME

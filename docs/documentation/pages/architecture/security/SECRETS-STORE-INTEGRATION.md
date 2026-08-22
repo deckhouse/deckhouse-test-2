@@ -2,11 +2,11 @@
 title: Secrets-store-integration module
 permalink: en/architecture/security/secrets-store-integration.html
 search: vault, secrets
-description: Architecture of the secrets-store-integration module in Deckhouse Platform.
+description: Architecture of the secrets-store-integration module in Deckhouse Kubernetes Platform.
 ---
 
 The [`secrets-store-integration`](/modules/secrets-store-integration/) module
-delivers secrets to applications in Deckhouse Platform (DP)
+delivers secrets to applications in Deckhouse Kubernetes Platform (DKP)
 from an external store compatible with the [HashiCorp Vault](https://github.com/hashicorp/vault) API.
 
 The module provides the following capabilities:
@@ -50,7 +50,7 @@ The following simplifications are made in the diagram:
 {% endalert %}
 
 The Level 2 C4 architecture of the [`secrets-store-integration`](/modules/secrets-store-integration/) module
-and its interactions with other DP components
+and its interactions with other DKP components
 are shown in the following diagram:
 
 ![Secrets-store-integration module architecture](../../images/architecture/security/c4-l2-secrets-store-integration.svg)

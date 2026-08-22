@@ -186,13 +186,13 @@ func (s *Service) commanderAttach(ctx context.Context, p *attachParams) *pb.Comm
 	err = dhlog.RunProcess(ctx, dhlog.FromContext(ctx), "Preparing SSH client", func(ctx context.Context) error {
 		var cleanup func() error
 		var sshProviderInitializer *providerinitializer.SSHProviderInitializer
-		sshProviderInitializer, kubeProvider, cleanup, err = helper.CreateProviders(ctx, p.request.ConnectionConfig, s.params.IsDebug, s.params.TmpDir, helper.WithKubeConfig(p.request.Kubeconfig))
+		sshProviderInitializer, kubeProvider, cleanup, err = helper.CreateProviders(ctx, p.request.ConnectionConfig, s.params.IsDebug, s.params.TmpDir)
 		cleanuper.Add(cleanup)
 		if err != nil {
 			return fmt.Errorf("creating provider: %w", err)
 		}
 
-		sshProvider, err = helper.SSHProviderOrNil(ctx, sshProviderInitializer, p.request.Kubeconfig)
+		sshProvider, err = sshProviderInitializer.GetSSHProvider(ctx)
 		if err != nil {
 			return fmt.Errorf("getting ssh provider: %w", err)
 		}

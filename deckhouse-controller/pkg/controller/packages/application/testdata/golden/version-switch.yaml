@@ -40,7 +40,6 @@ status:
   usedBy:
   - name: test-app
     namespace: foobar
-    repositoryName: deckhouse
     version: v1.0.2
   usedByCount: 1
 ---

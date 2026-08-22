@@ -37,7 +37,8 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 mount:
-{{ include "mount points for golang builds" . }}
+  - fromPath: ~/go-pkg-cache
+    to: /go/pkg
 import:
   - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
@@ -51,3 +52,4 @@ shell:
     - CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags "-s -w" -o /capdvp-controller-manager cmd/main.go
     - chown 64535:64535 /capdvp-controller-manager
     - chmod 0755 /capdvp-controller-manager
+

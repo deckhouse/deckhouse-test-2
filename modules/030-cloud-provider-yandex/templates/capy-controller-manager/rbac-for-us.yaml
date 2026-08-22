@@ -1,4 +1,3 @@
-{{- if not (default false (dig "nodes" "disabled" false .Values.cloudProviderYandex)) }}
 ---
 apiVersion: v1
 kind: ServiceAccount
@@ -83,4 +82,3 @@ subjects:
 - kind: ServiceAccount
   name: capy-controller-manager
   namespace: d8-cloud-provider-yandex
-{{- end }}

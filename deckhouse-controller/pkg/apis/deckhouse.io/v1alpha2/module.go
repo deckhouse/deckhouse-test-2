@@ -30,6 +30,8 @@ const (
 
 	ModuleFinalizerStatisticRegistered = "module.deckhouse.io/statistic-registered"
 
+	ModuleAnnotationRegistrySpecChanged = "packages.deckhouse.io/registry-spec-changed"
+
 	// ModuleAnnotationDev marks a module restored from a development pull override.
 	ModuleAnnotationDev = "modules.deckhouse.io/dev"
 
@@ -168,9 +170,9 @@ type ModuleStatus struct {
 // machine on top of conditions.
 type ModuleStatusSummary struct {
 	// State is the high-level lifecycle state observed for the module.
-	// Always one of: Pending, Failed, Updating, Ready, Degraded, Suspended, Deleting.
+	// Always one of: Pending, Failed, Updating, Ready, Degraded, Suspended.
 	// +optional
-	// +crd-enricher:deckhouse:documentation:examples=[Pending, Failed, Updating, Ready, Degraded, Suspended, Deleting]
+	// +crd-enricher:deckhouse:documentation:examples=[Pending, Failed, Updating, Ready, Degraded, Suspended]
 	State string `json:"state,omitempty"`
 
 	// Message is a human-readable description of the current state.

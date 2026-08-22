@@ -24,7 +24,7 @@ import (
 	"context"
 	"fmt"
 	"slices"
-	"strings"
+	"sort"
 
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
@@ -36,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"controller/api/v1alpha1"
-	"controller/apis/deckhouse.io/v1alpha3"
 	"controller/internal/engine"
 	"controller/internal/naming"
 )
@@ -50,8 +49,8 @@ func ProjectName(ns *corev1.Namespace) string {
 	return ns.Name
 }
 
-// ApplicableGrants returns every ClusterResourceGrantPolicy that applies to the namespace of the
-// given name (see GrantsForNamespace). A namespace that does not exist has no grants.
+// ApplicableGrants returns every ClusterResourceGrantPolicy whose projectSelector matches the labels of the
+// given namespace. A nil selector matches nothing; an invalid selector is skipped.
 func ApplicableGrants(ctx context.Context, cl client.Reader, namespace string) ([]*v1alpha1.ClusterResourceGrantPolicy, error) {
 	ns := &corev1.Namespace{}
 	if err := cl.Get(ctx, client.ObjectKey{Name: namespace}, ns); err != nil {
@@ -60,58 +59,17 @@ func ApplicableGrants(ctx context.Context, cl client.Reader, namespace string) (
 		}
 		return nil, fmt.Errorf("get namespace %s: %w", namespace, err)
 	}
-	return GrantsForNamespace(ctx, cl, ns)
+	return GrantsForLabels(ctx, cl, ns.Labels)
 }
 
-// GrantsForNamespace returns every ClusterResourceGrantPolicy whose projectSelector matches the
-// namespace. The selector is evaluated against the union of the labels of the Project object and
-// the labels of the namespace itself (EffectiveLabels), so a policy written against a label the
-// administrator put on the Project -- the way USAGE describes it -- covers the main and every
-// additional namespace of that project, while the labels the controller stamps on namespaces
-// (projects.deckhouse.io/project-namespace and the rest) keep selecting as they always did.
-//
-// This is the one place the rule lives: /is-granted, /defaults, the catalog reconciler and the
-// violation recount all come through here, so they cannot disagree about which policies apply.
-func GrantsForNamespace(ctx context.Context, cl client.Reader, ns *corev1.Namespace) ([]*v1alpha1.ClusterResourceGrantPolicy, error) {
-	project := &v1alpha3.Project{}
-	if err := cl.Get(ctx, client.ObjectKey{Name: ProjectName(ns)}, project); err != nil {
-		if !k8serrors.IsNotFound(err) {
-			return nil, fmt.Errorf("get project %s: %w", ProjectName(ns), err)
-		}
-		// A namespace no Project owns yet (adoption pending) or a namespace of a virtual project is
-		// selected by its own labels only.
-		project = nil
-	}
-	var projectLabels map[string]string
-	if project != nil {
-		projectLabels = project.Labels
-	}
-	return GrantsForLabels(ctx, cl, EffectiveLabels(projectLabels, ns.Labels))
-}
-
-// EffectiveLabels merges the labels of a Project with the labels of one of its namespaces. On a
-// shared key the namespace wins: it is the object closest to what is being checked, and a
-// per-namespace override is the only reason to put the same key on both.
-func EffectiveLabels(projectLabels, nsLabels map[string]string) map[string]string {
-	out := make(map[string]string, len(projectLabels)+len(nsLabels))
-	for k, v := range projectLabels {
-		out[k] = v
-	}
-	for k, v := range nsLabels {
-		out[k] = v
-	}
-	return out
-}
-
-// GrantsForLabels returns every ClusterResourceGrantPolicy whose projectSelector matches the given
-// labels. Callers that hold a namespace use GrantsForNamespace; this is the matching step itself.
+// GrantsForLabels returns every ClusterResourceGrantPolicy whose projectSelector matches the given labels.
 func GrantsForLabels(ctx context.Context, cl client.Reader, nsLabels map[string]string) ([]*v1alpha1.ClusterResourceGrantPolicy, error) {
 	grantList := &v1alpha1.ClusterResourceGrantPolicyList{}
 	if err := cl.List(ctx, grantList); err != nil {
 		return nil, fmt.Errorf("list ClusterResourceGrantPolicys: %w", err)
 	}
 	set := labels.Set(nsLabels)
-	out := make([]*v1alpha1.ClusterResourceGrantPolicy, 0, len(grantList.Items))
+	out := make([]*v1alpha1.ClusterResourceGrantPolicy, 0)
 	for i := range grantList.Items {
 		g := &grantList.Items[i]
 		if g.Spec.ProjectSelector == nil {
@@ -131,7 +89,7 @@ func GrantsForLabels(ctx context.Context, cl client.Reader, nsLabels map[string]
 // EntriesFor collects the grant resource entries referencing the given registration name across all
 // the supplied grants.
 func EntriesFor(grants []*v1alpha1.ClusterResourceGrantPolicy, resourceName string) []v1alpha1.GrantResource {
-	out := make([]v1alpha1.GrantResource, 0, len(grants))
+	out := make([]v1alpha1.GrantResource, 0)
 	for _, g := range grants {
 		for i := range g.Spec.Resources {
 			if g.Spec.Resources[i].ResourceName == resourceName {
@@ -166,7 +124,7 @@ func ReferencesForRequest(ctx context.Context, cl client.Reader, group, version,
 	for i := range defList.Items {
 		defByName[defList.Items[i].Name] = &defList.Items[i]
 	}
-	out := make([]MatchedReference, 0, len(refList.Items))
+	out := make([]MatchedReference, 0)
 	for i := range refList.Items {
 		ref := &refList.Items[i]
 		if !engine.RuleMatches(ref.Spec.Rule, group, version, resource) {
@@ -191,12 +149,6 @@ type Resolved struct {
 	anyAll    bool
 	anyNone   bool
 	def       string
-
-	// availableSet/availableObjs memoize the available catalog, which is recomputed several times
-	// per webhook/reconcile request otherwise. They are filled lazily and never change after Resolve
-	// returns (the underlying allow/deny/exclude sets are immutable then).
-	availableSet  map[string]struct{}
-	availableObjs []v1alpha1.AvailableObject
 }
 
 // Decide reports whether the project may use the granted object of the given name, applying the
@@ -223,19 +175,17 @@ func (r *Resolved) Decide(name string) bool {
 // Default returns the effective per-project default name (may be empty).
 func (r *Resolved) Default() string { return r.def }
 
-// availableNames returns the set of names available to this project: the live objects that Decide()
-// allows, plus any explicitly allowed name (e.g. value-backed values). It is memoized and independent
-// of the chosen default, so it can be reused for membership tests during Resolve.
-func (r *Resolved) availableNames() map[string]struct{} {
-	if r.availableSet != nil {
-		return r.availableSet
-	}
+// Available returns the catalog of available names for this project, sorted, with the default flagged.
+// For object-backed resources it is the live objects that Decide() allows, plus any explicitly allowed
+// name; for value-backed resources it is the allowed names.
+func (r *Resolved) Available() []v1alpha1.AvailableObject {
 	names := map[string]struct{}{}
 	for _, n := range r.liveNames {
 		if r.Decide(n) {
 			names[n] = struct{}{}
 		}
 	}
+	// Explicitly allowed names that are not live objects (e.g. value-backed values).
 	for n := range r.allowed {
 		if _, excluded := r.excluded[n]; excluded {
 			continue
@@ -245,28 +195,15 @@ func (r *Resolved) availableNames() map[string]struct{} {
 		}
 		names[n] = struct{}{}
 	}
-	r.availableSet = names
-	return names
-}
-
-// Available returns the catalog of available names for this project, sorted, with the default flagged.
-// For object-backed resources it is the live objects that Decide() allows, plus any explicitly allowed
-// name; for value-backed resources it is the allowed names. The result is memoized.
-func (r *Resolved) Available() []v1alpha1.AvailableObject {
-	if r.availableObjs != nil {
-		return r.availableObjs
-	}
-	names := r.availableNames()
 	sorted := make([]string, 0, len(names))
 	for n := range names {
 		sorted = append(sorted, n)
 	}
-	slices.Sort(sorted)
+	sort.Strings(sorted)
 	out := make([]v1alpha1.AvailableObject, 0, len(sorted))
 	for _, n := range sorted {
 		out = append(out, v1alpha1.AvailableObject{Name: n, Default: n == r.def})
 	}
-	r.availableObjs = out
 	return out
 }
 
@@ -342,15 +279,6 @@ func Resolve(
 				excludedSels = append(excludedSels, sel)
 			}
 		}
-		// Compile each entry's allowed/denied selectors once instead of per live object, so the
-		// match loop below is O(objects × entries) comparisons rather than recompilations.
-		allowedSels := make([]labels.Selector, len(entries))
-		deniedSels := make([]labels.Selector, len(entries))
-		for j := range entries {
-			allowedSels[j] = compiledSelector(entries[j].AllowedSelector)
-			deniedSels[j] = compiledSelector(entries[j].DeniedSelector)
-		}
-		r.liveNames = slices.Grow(r.liveNames, len(list.Items))
 		for i := range list.Items {
 			name := list.Items[i].GetName()
 			objLabels := labels.Set(list.Items[i].GetLabels())
@@ -362,15 +290,15 @@ func Resolve(
 				}
 			}
 			for j := range entries {
-				if deniedSels[j] != nil && deniedSels[j].Matches(objLabels) {
+				if matchSel(entries[j].DeniedSelector, objLabels) {
 					r.denied[name] = struct{}{}
 				}
-				if allowedSels[j] != nil && allowedSels[j].Matches(objLabels) {
+				if matchSel(entries[j].AllowedSelector, objLabels) {
 					r.allowed[name] = struct{}{}
 				}
 			}
 		}
-		slices.Sort(r.liveNames)
+		sort.Strings(r.liveNames)
 	}
 
 	// Effective default falls back to the registration's defaultFrom annotation.
@@ -393,8 +321,12 @@ func Resolve(
 
 // isAvailable reports whether a name is in the project's available set.
 func (r *Resolved) isAvailable(name string) bool {
-	_, ok := r.availableNames()[name]
-	return ok
+	for _, a := range r.Available() {
+		if a.Name == name {
+			return true
+		}
+	}
+	return false
 }
 
 func filterSelector(f *v1alpha1.ResourceFilter) (labels.Selector, error) {
@@ -408,17 +340,15 @@ func filterSelector(f *v1alpha1.ResourceFilter) (labels.Selector, error) {
 	return sel, nil
 }
 
-// compiledSelector compiles a label selector once for reuse. It returns nil for a nil or invalid
-// selector, which callers treat as "matches nothing" (mirroring the previous per-call matchSel).
-func compiledSelector(ls *metav1.LabelSelector) labels.Selector {
+func matchSel(ls *metav1.LabelSelector, objLabels labels.Set) bool {
 	if ls == nil {
-		return nil
+		return false
 	}
 	sel, err := metav1.LabelSelectorAsSelector(ls)
 	if err != nil {
-		return nil
+		return false
 	}
-	return sel
+	return sel.Matches(objLabels)
 }
 
 // grantedGVK resolves the granted resource's group+kind to a served GVK via the REST mapper.
@@ -441,12 +371,9 @@ func defaultFromAnnotation(ctx context.Context, cl client.Reader, mapper meta.RE
 	if err := cl.List(ctx, list); err != nil {
 		return "", err
 	}
-	// The annotation has to say "true": the Kubernetes convention marks a class that is NOT the
-	// default with the same key set to "false" (storageclass.kubernetes.io/is-default-class), and the
-	// presence of the key alone would have made that class the default.
 	var found []string
 	for i := range list.Items {
-		if value, ok := list.Items[i].GetAnnotations()[reg.Spec.DefaultFrom.AnnotationKey]; ok && strings.EqualFold(value, "true") {
+		if _, ok := list.Items[i].GetAnnotations()[reg.Spec.DefaultFrom.AnnotationKey]; ok {
 			found = append(found, list.Items[i].GetName())
 		}
 	}
@@ -474,6 +401,6 @@ func ProjectNamespaces(ctx context.Context, cl client.Reader, project string) ([
 			out = append(out, project)
 		}
 	}
-	slices.Sort(out)
+	sort.Strings(out)
 	return out, nil
 }

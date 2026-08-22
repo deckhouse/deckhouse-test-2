@@ -14,7 +14,6 @@
     "editionMinimumAvailable": "ce",
     "editionsWithRestrictions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus"
@@ -29,14 +28,10 @@
   "alb": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
       "ee"
-    ],
-    "editionsWithRestrictions": [
-      "core"
     ],
     "external": "true",
     "path": "/modules/alb/"
@@ -51,7 +46,6 @@
   "ansible": {
     "editions": [
       "ce",
-      "core",
       "se-plus",
       "ee"
     ],
@@ -78,7 +72,6 @@
     "editionMinimumAvailable": "ce",
     "editionsWithRestrictions": [
       "ce",
-      "core",
       "be",
       "se"
     ],
@@ -119,7 +112,6 @@
   "extended-monitoring": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -133,7 +125,6 @@
   "ingress-nginx": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -146,7 +137,6 @@
   },
   "gpu": {
     "editions": [
-      "core",
       "ee"
     ],
     "editionsWithRestrictions": [
@@ -168,7 +158,6 @@
   "loki": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -266,7 +255,6 @@
   "monitoring-custom": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -280,7 +268,6 @@
   "monitoring-kubernetes": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -294,7 +281,6 @@
   "monitoring-ping": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -330,7 +316,6 @@
   "commander-agent": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -341,28 +326,17 @@
   "console": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
       "ee"
     ],
-    "editionsWithRestrictions": [
-      "core"
-    ],
-    "editionsWithRestrictionsComments": {
-      "all": {
-        "en": "Restriction on write access to the system part",
-        "ru": "Ограничение на запись в системную часть"
-      }
-    },
     "external": "true",
     "path": "/modules/console/"
   },
   "csi-ceph": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -425,7 +399,6 @@
   "csi-nfs": {
     "editions": [
       "ce",
-      "core",
       "se",
       "se-plus",
       "ee",
@@ -463,7 +436,6 @@
   "dashboard": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -475,7 +447,6 @@
   "log-shipper": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -490,7 +461,6 @@
     "editionMinimumAvailable": "ce",
     "editionsWithRestrictions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -498,15 +468,14 @@
     ],
     "editionsWithRestrictionsComments": {
       "all": {
-        "en": "Restriction on the use of federation and multicluster features, as well as on managing access authorization between services",
-        "ru": "Ограничение на использование федерации и мультикластерной конфигурации, а также на управление авторизацией доступа между сервисами"
+        "en": "Restriction on the use of federation and multicluster features",
+        "ru": "Ограничение на использование федерации и мультикластерной конфигурации"
       }
     }
   },
   "metallb": {
     "editionMinimumAvailable": "se",
     "editionsWithRestrictions": [
-      "core",
       "se",
       "se-plus",
       "cse-lite"
@@ -539,7 +508,6 @@
   "observability": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -592,20 +560,6 @@
     "external": "true",
     "path": "/modules/operator-helm/"
   },
-  "operator-prometheus": {
-    "editions": [
-      "ce",
-      "core",
-      "be",
-      "se",
-      "se-plus",
-      "ee",
-      "cse-lite",
-      "cse-pro"
-    ],
-    "external": "true",
-    "path": "/modules/operator-prometheus/"
-  },
   "operator-trivy": {
     "editions": [
       "ee",
@@ -625,7 +579,6 @@
   "pod-reloader": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -634,24 +587,9 @@
     "external": "true",
     "path": "/modules/pod-reloader/"
   },
-  "prometheus": {
-    "editions": [
-      "ce",
-      "core",
-      "be",
-      "se",
-      "se-plus",
-      "ee",
-      "cse-lite",
-      "cse-pro"
-    ],
-    "external": "true",
-    "path": "/modules/prometheus/"
-  },
   "prometheus-metrics-adapter": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -665,7 +603,6 @@
   "prometheus-pushgateway": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -709,28 +646,8 @@
   },
   "sdn": {
     "editions": [
-      "ce",
-      "core",
-      "be",
-      "se",
-      "se-plus",
-      "ee",
-      "cse-lite",
-      "cse-pro"
+      "ee"
     ],
-    "editionsWithRestrictions": [
-      "ce",
-      "core",
-      "be",
-      "se",
-      "se-plus"
-    ],
-    "editionsWithRestrictionsComments": {
-      "all": {
-        "en": "Does not include integration with BGP, eBPF, VxLAN integration, Network Security, WAF, Network Policies, DLP, multitenancy",
-        "ru": "Не входит интеграция по BGP, eBPF, VxLAN, Network Security, WAF, Network Policies, DLP, мультитенантность"
-      }
-    },
     "external": "true",
     "path": "/modules/sdn/"
   },
@@ -804,7 +721,6 @@
   "secrets-store-integration": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -818,7 +734,6 @@
   "state-snapshotter": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -830,7 +745,6 @@
   "snapshot-controller": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -851,7 +765,6 @@
   "storage-foundation": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -862,7 +775,6 @@
   },
   "storage-volume-data-manager": {
     "editions": [
-      "core",
       "ee"
     ],
     "external": "true",
@@ -871,7 +783,6 @@
   "stronghold": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -881,7 +792,6 @@
     ],
     "editionsWithRestrictions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -901,7 +811,6 @@
   "upmeter": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -914,14 +823,12 @@
   },
   "user-authz": {
     "editionFullyAvailable": [
-      "core",
       "be",
       "se",
       "se-plus"
     ],
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -941,7 +848,6 @@
   "upmeter": {
     "editions": [
       "ce",
-      "core",
       "be",
       "se",
       "se-plus",
@@ -959,14 +865,12 @@
   "virtualization": {
     "editions": [
       "ce",
-      "core",
       "se-plus",
       "ee",
       "cse-pro"
     ],
     "editionsWithRestrictions": [
-      "ce",
-      "core"
+      "ce"
     ],
     "external": "true",
     "path": "/modules/virtualization/"

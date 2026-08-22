@@ -130,38 +130,56 @@
         "title": "Продукты",
         "items": [
           {
-            "title": "Deckhouse Platform",
-            "url": "/products/deckhouse-platform/",
+            "title": "Kubernetes Platform",
+            "url": "/products/kubernetes-platform/",
             "target": "",
             "rel": ""
           },
           {
-            "title": "Deckhouse Stronghold",
+            "title": "Virtualization Platform",
+            "url": "/products/virtualization-platform/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Observability Platform",
+            "url": "/products/observability-platform/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Stronghold",
             "url": "/products/stronghold/",
             "target": "",
             "rel": ""
           },
           {
-            "title": "Deckhouse Observability",
-            "url": "/products/observability/",
+            "title": "Delivery Kit",
+            "url": "/products/delivery-kit/",
             "target": "",
             "rel": ""
           },
           {
-            "title": "Deckhouse Code",
-            "url": "/products/code/",
-            "target": "",
-            "rel": ""
-          },
-          {
-            "title": "Deckhouse Development Portal",
-            "url": "/products/development-portal/",
+            "title": "Commander",
+            "url": "/products/commander/",
             "target": "",
             "rel": ""
           },
           {
             "title": "Prom++",
             "url": "/products/prompp/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Code",
+            "url": "/products/code/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Development Platform",
+            "url": "/products/development-platform/",
             "target": "",
             "rel": ""
           }
@@ -185,12 +203,30 @@
         ]
       },
       {
-        "title": "О нас",
+        "title": "Информация",
         "items": [
           {
-            "title": "О&nbsp;Deckhouse",
-            "url": "/about-company/",
+            "title": "Техподдержка",
+            "url": "/tech-support/",
             "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Образовательная деятельность",
+            "url": "/education-licence/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Истории успеха",
+            "url": "/success-stories/",
+            "target": "",
+            "rel": ""
+          },
+          {
+            "title": "Вакансии",
+            "url": "https://job.flant.ru/",
+            "target": "_blank",
             "rel": ""
           },
           {
@@ -200,15 +236,15 @@
             "rel": ""
           },
           {
-            "title": "Сообщество",
-            "url": "/community/",
+            "title": "Вебинары",
+            "url": "/webinars/",
             "target": "",
             "rel": ""
           },
           {
-            "title": "Вакансии",
-            "url": "https://job.flant.ru/",
-            "target": "_blank",
+            "title": "Сообщество",
+            "url": "/community/",
+            "target": "",
             "rel": ""
           }
         ]

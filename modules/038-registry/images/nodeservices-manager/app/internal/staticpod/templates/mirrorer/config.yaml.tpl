@@ -7,11 +7,11 @@ users:
     name: {{ quote .UserPusher.Name }}
     password: {{ quote .UserPusher.Password }}
 
-local: {{ hostPort .LocalAddress 5001 | quote }}
+local: "{{ .LocalAddress }}:5001"
 {{- with .Upstreams }}
 remote:
 {{- range $ip := . }}
-- {{ hostPort $ip 5001 | quote }}
+- "{{ $ip }}:5001"
 {{- end }}
 {{- else }}
 remote: []

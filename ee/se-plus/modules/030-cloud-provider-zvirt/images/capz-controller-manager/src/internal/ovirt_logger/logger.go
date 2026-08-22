@@ -64,10 +64,8 @@ func NewKLogr(names ...string) *KLogr {
 	}
 
 	return &KLogr{
-		logger: logger,
-		// go-ovirt-client reports failed API attempts via Debugf, and textlogger runs at
-		// verbosity 0, so at V(5) a call retrying for minutes was silent in the log.
-		VDebug:   0,
+		logger:   logger,
+		VDebug:   5,
 		VInfo:    0,
 		VWarning: 0,
 	}

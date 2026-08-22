@@ -50,10 +50,10 @@ var _ = Describe("Istio hooks :: discovery_versions_to_install ::", func() {
 			values := `
 internal:
   versionMap: {
-    "1.25": {"fullVersion": "1.25.2"},
-    "1.27": {"fullVersion": "1.27.9"}
+    "1.1": {"fullVersion": "1.1.1"},
+    "1.2": {"fullVersion": "1.2.11"}
   }
-globalVersion: "1.27" # default version "from openapi/values.yaml"
+globalVersion: "1.2" # default version "from openapi/values.yaml"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
 
@@ -65,55 +65,56 @@ globalVersion: "1.27" # default version "from openapi/values.yaml"
 			Expect(f).To(ExecuteSuccessfully())
 			Expect(f.LoggerOutput.Contents()).To(HaveLen(0))
 
-			Expect(f.ValuesGet("istio.internal.versionsToInstall").String()).To(MatchJSON(`["1.27"]`))
-			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.27"))
+			Expect(f.ValuesGet("istio.internal.versionsToInstall").String()).To(MatchJSON(`["1.2"]`))
+			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.2"))
 
 			value, exists := requirements.GetValue(minVersionValuesKey)
 			Expect(exists).To(BeTrue())
-			Expect(value).To(BeEquivalentTo("1.27"))
+			Expect(value).To(BeEquivalentTo("1.2"))
 
-			assertTelemetryMetrics(f, "1.27.9")
+			assertTelemetryMetrics(f, "1.2.11")
 		})
 	})
 
-	Context("No globalVersion in ModuleConfig and globalVersion was previously discovered", func() {
+	Context("No globalVersion in CM and globalVersion was previously discovered", func() {
 		BeforeEach(func() {
 			f.KubeStateSet("") // to re-init fake api client (reset KubeState)
 
 			values := `
 internal:
   versionMap: {
-    "1.25": {"fullVersion": "1.25.2"},
-    "1.27": {"fullVersion": "1.27.9"},
-    "1.29": {"fullVersion": "1.29.6"}
+    "1.10": {"fullVersion": "1.10.10"},
+    "1.3": {"fullVersion": "1.3.1"},
+    "1.4": {"fullVersion": "1.4.3"},
+    "1.42": {"fullVersion": "1.42.42"}
   }
-  globalVersion: "1.29"
-globalVersion: "1.27" # default version "from openapi/values.yaml"
+  globalVersion: "1.42"
+globalVersion: "1.4" # default version "from openapi/values.yaml"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
 			f.RunHook()
 		})
-		It("Previously discovered value 1.29 must be set", func() {
+		It("Previously discovered value 1.42 must be set", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.29"}))
-			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.29"))
+			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.42"}))
+			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.42"))
 
-			assertTelemetryMetrics(f, "1.29.6")
+			assertTelemetryMetrics(f, "1.42.42")
 		})
 	})
 
-	Context("No globalVersion in ModuleConfig and the global service without annotation", func() {
+	Context("No globalVersion in CM and the global service without annotation", func() {
 		BeforeEach(func() {
 			f.KubeStateSet("") // to re-init fake api client (reset KubeState)
 
 			values := `
 internal:
   versionMap: {
-    "1.25": {"fullVersion": "1.25.2"},
-    "1.27": {"fullVersion": "1.27.9"},
-    "1.29": {"fullVersion": "1.29.6"},
+    "1.10": {"fullVersion": "1.10.10"},
+    "1.3": {"fullVersion": "1.3.1"},
+    "1.4": {"fullVersion": "1.4.3"},
   }
-globalVersion: "1.27" # default version "from openapi/values.yaml"
+globalVersion: "1.4" # default version "from openapi/values.yaml"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
 
@@ -147,18 +148,18 @@ spec: {}
 		})
 	})
 
-	Context("No globalVersion in ModuleConfig and the global service with annotation", func() {
+	Context("No globalVersion in CM and the global service with annotation", func() {
 		BeforeEach(func() {
 			f.KubeStateSet("") // to re-init fake api client (reset KubeState)
 
 			values := `
 internal:
   versionMap: {
-    "1.25": {"fullVersion": "1.25.2"},
-    "1.27": {"fullVersion": "1.27.9"},
-    "1.29": {"fullVersion": "1.29.6"},
+    "1.10": {"fullVersion": "1.10.10"},
+    "1.3": {"fullVersion": "1.3.1"},
+    "1.4": {"fullVersion": "1.4.3"},
   }
-globalVersion: "1.27" # default version "from openapi/values.yaml"
+globalVersion: "1.4" # default version "from openapi/values.yaml"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
 
@@ -170,7 +171,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    istio.deckhouse.io/global-version: "1.29"
+    istio.deckhouse.io/global-version: "1.3"
   name: istiod
   namespace: d8-istio
 spec: {}
@@ -187,28 +188,29 @@ spec: {}
 		})
 		It("globalVersion should be gathered from the Service", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.29"}))
-			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.29"))
+			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.3"}))
+			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.3"))
 
-			assertTelemetryMetrics(f, "1.29.6")
+			assertTelemetryMetrics(f, "1.3.1")
 		})
 	})
 
-	Context("globalVersion in ModuleConfig and the global service with annotation", func() {
+	Context("globalVersion in CM and the global service with annotation", func() {
 		BeforeEach(func() {
 			f.KubeStateSet("") // to re-init fake api client (reset KubeState)
 
 			values := `
 internal:
   versionMap: {
-    "1.25": {"fullVersion": "1.25.2"},
-    "1.27": {"fullVersion": "1.27.9"},
-    "1.29": {"fullVersion": "1.29.6"}
+    "1.10": {"fullVersion": "1.10.10"},
+    "1.2": {"fullVersion": "1.2.4"},
+    "1.3": {"fullVersion": "1.3.1"},
+    "1.4": {"fullVersion": "1.4.3"},
   }
-globalVersion: "1.27" # default version "from openapi/values.yaml"
+globalVersion: "1.4" # default version "from openapi/values.yaml"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
-			f.ConfigValuesSet("istio.globalVersion", "1.25")
+			f.ConfigValuesSet("istio.globalVersion", "1.2")
 
 			var service v1.Service
 			var err error
@@ -218,7 +220,7 @@ apiVersion: v1
 kind: Service
 metadata:
   annotations:
-    istio.deckhouse.io/global-version: "1.29"
+    istio.deckhouse.io/global-version: "1.3"
   name: istiod
   namespace: d8-istio
 spec: {}
@@ -233,12 +235,39 @@ spec: {}
 
 			f.RunHook()
 		})
-		It("globalVersion should be gathered from ModuleConfig", func() {
+		It("globalVersion should be gathered from CM", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.25"}))
-			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.25"))
+			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.2"}))
+			Expect(f.ValuesGet("istio.internal.globalVersion").String()).To(Equal("1.2"))
 
-			assertTelemetryMetrics(f, "1.25.2")
+			assertTelemetryMetrics(f, "1.2.4")
+		})
+	})
+
+	Context("Unsupported versions", func() {
+		BeforeEach(func() {
+			f.KubeStateSet("") // to re-init fake api client (reset KubeState)
+
+			values := `
+internal:
+  versionMap: {
+    "1.1": {"fullVersion": "1.1.5"},
+    "1.2": {"fullVersion": "1.2.3"},
+    "1.3": {"fullVersion": "1.3.11"},
+  }
+globalVersion: "1.3" # default version "from openapi/values.yaml"
+`
+			f.ValuesSetFromYaml("istio", []byte(values))
+			f.ConfigValuesSet("istio.globalVersion", "2.0")
+			f.ConfigValuesSet("istio.additionalVersions", []string{"1.1", "1.3", "2.7", "2.8", "2.9"})
+			f.RunHook()
+		})
+		It("Should return errors", func() {
+			Expect(f).ToNot(ExecuteSuccessfully())
+
+			Expect(f.GoHookError).To(MatchError("unsupported versions: [2.0,2.7,2.8,2.9]"))
+
+			assertNoMetrics(f)
 		})
 	})
 
@@ -276,19 +305,19 @@ globalVersion: "1.25"
 internal:
   versionMap: {
     "1.27": {"fullVersion": "1.27.9"},
-    "1.29": {"fullVersion": "1.29.6"}
+    "1.28": {"fullVersion": "1.28.0"}
   }
 globalVersion: "1.27"
 `
 			f.ValuesSetFromYaml("istio", []byte(values))
 			f.ConfigValuesSet("istio.globalVersion", "1.27")
-			f.ConfigValuesSet("istio.additionalVersions", []string{"1.29"})
+			f.ConfigValuesSet("istio.additionalVersions", []string{"1.28"})
 			f.RunHook()
 		})
 
 		It("Should publish minimal version from versionsToInstall", func() {
 			Expect(f).To(ExecuteSuccessfully())
-			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.27", "1.29"}))
+			Expect(f.ValuesGet("istio.internal.versionsToInstall").AsStringSlice()).To(Equal([]string{"1.27", "1.28"}))
 
 			value, exists := requirements.GetValue(minVersionValuesKey)
 			Expect(exists).To(BeTrue())
@@ -296,7 +325,7 @@ globalVersion: "1.27"
 
 			installedVersions, exists := requirements.GetValue(installedVersionsValuesKey)
 			Expect(exists).To(BeTrue())
-			Expect(installedVersions).To(BeEquivalentTo([]string{"1.27", "1.29"}))
+			Expect(installedVersions).To(BeEquivalentTo([]string{"1.27", "1.28"}))
 		})
 	})
 })

@@ -500,9 +500,7 @@ func DeckhouseNamespace(name string) *apiv1.Namespace {
 			Name: name,
 			Labels: map[string]string{
 				"heritage": "deckhouse",
-				"extended-monitoring.deckhouse.io/enabled":   "",
-				"pod-security.kubernetes.io/enforce":         "privileged",
-				"pod-security.kubernetes.io/enforce-version": "latest",
+				"extended-monitoring.deckhouse.io/enabled": "",
 			},
 		},
 		Spec: apiv1.NamespaceSpec{

@@ -176,14 +176,7 @@ apiVersions:
               Список адресов рекурсивных DNS внутренней сети.
           internalNetworkSecurity: &internalNetworkSecurity_ru
             description: |
-              Определяет необходимость настройки групп безопасности ([SecurityGroups](./cr.html#huaweicloudinstanceclass-v1-spec-securitygroups)) на портах внутренней сети.
-
-              При включении DP создаёт группу безопасности с именем префикса кластера (`prefix`) и следующими правилами входящего трафика по умолчанию:
-              - TCP-трафик на порт `22` из `0.0.0.0/0`;
-              - ICMP-трафик из `0.0.0.0/0`;
-              - TCP-трафик на порты `30000`–`32767` из `0.0.0.0/0` для сервисов типа `NodePort`.
-
-              Подробнее — в разделе [«Huawei Cloud: схемы размещения»](layouts.html#standard).
+              Флаг, который определяет необходимость настройки [SecurityGroups](./cr.html#huaweicloudinstanceclass-v1-spec-securitygroups) на портах внутренней сети.
           enableEIP:
             description: |
                 Включите Elastic IP для мастер узлов.
@@ -192,14 +185,15 @@ apiVersions:
         description: |
           Настройки для [схемы размещения `VpcPeering`](./layouts.html#vpcpeering).
         properties:
-          internalNetworkCIDR:
-            <<: *internalNetworkCIDR_ru
+          internalNetworkCIDR: &internalNetworkCIDR_ru
+            description: |
+              Адресация для внутренней сети узлов кластера.
           internalNetworkDNSServers:
             description: |
               Список адресов рекурсивных DNS внутренней сети узлов кластера.
           internalNetworkSecurity: &internalNetworkSecurity_ru
             description: |
-              Определяет необходимость настройки [SecurityGroups](./cr.html#huaweicloudinstanceclass-v1-spec-securitygroups) на портах внутренней сети.
+              Флаг, который определяет необходимость настройки [SecurityGroups](./cr.html#huaweicloudinstanceclass-v1-spec-securitygroups) на портах внутренней сети.
           subnet:
             description: |
               Имя подсети в сети VPC.

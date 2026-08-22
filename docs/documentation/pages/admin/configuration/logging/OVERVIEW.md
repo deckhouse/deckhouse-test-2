@@ -1,13 +1,13 @@
 ---
 title: Logging
 permalink: en/admin/configuration/logging/
-description: "Configure logging in Deckhouse Platform with built-in log collection, delivery, and storage. Centralized logging solution for cluster monitoring and troubleshooting."
+description: "Configure logging in Deckhouse Kubernetes Platform with built-in log collection, delivery, and storage. Centralized logging solution for cluster monitoring and troubleshooting."
 ---
 
-Deckhouse Platform (DP) provides built-in tools for log collection,
+Deckhouse Kubernetes Platform (DKP) provides built-in tools for log collection,
 delivery, and short-term storage.
 
-DP logging capabilities:
+DKP logging capabilities:
 
 - Collect logs from cluster pods and nodes.
 - Process logs, including metadata enrichment and message filtering.

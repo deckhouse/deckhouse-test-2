@@ -70,10 +70,8 @@ func grantableWebhookRules(input *go_hook.HookInput) []admissionregistrationv1.R
 		}
 		for _, g := range toStringSlice(rule["apiGroups"]) {
 			if g == "*" {
-				// The CRD refuses "*" in apiGroups now (a wildcard would silently intercept
-				// nothing, see the schema description). This stays as the safety net for an
-				// object stored before that rule existed: it is omitted from the static webhook
-				// rules rather than turned into a catch-all on every namespaced object.
+				// A wildcard-group rule would intercept everything; rely on the in-handler
+				// check instead and skip it from the static webhook rules.
 				continue
 			}
 			for _, res := range toStringSlice(rule["resources"]) {

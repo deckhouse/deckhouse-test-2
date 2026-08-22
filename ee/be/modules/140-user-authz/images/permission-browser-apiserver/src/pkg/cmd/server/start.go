@@ -28,6 +28,7 @@ import (
 // PermissionBrowserServerOptions contains state for master/api server
 type PermissionBrowserServerOptions struct {
 	RecommendedOptions *genericoptions.RecommendedOptions
+	ConfigPath         string
 
 	StdOut io.Writer
 	StdErr io.Writer
@@ -40,8 +41,9 @@ func NewPermissionBrowserServerOptions(out, errOut io.Writer) *PermissionBrowser
 			"",
 			apiserver.Codecs.LegacyCodec(v1alpha1.SchemeGroupVersion),
 		),
-		StdOut: out,
-		StdErr: errOut,
+		ConfigPath: "/etc/user-authz-webhook/config.json",
+		StdOut:     out,
+		StdErr:     errOut,
 	}
 	// No etcd - ephemeral resources only
 	o.RecommendedOptions.Etcd = nil
@@ -78,6 +80,7 @@ func NewCommandStartPermissionBrowserServer(defaults *PermissionBrowserServerOpt
 	flags := cmd.Flags()
 	o.RecommendedOptions.AddFlags(flags)
 	utilfeature.DefaultMutableFeatureGate.AddFlag(flags)
+	flags.StringVar(&o.ConfigPath, "user-authz-config", o.ConfigPath, "Path to the user-authz webhook configuration file")
 
 	return cmd
 }
@@ -90,6 +93,10 @@ func (o PermissionBrowserServerOptions) Validate(args []string) error {
 // Complete fills in fields required to have valid data and applies defaults.
 // This implements the standard Kubernetes Complete -> Validate -> Run pattern.
 func (o *PermissionBrowserServerOptions) Complete() error {
+	// Set default config path if not provided
+	if o.ConfigPath == "" {
+		o.ConfigPath = "/etc/user-authz-webhook/config.json"
+	}
 	return nil
 }
 
@@ -126,7 +133,9 @@ func (o *PermissionBrowserServerOptions) Config(stopCh <-chan struct{}) (*apiser
 
 	config := &apiserver.Config{
 		GenericConfig: serverConfig,
-		ExtraConfig:   apiserver.ExtraConfig{},
+		ExtraConfig: apiserver.ExtraConfig{
+			ConfigPath: o.ConfigPath,
+		},
 	}
 	return config, nil
 }

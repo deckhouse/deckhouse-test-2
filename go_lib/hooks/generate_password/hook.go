@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/flant/addon-operator/pkg/module_manager/go_hook"
+	addonutils "github.com/flant/addon-operator/pkg/utils"
 	"github.com/flant/addon-operator/sdk"
 	"github.com/flant/shell-operator/pkg/kube_events_manager/types"
 	v1 "k8s.io/api/core/v1"
@@ -29,7 +30,6 @@ import (
 
 	sdkpkg "github.com/deckhouse/module-sdk/pkg"
 
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/addonutils"
 	"github.com/deckhouse/deckhouse/go_lib/pwgen"
 	"github.com/deckhouse/deckhouse/pkg/log"
 )

@@ -22,7 +22,6 @@ import (
 	"strings"
 
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/app"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/envconfig"
 )
 
 const defaultBundle = "Default"
@@ -42,7 +41,7 @@ func Parse(version string) (*Edition, error) {
 	edition := new(Edition)
 	edition.Version = version
 	edition.Name = strings.ToLower(strings.TrimSpace(string(content)))
-	edition.Bundle = strings.TrimSpace(os.Getenv(envconfig.EnvBundle))
+	edition.Bundle = strings.TrimSpace(os.Getenv(app.EnvBundle))
 	if edition.Bundle == "" {
 		edition.Bundle = defaultBundle
 	}

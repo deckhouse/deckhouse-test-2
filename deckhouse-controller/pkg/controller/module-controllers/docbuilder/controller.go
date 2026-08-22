@@ -46,7 +46,6 @@ import (
 
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/app"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/apis/deckhouse.io/v1alpha1"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/envconfig"
 	"github.com/deckhouse/deckhouse/go_lib/dependency"
 	d8http "github.com/deckhouse/deckhouse/go_lib/dependency/http"
 	"github.com/deckhouse/deckhouse/go_lib/module"
@@ -76,7 +75,7 @@ func RegisterController(mgr manager.Manager, dc dependency.Container, logger *lo
 		// instead of the default 10s HTTP client timeout, which cancels healthy
 		// builds under load. Safe to raise because the builder now honors the
 		// request context and aborts abandoned builds.
-		docsBuilder: docsbuilder.NewClient(dc.GetHTTPClient(d8http.WithTimeout(envconfig.DocumentationBuildTimeout()))),
+		docsBuilder: docsbuilder.NewClient(dc.GetHTTPClient(d8http.WithTimeout(app.DocumentationBuildTimeout()))),
 		logger:      logger,
 	}
 

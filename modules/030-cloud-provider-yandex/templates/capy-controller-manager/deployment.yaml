@@ -40,7 +40,6 @@ security.deckhouse.io/security-policy-exception: capy-controller-manager
     defaultMode: 420
 {{- end -}}
 
-{{- if not (default false (dig "nodes" "disabled" false .Values.cloudProviderYandex)) }}
 {{- $capiConfig := dict -}}
 {{- $_ := set $capiConfig "fullname" "capy-controller-manager" -}}
 {{- $_ := set $capiConfig "namespace" "d8-cloud-provider-yandex" -}}
@@ -58,4 +57,3 @@ security.deckhouse.io/security-policy-exception: capy-controller-manager
 {{- $_ := set $capiConfig "vpaEnabled" true -}}
 
 {{- include "helm_lib_capi_controller_manager_manifests" (list . $capiConfig) }}
-{{- end }}

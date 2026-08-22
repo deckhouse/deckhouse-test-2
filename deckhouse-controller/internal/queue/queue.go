@@ -250,10 +250,7 @@ func (q *queue) processOne() bool {
 	// Check for parent context cancellation
 	select {
 	case <-t.ctx.Done():
-		q.logger.Debug("task context canceled",
-			slog.String("id", t.id),
-			slog.String("name", t.task.String()),
-			log.Err(context.Cause(t.ctx)))
+		q.logger.Debug("task context canceled", slog.String("id", t.id), slog.String("name", t.task.String()))
 		t.cancel()
 		if t.wg != nil {
 			t.wg.Done()
@@ -276,18 +273,12 @@ func (q *queue) processOne() bool {
 
 	// Execute the task
 	if err := t.task.Execute(t.ctx); err != nil {
-		q.logger.Warn("task failed",
-			slog.String("id", t.id),
-			slog.String("name", t.task.String()),
-			log.Err(err))
+		q.logger.Warn("task failed", slog.String("id", t.id), slog.String("name", t.task.String()))
 
 		// Check context again before retrying
 		select {
 		case <-t.ctx.Done():
-			q.logger.Warn("task canceled",
-				slog.String("id", t.id),
-				slog.String("name", t.task.String()),
-				log.Err(context.Cause(t.ctx)))
+			q.logger.Debug("context canceled", slog.String("id", t.id), slog.String("name", t.task.String()))
 			t.cancel()
 			if t.wg != nil {
 				t.wg.Done()

@@ -39,7 +39,6 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/apimachinery/pkg/util/wait"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -364,8 +363,8 @@ func syncConversionWebhookConfigurations(
 	}
 
 	for crdName, cfg := range shOp.ConversionWebhookManager.ClientConfigs {
-		if err := cfg.PatchConversion(ctx); err != nil {
-			return fmt.Errorf("patch conversion client config for crd %q: %w", crdName, err)
+		if err := cfg.Update(ctx); err != nil {
+			return fmt.Errorf("update conversion client config for crd %q: %w", crdName, err)
 		}
 	}
 
@@ -399,10 +398,12 @@ func resetCRDConversionToNone(ctx context.Context, shOp *shell_operator.ShellOpe
 		return nil
 	}
 
-	if _, err := shOp.KubeClient.ApiExt().CustomResourceDefinitions().Patch(
-		ctx, crdName, types.JSONPatchType, controller.ConversionNonePatch, sh_pkg.DefaultPatchOptions(),
-	); err != nil {
-		return fmt.Errorf("patch CRD %q conversion strategy: %w", crdName, err)
+	crd.Spec.Conversion = &apiextensionsv1.CustomResourceConversion{
+		Strategy: apiextensionsv1.NoneConverter,
+	}
+
+	if _, err := shOp.KubeClient.ApiExt().CustomResourceDefinitions().Update(ctx, crd, sh_pkg.DefaultUpdateOptions()); err != nil {
+		return fmt.Errorf("update CRD %q conversion strategy: %w", crdName, err)
 	}
 
 	return nil

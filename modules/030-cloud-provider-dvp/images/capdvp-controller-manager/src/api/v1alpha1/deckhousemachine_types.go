@@ -53,10 +53,9 @@ type CPU struct {
 	Cores int `json:"cores"`
 
 	// Fraction is a guaranteed share of CPU time that will be allocated to the VM.
-	// Expressed as percentage, or "Auto" to hand the share over to the Vertical
-	// VirtualMachine Autoscaler of the parent DVP cluster (EE).
+	// Expressed as percentage.
 	// +kubebuilder:default="100%"
-	// +kubebuilder:validation:Pattern=`^(Auto|(100|[1-9][0-9]?)%)$`
+	// +kubebuilder:validation:Pattern=`^100%$|^[1-9][0-9]?%$`
 	Fraction string `json:"cpuFraction"`
 }
 
@@ -131,10 +130,6 @@ type DeckhouseMachineSpec struct {
 	// +kubebuilder:validation:Enum=Manual;Never;AlwaysSafe;PreferSafe;AlwaysForced;PreferForced
 	// +optional
 	LiveMigrationPolicy string `json:"liveMigrationPolicy,omitempty"`
-
-	// AdditionalVMLabels holds extra labels to apply to the VirtualMachine object in the parent DVP cluster.
-	// +optional
-	AdditionalVMLabels map[string]string `json:"additionalVMLabels,omitempty"`
 }
 
 // DeckhouseMachineStatus defines the observed state of DeckhouseMachine.

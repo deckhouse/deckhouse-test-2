@@ -121,6 +121,6 @@ spec:
       resources:
         requests:
           storage: 32Mi
-      storageClassName: {{ $storageClass | quote }}
+      storageClassName: {{ $storageClass }}
 {{- end }}
 {{- end }}

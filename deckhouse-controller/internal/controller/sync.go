@@ -27,7 +27,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/app"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/controller/pkgsync"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/loader"
 	pkgmodules "github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/modules"
 	pkgruntime "github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime"
@@ -44,11 +43,13 @@ const (
 	// embeddedRepositoryName stands for the Deckhouse image itself and resolves to no
 	// PackageRepository — unlike `deckhouse`, which is a name a real repository may take.
 	embeddedRepositoryName = "embedded"
-
-	// globalModuleName is the reserved name of the global module, which the image ships in
-	// the global hooks dir and the runtime builds itself.
-	globalModuleName = "global"
 )
+
+// dummyModules are modules that should be skipped.
+var dummyModules = []string{
+	"000-common",
+	"007-registrypackages",
+}
 
 // placement is where a module's package comes from, as the bootstrap derives it.
 type placement struct {
@@ -113,7 +114,7 @@ func (c *Controller) embeddedPlacements(ctx context.Context) (map[string]placeme
 	g.SetLimit(embeddedLoadWorkers)
 
 	for i, entry := range entries {
-		if !entry.IsDir() || slices.Contains(app.DummyModules, entry.Name()) {
+		if !entry.IsDir() || slices.Contains(dummyModules, entry.Name()) {
 			continue
 		}
 
@@ -142,21 +143,14 @@ func (c *Controller) embeddedPlacements(ctx context.Context) (map[string]placeme
 
 	placements := make(map[string]placement, len(names))
 
-	// an embedded module carries the running Deckhouse version reduced to major.minor.patch — the
-	// same version pkgsync names its ModulePackageVersion after, and the one the runtime reports
-	version := app.EmbeddedPackageVersion(app.Version)
-
 	for _, name := range names {
 		if name == "" {
 			continue
 		}
 
-		placements[name] = placement{repository: embeddedRepositoryName, version: version, embedded: true}
+		// an embedded module carries the running Deckhouse version — the runtime's edition version verbatim
+		placements[name] = placement{repository: embeddedRepositoryName, version: app.Version, embedded: true}
 	}
-
-	// The global module ships in the image too, at a fixed name and a dir of its own, so it is
-	// placed without reading anything: it carries no definition to read a name out of.
-	placements[globalModuleName] = placement{repository: embeddedRepositoryName, version: version, embedded: true}
 
 	return placements, nil
 }
@@ -229,10 +223,7 @@ func (c *Controller) releasePlacements(ctx context.Context) (map[string]placemen
 			continue
 		}
 
-		placements[name] = placement{
-			repository: pkgsync.PackageRepositoryNameForModuleSource(release.GetModuleSource()),
-			version:    release.GetModuleVersion(),
-		}
+		placements[name] = placement{repository: release.GetModuleSource(), version: release.GetModuleVersion()}
 	}
 
 	return placements, nil
@@ -432,7 +423,6 @@ func (c *Controller) loadModules(ctx context.Context, modules []v1alpha2.Module)
 	// one repository backs many modules, so each is resolved once
 	remotes := make(map[string]registry.Remote)
 
-	runtimeModules := make([]pkgruntime.Module, 0, len(modules))
 	for i := range modules {
 		module := &modules[i]
 
@@ -441,17 +431,10 @@ func (c *Controller) loadModules(ctx context.Context, modules []v1alpha2.Module)
 			continue
 		}
 
-		// The runtime built the global module itself out of the global hooks dir before the
-		// bootstrap ran, so nothing is loaded for it; only its settings cross over.
-		if module.Name == globalModuleName {
-			c.manager.UpdateGlobalSettings(module.Spec.SettingsVersion, module.Spec.Settings.GetMap())
-
-			continue
-		}
-
 		// an embedded module is on disk already and its repository resolves to nothing
 		if module.IsEmbedded() {
-			runtimeModules = append(runtimeModules, runtimeModule(module, registry.Remote{}))
+			c.manager.UpdateEmbeddedModule(runtimeModule(module))
+
 			continue
 		}
 
@@ -472,72 +455,22 @@ func (c *Controller) loadModules(ctx context.Context, modules []v1alpha2.Module)
 			remotes[module.Spec.PackageRepositoryName] = remote
 		}
 
-		pkg := runtimeModule(module, remote)
+		pkg := runtimeModule(module)
 		pkg.Definition = pkgmodules.Definition{Name: module.Name, Version: module.Spec.PackageVersion}
 
-		runtimeModules = append(runtimeModules, pkg)
+		c.manager.UpdateModule(remote, pkg, false)
 	}
-
-	c.manager.LoadModules(ctx, runtimeModules)
 
 	return nil
 }
 
-// cleanupPackages hands the runtime every package the cluster still claims, so it drops the rest.
-// A terminating instance is left out, as in loadModules: the runtime forgets its teardown across a
-// restart and never loads a terminating object, so the remover answers "nothing left to tear down"
-// and this pass is the last owner of its release.
-func (c *Controller) cleanupPackages(ctx context.Context, modules []v1alpha2.Module) error {
-	// this list decides what is deleted, so a lagging watch would read as an application gone
-	applications := new(v1alpha1.ApplicationList)
-	if err := c.ctrl.GetAPIReader().List(ctx, applications); err != nil {
-		return fmt.Errorf("list applications: %w", err)
-	}
-
-	preserveApps := make([]pkgruntime.PreserveApplication, 0, len(applications.Items))
-	for i := range applications.Items {
-		application := &applications.Items[i]
-
-		if !application.DeletionTimestamp.IsZero() {
-			continue
-		}
-
-		preserveApps = append(preserveApps, pkgruntime.PreserveApplication{
-			Namespace:   application.Namespace,
-			Name:        application.Name,
-			PackageName: application.Spec.PackageName,
-			Repository:  application.Spec.PackageRepositoryName,
-			Version:     application.Spec.PackageVersion,
-		})
-	}
-
-	preserveModules := make([]pkgruntime.PreserveModule, 0, len(modules))
-	for i := range modules {
-		module := &modules[i]
-
-		if !module.DeletionTimestamp.IsZero() {
-			continue
-		}
-
-		preserveModules = append(preserveModules, pkgruntime.PreserveModule{
-			Name:       module.Name,
-			Repository: module.Spec.PackageRepositoryName,
-			Version:    module.Spec.PackageVersion,
-			Embedded:   module.IsEmbedded(),
-		})
-	}
-
-	return c.manager.CleanupV2(ctx, preserveApps, preserveModules)
-}
-
 // runtimeModule is what the runtime needs of a module: its identity, settings and enabled intent.
-func runtimeModule(module *v1alpha2.Module, remote registry.Remote) pkgruntime.Module {
+func runtimeModule(module *v1alpha2.Module) pkgruntime.Module {
 	return pkgruntime.Module{
 		Name:            module.Name,
 		Settings:        module.Spec.Settings.GetMap(),
 		SettingsVersion: module.Spec.SettingsVersion,
 		Maintenance:     module.Spec.Maintenance,
 		Enabled:         module.Spec.Enabled,
-		Repository:      remote,
 	}
 }

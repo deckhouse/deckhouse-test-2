@@ -156,13 +156,6 @@ type OperationPolicySpec struct {
 			MinReplicas int `json:"minReplicas,omitempty"`
 			MaxReplicas int `json:"maxReplicas,omitempty"`
 		} `json:"replicaLimits,omitempty"`
-		GpuResourceRestriction *struct {
-			NamespaceLabel *struct {
-				Key   string `json:"key,omitempty"`
-				Value string `json:"value,omitempty"`
-			} `json:"namespaceLabel,omitempty"`
-			GpuResourcePatterns *[]string `json:"gpuResourcePatterns,omitempty"`
-		} `json:"gpuResourceRestriction,omitempty"`
 	} `json:"policies"`
 	Match struct {
 		NamespaceSelector NamespaceSelector    `json:"namespaceSelector,omitempty"`

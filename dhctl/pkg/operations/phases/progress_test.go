@@ -110,16 +110,15 @@ func TestProgressTracker(t *testing.T) {
 
 	var result []phases.Progress
 
-	// Cloud is what makes the tracker's list the full one: the cloud-only nodes are gated on a
-	// positive test, so an unset cluster type keeps BaseInfra and the additional-nodes phase out.
-	cloud := phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true}
-	list := phases.PhasesFor(phases.OperationBootstrap, cloud)
+	list := phases.BootstrapPhases()
 	progressTracker := phases.NewProgressTracker(phases.OperationBootstrap, func(progress phases.Progress) error {
 		result = append(result, progress)
 
 		return nil
 	})
-	progressTracker.SetClusterConfig(cloud)
+	// Cloud is what makes the tracker's list the full one: the cloud-only nodes are gated on a
+	// positive test, so an unset cluster type keeps BaseInfra and the additional-nodes phase out.
+	progressTracker.SetClusterConfig(phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true})
 
 	require.NoError(t, progressTracker.Progress("", "", "", opts))
 	require.NoError(t, progressTracker.Progress(phases.BaseInfraPhase, "", "", opts))
@@ -277,8 +276,7 @@ func TestProgressTracker_Complete(t *testing.T) {
 
 	var result []phases.Progress
 
-	cloud := phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true}
-	list := phases.PhasesFor(phases.OperationBootstrap, cloud)
+	list := phases.BootstrapPhases()
 	idxBaseInfra := phaseIndex(t, list, phases.BaseInfraPhase)
 
 	progressTracker := phases.NewProgressTracker(phases.OperationBootstrap, func(progress phases.Progress) error {
@@ -287,14 +285,14 @@ func TestProgressTracker_Complete(t *testing.T) {
 		return nil
 	})
 	// BaseInfra is a cloud-only node, so the tracker only declares it once the type is known.
-	progressTracker.SetClusterConfig(cloud)
+	progressTracker.SetClusterConfig(phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true})
 
 	require.NoError(t, progressTracker.Progress("", "", "", opts))
 	require.NoError(t, progressTracker.Progress(phases.BaseInfraPhase, "", "", opts))
 	require.NoError(t, progressTracker.Complete(phases.BaseInfraPhase))
 
 	// everything after BaseInfra is skipped
-	lastPhases := phases.PhasesFor(phases.OperationBootstrap, cloud)
+	lastPhases := phases.BootstrapPhases()
 	for i := idxBaseInfra + 1; i < len(lastPhases); i++ {
 		lastPhases[i].Action = new(phases.ProgressActionSkip)
 	}
@@ -468,15 +466,13 @@ func TestProgressTracker_WriteProgress(t *testing.T) {
 	progressFile := "progress.jsonl"
 	progressFilePath := filepath.Join(tmpDir, progressFile)
 
-	cloud := phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true}
-	list := phases.PhasesFor(phases.OperationBootstrap, cloud)
+	list := phases.BootstrapPhases()
 	progressTracker := phases.NewProgressTracker(
 		phases.OperationBootstrap,
 		phases.WriteProgress(progressFilePath),
 	)
-	// The expectation is resolved for the same config the tracker gets: the ungated
-	// list is nobody's cluster now that a master can be immutable.
-	progressTracker.SetClusterConfig(cloud)
+	// The expectation is built from the ungated BootstrapPhases, which is the Cloud list.
+	progressTracker.SetClusterConfig(phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true})
 
 	require.NoError(t, progressTracker.Progress("", "", "", opts))
 	require.NoError(t, progressTracker.Progress(nth(list, len(list)-1).Phase, "", "", opts))
@@ -580,17 +576,15 @@ func walkSkipping(t *testing.T, skipped ...phases.OperationPhase) []phases.Progr
 
 		return nil
 	})
-	// Resolved for the same config the pipeline gets: the ungated list carries the
-	// sub-phases of both kinds of master and is therefore nobody's cluster.
-	cloud := phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true}
-	pec.SetClusterConfig(cloud)
+	// BootstrapPhases below is the ungated list, and the ungated list is the cloud one.
+	pec.SetClusterConfig(phases.ClusterConfig{ClusterType: "Cloud", HasClusterConfiguration: true})
 
 	stateCache := cache.NewTestCache()
 	require.NoError(t, pec.InitPipeline(t.Context(), stateCache))
 
 	announced := false
 
-	for _, declared := range phases.PhasesFor(phases.OperationBootstrap, cloud) {
+	for _, declared := range phases.BootstrapPhases() {
 		if slices.Contains(skipped, declared.Phase) {
 			continue
 		}

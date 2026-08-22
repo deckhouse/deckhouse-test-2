@@ -21,6 +21,7 @@ import (
 	"log/slog"
 
 	addontypes "github.com/flant/addon-operator/pkg/hook/types"
+	addonutils "github.com/flant/addon-operator/pkg/utils"
 	shtypes "github.com/flant/shell-operator/pkg/hook/types"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -29,7 +30,6 @@ import (
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/nelm"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/status"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/queue"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/addonutils"
 	"github.com/deckhouse/deckhouse/pkg/log"
 )
 

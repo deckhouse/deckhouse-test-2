@@ -28,14 +28,16 @@ import (
 type DeployDelayReason byte
 
 const (
-	noDelay           DeployDelayReason = 0
-	canaryDelayReason DeployDelayReason = 1 << iota
+	noDelay             DeployDelayReason = 0
+	cooldownDelayReason DeployDelayReason = 1 << iota
+	canaryDelayReason
 	notificationDelayReason
 	outOfWindowReason
 	manualApprovalRequiredReason
 )
 
 var deployDelayReasonsStr = map[DeployDelayReason]string{
+	cooldownDelayReason:          "cooldownDelayReason",
 	canaryDelayReason:            "canaryDelayReason",
 	notificationDelayReason:      "notificationDelayReason",
 	outOfWindowReason:            "outOfWindowReason",
@@ -43,6 +45,7 @@ var deployDelayReasonsStr = map[DeployDelayReason]string{
 }
 
 const (
+	cooldownDelayMsg              = "in cooldown"
 	canaryDelayReasonMsg          = "postponed"
 	waitingManualApprovalTemplate = "waiting for the '%s: \"true\"' annotation"
 	outOfWindowMsg                = "waiting for the update window"
@@ -73,6 +76,10 @@ func (r DeployDelayReason) Message(release v1alpha1.Release, applyTime time.Time
 	)
 
 	b.WriteString("Release is ")
+
+	if r.contains(cooldownDelayReason) {
+		reasons = append(reasons, cooldownDelayMsg)
+	}
 
 	if r.contains(canaryDelayReason) {
 		reasons = append(reasons, canaryDelayReasonMsg)

@@ -54,10 +54,6 @@ type NodeGroupController struct {
 	desiredReplicas int
 	layoutStep      infrastructure.Step
 
-	// immutable groups get a per-node payload built from the cluster instead of the
-	// group-wide bashible cloud-init, and their nodes answer no sshd.
-	immutable bool
-
 	globalOptions *options.GlobalOptions
 }
 
@@ -73,24 +69,14 @@ func NewNodeGroupController(name string, state state.NodeGroupInfrastructureStat
 }
 
 func (c *NodeGroupController) Run(ctx *context.Context) error {
-	immutableGroup, err := isImmutableNodeGroup(ctx, c.name)
+	// we hide deckhouse logs because we always have config
+
+	nodeCloudConfig, err := entity.GetCloudConfig(ctx.Ctx(), ctx, c.name, global.HideDeckhouseLogs)
 	if err != nil {
 		return err
 	}
-	c.immutable = immutableGroup
 
-	// An immutable group has no group-wide cloud config to read: its nodes boot from
-	// a per-node payload built where the node is created. The bashible secret exists
-	// for such a group too, and taking it would hand a machine a config it cannot run.
-	if !c.immutable {
-		// we hide deckhouse logs because we always have config
-		nodeCloudConfig, err := entity.GetCloudConfig(ctx.Ctx(), ctx, c.name, global.HideDeckhouseLogs)
-		if err != nil {
-			return err
-		}
-
-		c.cloudConfig = nodeCloudConfig
-	}
+	c.cloudConfig = nodeCloudConfig
 
 	if c.desiredReplicas > len(c.state.State) {
 		err := dhlog.RunProcess(ctx.Ctx(), dhlog.FromContext(ctx.Ctx()), fmt.Sprintf("Add Nodes to NodeGroup %s (replicas: %v)", c.name, c.desiredReplicas), func(gocontext.Context) error {
@@ -216,6 +202,12 @@ func (c *NodeGroupController) deleteRedundantNodes(
 			continue
 		}
 
+		nodeIndex, err := config.GetIndexFromNodeName(nodeToDeleteInfo.name)
+		if err != nil {
+			dhlog.FromContext(ctx.Ctx()).ErrorContext(ctx.Ctx(), fmt.Sprintf("can't extract index from infrastructure state secret (%v), skipping %s", err, nodeToDeleteInfo.name))
+			return nil
+		}
+
 		// NOTE: In the commander mode nodes state should exist in the local state cache, no need to pass state explicitly.
 		var nodeState []byte
 		if !ctx.CommanderMode() {
@@ -226,7 +218,7 @@ func (c *NodeGroupController) deleteRedundantNodes(
 			NodeName:        nodeToDeleteInfo.name,
 			NodeGroupName:   c.name,
 			LayoutStep:      c.layoutStep,
-			NodeIndex:       nodeToDeleteInfo.index,
+			NodeIndex:       nodeIndex,
 			NodeState:       nodeState,
 			NodeCloudConfig: c.cloudConfig,
 			CommanderMode:   ctx.CommanderMode(),
@@ -373,13 +365,12 @@ func (c *NodeGroupController) updateNodes(ctx *context.Context) error {
 
 	var allErrs *multierror.Error
 
-	nodes, err := sortNodeNames(c.state.State)
+	nodeNames, err := sortNodeNames(c.state.State)
 	if err != nil {
 		return err
 	}
 
-	for _, node := range nodes {
-		nodeName := node.name
+	for _, nodeName := range nodeNames {
 		processTitle := fmt.Sprintf("Update Node %s in NodeGroup %s (replicas: %v)", nodeName, c.name, replicas)
 
 		err := dhlog.RunProcess(ctx.Ctx(), dhlog.FromContext(ctx.Ctx()), processTitle, func(gocontext.Context) error {
@@ -388,13 +379,9 @@ func (c *NodeGroupController) updateNodes(ctx *context.Context) error {
 				return nil
 			}
 
-			err = c.nodeGroup.updateNode(ctx, nodeName, node.index)
+			err = c.nodeGroup.updateNode(ctx, nodeName)
 			if err != nil {
 				return err
-			}
-
-			if c.immutable {
-				return nil
 			}
 
 			// we hide deckhouse logs because we always have config
@@ -433,18 +420,17 @@ func getNodesToDeleteInfo(ctx gocontext.Context, desiredReplicas int, state map[
 
 	count := len(state)
 
-	nodes, err := sortNodeNames(state)
+	nodeNames, err := sortNodeNames(state)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, node := range nodes {
+	for _, nodeName := range nodeNames {
 		nodesToDeleteInfo = append(nodesToDeleteInfo, nodeToDeleteInfo{
-			name:  node.name,
-			index: node.index,
-			state: state[node.name],
+			name:  nodeName,
+			state: state[nodeName],
 		})
-		delete(state, node.name)
+		delete(state, nodeName)
 		count--
 
 		if count == desiredReplicas {
@@ -458,13 +444,11 @@ func getNodesToDeleteInfo(ctx gocontext.Context, desiredReplicas int, state map[
 
 type nodeToDeleteInfo struct {
 	name  string
-	index int
 	state []byte
 }
 
-// sortNodeNames sorts nodes in descending order. It is the only place a node name
-// is parsed: callers take the index from here instead of parsing it again.
-func sortNodeNames(state map[string][]byte) ([]nodeNameWithIndex, error) {
+// sortNodeNames sorts node names in descending order
+func sortNodeNames(state map[string][]byte) ([]string, error) {
 	index := make([]nodeNameWithIndex, 0, len(state))
 
 	for nodeName := range state {
@@ -482,7 +466,13 @@ func sortNodeNames(state map[string][]byte) ([]nodeNameWithIndex, error) {
 		return cmp.Compare(j.index, i.index)
 	})
 
-	return index, nil
+	nodeNames := make([]string, len(index))
+
+	for i, nodeName := range index {
+		nodeNames[i] = nodeName.name
+	}
+
+	return nodeNames, nil
 }
 
 type nodeNameWithIndex struct {
@@ -493,6 +483,6 @@ type nodeNameWithIndex struct {
 type nodeGroupController interface {
 	addNodes(ctx *context.Context) error
 	beforeUpdateNodes(ctx *context.Context) error
-	updateNode(ctx *context.Context, name string, index int) error
+	updateNode(ctx *context.Context, name string) error
 	deleteNodes(ctx *context.Context, nodesToDeleteInfo []nodeToDeleteInfo) error
 }

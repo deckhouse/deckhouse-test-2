@@ -411,19 +411,13 @@ func mapPCCtoRootValues(input *go_hook.HookInput, pcc *v1.DvpProviderClusterConf
 		return nil
 	}
 
-	if pcc.Provider != nil {
-		providerParams := map[string]any{}
-		if pcc.Provider.Namespace != nil {
-			providerParams["namespace"] = *pcc.Provider.Namespace
-		}
-		if pcc.Provider.NetworkPolicy != nil {
-			providerParams["networkPolicy"] = *pcc.Provider.NetworkPolicy
-		}
-		if len(providerParams) > 0 {
-			input.Values.Set("cloudProviderDvp.provider", map[string]any{
-				"parameters": providerParams,
-			})
-		}
+	// provider has no disabled flag, overwriting is safe
+	if pcc.Provider != nil && pcc.Provider.Namespace != nil {
+		input.Values.Set("cloudProviderDvp.provider", map[string]any{
+			"parameters": map[string]any{
+				"namespace": *pcc.Provider.Namespace,
+			},
+		})
 	}
 
 	// nodes.disabled intentionally not touched
@@ -542,22 +536,20 @@ func convertJSONRawMessageToStruct(in map[string]json.RawMessage, out any) error
 }
 
 func overrideProviderClusterConfigValues(p *v1.DvpProviderClusterConfiguration, m *v1.DvpModuleConfiguration) {
-	if m.Provider != nil && m.Provider.Parameters != nil {
+	if m.Provider != nil {
 		if p.Provider == nil {
 			p.Provider = &v1.DvpProvider{}
 		}
-		if m.Provider.Parameters.Namespace != nil {
-			p.Provider.Namespace = m.Provider.Parameters.Namespace
+		if m.Provider.KubeconfigDataBase64 != nil {
+			p.Provider.KubeconfigDataBase64 = m.Provider.KubeconfigDataBase64
 		}
-		if m.Provider.Parameters.NetworkPolicy != nil {
-			p.Provider.NetworkPolicy = m.Provider.Parameters.NetworkPolicy
+		if m.Provider.Namespace != nil {
+			p.Provider.Namespace = m.Provider.Namespace
 		}
 	}
 
-	if m.Nodes != nil && m.Nodes.Parameters != nil {
-		if m.Nodes.Parameters.Zones != nil {
-			p.Zones = m.Nodes.Parameters.Zones
-		}
+	if m.Zones != nil {
+		p.Zones = m.Zones
 	}
 }
 

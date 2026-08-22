@@ -1,15 +1,15 @@
 languages:
   en:
     disabled: false
-    title: Deckhouse Platform Modules
+    title: Deckhouse modules
     weight: 0
     baseURL: https://deckhouse.io
     params:
-      description: "Kubernetes is flexibly and rapidly expanded by Deckhouse Platform modules."
+      description: "Kubernetes is flexibly and rapidly expanded by Deckhouse modules."
   ru:
     disabled: false
     weight: 1
-    title: Модули Deckhouse Platform
+    title: Модули Deckhouse
     baseURL: https://deckhouse.ru
     params:
-      description: "Kubernetes гибко и быстро расширяется модулями Deckhouse Platform."
+      description: "Kubernetes гибко и быстро расширяется модулями Deckhouse."

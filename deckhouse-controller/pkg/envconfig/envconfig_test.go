@@ -12,11 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// The tests live in package envconfig_test on purpose: this package's contract
-// is Load plus the env var names, and exercising it from the outside is what
-// proves the deployment manifest keeps working. Nothing here reaches for an
-// unexported field, so a refactor inside the package cannot quietly break them.
-package envconfig_test
+package envconfig
 
 import (
 	"testing"
@@ -25,7 +21,6 @@ import (
 	sh_debug "github.com/flant/shell-operator/pkg/debug"
 
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/app"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/envconfig"
 )
 
 // TestLoad_RegressionMODULES_DIR pins the original bug fix: the deployment
@@ -37,7 +32,7 @@ func TestLoad_RegressionMODULES_DIR(t *testing.T) {
 	t.Setenv("MODULES_DIR", "/deckhouse/modules:/deckhouse/downloaded/modules")
 
 	cfg := app.NewConfig()
-	if err := envconfig.Load(cfg); err != nil {
+	if err := Load(cfg); err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
@@ -53,7 +48,7 @@ func TestLoad_GLOBAL_HOOKS_DIR(t *testing.T) {
 	t.Setenv("GLOBAL_HOOKS_DIR", "/deckhouse/global-hooks")
 
 	cfg := app.NewConfig()
-	if err := envconfig.Load(cfg); err != nil {
+	if err := Load(cfg); err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
@@ -69,7 +64,7 @@ func TestLoad_KeepsAddonOperatorDefaults(t *testing.T) {
 	cfg := app.NewConfig()
 	defaults := *cfg
 
-	if err := envconfig.Load(cfg); err != nil {
+	if err := Load(cfg); err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
@@ -169,7 +164,7 @@ func TestLoad_AllFields(t *testing.T) {
 	}
 
 	cfg := app.NewConfig()
-	if err := envconfig.Load(cfg); err != nil {
+	if err := Load(cfg); err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 
@@ -261,7 +256,7 @@ func TestLoad_ShellOperatorEnvFallback(t *testing.T) {
 			t.Setenv(tc.envName, tc.envVal)
 
 			cfg := app.NewConfig()
-			if err := envconfig.Load(cfg); err != nil {
+			if err := Load(cfg); err != nil {
 				t.Fatalf("Load: %v", err)
 			}
 			if got := tc.get(cfg); got != tc.want {
@@ -333,7 +328,7 @@ func TestLoad_AddonOperatorEnvWinsOverShellOperator(t *testing.T) {
 			t.Setenv(tc.aoEnv, tc.aoVal)
 
 			cfg := app.NewConfig()
-			if err := envconfig.Load(cfg); err != nil {
+			if err := Load(cfg); err != nil {
 				t.Fatalf("Load: %v", err)
 			}
 			if got := tc.get(cfg); got != tc.aoVal {
@@ -368,7 +363,7 @@ func TestLoad_ThenApplyConfig_SyncsDebugSocketGlobals(t *testing.T) {
 	t.Setenv("DEBUG_UNIX_SOCKET", want)
 
 	cfg := app.NewConfig()
-	if err := envconfig.Load(cfg); err != nil {
+	if err := Load(cfg); err != nil {
 		t.Fatalf("Load: %v", err)
 	}
 

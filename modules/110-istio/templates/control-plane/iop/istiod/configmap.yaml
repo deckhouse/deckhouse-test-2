@@ -7,6 +7,8 @@ metadata:
 data:
   basicAuditPolicy: |
     serviceAccounts:
-{{- range $version, $versionInfo := .Values.istio.internal.versionMap }}
-    - "system:serviceaccount:d8-{{ $.Chart.Name }}:istiod-{{ $versionInfo.revision }}"
+{{- range $version := .Values.istio.internal.versionsToInstall }}
+  {{- $versionInfo := get $.Values.istio.internal.versionMap $version }}
+  {{- $revision := get $versionInfo "revision"}}
+    - system:serviceaccount:d8-{{ $.Chart.Name }}:istiod-{{ $revision }}
 {{- end }}

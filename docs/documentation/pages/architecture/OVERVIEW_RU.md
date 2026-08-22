@@ -2,18 +2,18 @@
 title: Архитектура
 permalink: ru/architecture/
 lang: ru
-search: архитектура Deckhouse, архитектура DP
-description: Обзор архитектуры Deckhouse Platform.
+search: архитектура Deckhouse, архитектура DKP
+description: Обзор архитектуры Deckhouse Kubernetes Platform.
 ---
 
-В данном разделе документации описана архитектура Deckhouse Platform (DP).
+В данном разделе документации описана архитектура Deckhouse Kubernetes Platform (DKP).
 
 Раздел состоит из следующих подразделов:
 
-* [Модель C4](c4-model.html) — обзор модели С4, используемой для визуализации архитектуры платформы, а также описание архитектуры DP на уровнях 1 и 2 модели C4.
-* [Модули](module-development/) — описание архитектуры модулей DP.
-* [Катастрофоустойчивость](disaster-resilience/) — описание реализованных в DP подходов к обеспечению катастрофоустойчивости.
-* [Обновление](updating.html) — описание механизмов обновления DP.
+* [Модель C4](c4-model.html) — обзор модели С4, используемой для визуализации архитектуры платформы, а также описание архитектуры DKP на уровнях 1 и 2 модели C4.
+* [Модули](module-development/) — описание архитектуры модулей DKP.
+* [Катастрофоустойчивость](disaster-resilience/) — описание реализованных в DKP подходов к обеспечению катастрофоустойчивости.
+* [Обновление](updating.html) — описание механизмов обновления DKP.
 * Описание архитектуры компонентов платформы, сгруппированных по следующим подсистемам:
   * [Подсистема Deckhouse](deckhouse/)
   * [Подсистема Kubernetes & Scheduling](kubernetes-and-scheduling/)
@@ -25,13 +25,13 @@ description: Обзор архитектуры Deckhouse Platform.
   * [Подсистема Observability](observability/)
   
 {% alert level="info" %}
-В разделе представлена информация не по всем подсистемам и модулям DP.
+В разделе представлена информация не по всем подсистемам и модулям DKP.
 Материалы по остальным компонентам будут добавляться по мере готовности.
 {% endalert %}
 
-## Архитектура DP
+## Архитектура DKP
 
-DP — это платформа для управления кластерами Kubernetes в любых инфраструктурах — от изолированных серверных сред до публичных облаков. Платформа включает в себя:
+DKP — это платформа для управления кластерами Kubernetes в любых инфраструктурах — от изолированных серверных сред до публичных облаков. Платформа включает в себя:
 
 * кластер Kubernetes;
 * контроллер Deckhouse и управляемые им модули;
@@ -39,11 +39,11 @@ DP — это платформа для управления кластерам�
 
 Модули объединены в подсистемы в соответствии с их функциональным назначением. Контроллер Deckhouse тоже реализован в виде модуля и является единственным модулем, без которого не может функционировать платформа.
 
-Архитектура DP в масштабе подсистем и модулей описана в подразделе [Модель C4](c4-model.html).
+Архитектура DKP в масштабе подсистем и модулей описана в подразделе [Модель C4](c4-model.html).
 
 ## Модули
 
-Модуль — это набор ресурсов и приложений, предназначенных для расширения функциональности DP.
+Модуль — это набор ресурсов и приложений, предназначенных для расширения функциональности DKP.
 
 Ключевые модули:
 
@@ -52,7 +52,7 @@ DP — это платформа для управления кластерам�
 * [`node-manager`](cluster-and-infrastructure/node-management/node-manager.html) — управляет узлами кластера.
 
 {% alert level="info" %}
-При установке DP в существующий Managed Kubernetes-кластер модули [`control-plane-manager`](/modules/control-plane-manager/) и [`node-manager`](/modules/node-manager/) не устанавливаются.
+При установке DKP в существующий Managed Kubernetes-кластер модули [`control-plane-manager`](/modules/control-plane-manager/) и [`node-manager`](/modules/node-manager/) не устанавливаются.
 {% endalert %}
 
 Содержимое модулей:
@@ -62,6 +62,6 @@ DP — это платформа для управления кластерам�
 * правила сборки компонентов модуля (компонентов Deckhouse);
 * другие файлы.
 
-При работе с модулями, DP использует проект [addon-operator](https://github.com/flant/addon-operator/). Ознакомьтесь с его документацией, чтобы узнать, как DP работает с [модулями](https://github.com/flant/addon-operator/blob/main/docs/src/MODULES.md), [хуками модулей](https://github.com/flant/addon-operator/blob/main/docs/src/HOOKS.md) и [параметрами модулей](https://github.com/flant/addon-operator/blob/main/docs/src/VALUES.md).
+При работе с модулями, DKP использует проект [addon-operator](https://github.com/flant/addon-operator/). Ознакомьтесь с его документацией, чтобы узнать, как DKP работает с [модулями](https://github.com/flant/addon-operator/blob/main/docs/src/MODULES.md), [хуками модулей](https://github.com/flant/addon-operator/blob/main/docs/src/HOOKS.md) и [параметрами модулей](https://github.com/flant/addon-operator/blob/main/docs/src/VALUES.md).
 
 Об архитектуре модуля и разработке собственных модулей читайте в разделе [Модули](module-development/).

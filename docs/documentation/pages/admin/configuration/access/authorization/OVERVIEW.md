@@ -1,15 +1,15 @@
 ---
 title: "Authorization"
 permalink: en/admin/configuration/access/authorization/
-description: "Configure authorization and access control for Deckhouse Platform using RBAC. Manage user permissions, roles, and service accounts for secure cluster access."
+description: "Configure authorization and access control for Deckhouse Kubernetes Platform using RBAC. Manage user permissions, roles, and service accounts for secure cluster access."
 ---
 
-In Deckhouse Platform (DP),
+In Deckhouse Kubernetes Platform (DKP),
 authorization is based on the standard Kubernetes Role-Based Access Control (RBAC) mechanism.
 This allows for flexible access control for different users, groups, and service accounts,
 ensuring security and operational control in the cluster.
 
-DP supports two role models:
+DKP supports two role models:
 
 - [Current](../authorization/rbac-current.html): The end-to-end authorization subsystem extends the standard RBAC mechanism
   using custom resources — [ClusterAuthorizationRule](/modules/user-authz/cr.html#clusterauthorizationrule) and [AuthorizationRule](/modules/user-authz/cr.html#authorizationrule).
@@ -21,7 +21,7 @@ The choice of model depends on security requirements and usage scenarios.
 
 ## Who gets access and when
 
-There are two main scenarios for granting access in DP:
+There are two main scenarios for granting access in DKP:
 
 - Granting access to users for working via command-line clients, web UI,
   and other tools used for administration, development, and cluster management.
@@ -34,14 +34,14 @@ based on the configured authorization settings.
 
 ### User authentication
 
-DP supports multiple user authentication methods.
+DKP supports multiple user authentication methods.
 For details, refer to [User authentication](../authentication/).
 
 ### Service account authentication
 
 In Kubernetes, service accounts (ServiceAccount) are special accounts used to automate tasks and interact with the cluster API.
 They enable applications and services to securely communicate with the Kubernetes API.
-In DP, service accounts for external services are created in the `d8-service-accounts` namespace to maintain consistency.
+In DKP, service accounts for external services are created in the `d8-service-accounts` namespace to maintain consistency.
 
 Example manifest for creating a ServiceAccount:
 

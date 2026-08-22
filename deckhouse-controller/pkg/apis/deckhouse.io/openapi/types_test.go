@@ -37,10 +37,10 @@ func stringPtr(v string) *string    { return &v }
 // through JSON.
 func TestMarshalRoundtrip_shallowSchema(t *testing.T) {
 	original := &OpenAPIV3Schema{
-		Type: StringOrArray{"object"},
+		Type: "object",
 		Properties: map[string]OpenAPIV3Schema{
-			"name":    {Type: StringOrArray{"string"}},
-			"enabled": {Type: StringOrArray{"boolean"}, Default: jsonPtr("true")},
+			"name":    {Type: "string"},
+			"enabled": {Type: "boolean", Default: jsonPtr("true")},
 		},
 		Required: []string{"name"},
 	}
@@ -55,16 +55,16 @@ func TestMarshalRoundtrip_shallowSchema(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if !restored.Type.Contains("object") {
+	if restored.Type != "object" {
 		t.Errorf("type: got %q, want object", restored.Type)
 	}
 	if len(restored.Properties) != 2 {
 		t.Fatalf("properties count: got %d, want 2", len(restored.Properties))
 	}
-	if prop, ok := restored.Properties["name"]; !ok || !prop.Type.Contains("string") {
+	if prop, ok := restored.Properties["name"]; !ok || prop.Type != "string" {
 		t.Errorf("properties.name: got %+v", prop)
 	}
-	if prop, ok := restored.Properties["enabled"]; !ok || !prop.Type.Contains("boolean") || string(prop.Default.Raw) != "true" {
+	if prop, ok := restored.Properties["enabled"]; !ok || prop.Type != "boolean" || string(prop.Default.Raw) != "true" {
 		t.Errorf("properties.enabled: got %+v", prop)
 	}
 	if len(restored.Required) != 1 || restored.Required[0] != "name" {
@@ -80,7 +80,7 @@ func TestMarshalRoundtrip_allStandardFields(t *testing.T) {
 		Schema:           "http://json-schema.org/draft-04/schema#",
 		Ref:              stringPtr("#/definitions/foo"),
 		Description:      "a test schema",
-		Type:             StringOrArray{"object"},
+		Type:             "object",
 		Format:           "email",
 		Title:            "Test Schema",
 		Default:          jsonPtr(`{"foo":"bar"}`),
@@ -100,10 +100,10 @@ func TestMarshalRoundtrip_allStandardFields(t *testing.T) {
 		MinProperties:    int64Ptr(1),
 		Required:         []string{"field"},
 		Items: &OpenAPIV3SchemaOrArray{
-			Schema: &OpenAPIV3Schema{Type: StringOrArray{"string"}},
+			Schema: &OpenAPIV3Schema{Type: "string"},
 		},
 		AdditionalProperties: &OpenAPIV3SchemaOrBool{Allows: false},
-		AdditionalItems:      &OpenAPIV3SchemaOrBool{Schema: &OpenAPIV3Schema{Type: StringOrArray{"integer"}}},
+		AdditionalItems:      &OpenAPIV3SchemaOrBool{Schema: &OpenAPIV3Schema{Type: "integer"}},
 		ExternalDocs: &ExternalDocumentation{
 			Description: "docs",
 			URL:         "https://example.com",
@@ -140,13 +140,13 @@ func TestMarshalRoundtrip_allStandardFields(t *testing.T) {
 	if !restored.ExclusiveMaximum {
 		t.Errorf("exclusiveMaximum mismatch")
 	}
-	if restored.Items == nil || restored.Items.Schema == nil || !restored.Items.Schema.Type.Contains("string") {
+	if restored.Items == nil || restored.Items.Schema == nil || restored.Items.Schema.Type != "string" {
 		t.Errorf("items mismatch")
 	}
 	if restored.AdditionalProperties == nil || restored.AdditionalProperties.Schema != nil || restored.AdditionalProperties.Allows {
 		t.Errorf("additionalProperties mismatch: allows=%v, schema=%v", restored.AdditionalProperties.Allows, restored.AdditionalProperties.Schema)
 	}
-	if restored.AdditionalItems == nil || restored.AdditionalItems.Schema == nil || !restored.AdditionalItems.Schema.Type.Contains("integer") {
+	if restored.AdditionalItems == nil || restored.AdditionalItems.Schema == nil || restored.AdditionalItems.Schema.Type != "integer" {
 		t.Errorf("additionalItems mismatch")
 	}
 	if restored.ExternalDocs == nil || restored.ExternalDocs.URL != "https://example.com" {
@@ -170,24 +170,22 @@ func TestMarshalRoundtrip_allStandardFields(t *testing.T) {
 // extensions survive JSON roundtrip.
 func TestMarshalRoundtrip_xDeckhouseExtensions(t *testing.T) {
 	original := &OpenAPIV3Schema{
-		Type: StringOrArray{"object"},
+		Type: "object",
 		Properties: map[string]OpenAPIV3Schema{
 			"storageClass": {
-				Type:                 StringOrArray{"string"},
+				Type:                 "string",
 				XGrant:               "storageclasses",
-				XImmutable:           true,
 				XUIOrder:             int64Ptr(0),
 				XUIValidationMessage: "must reference an existing StorageClass",
 			},
 			"replicas": {
-				Type:        StringOrArray{"integer"},
+				Type:        "integer",
 				Default:     jsonPtr("1"),
 				XUIAdvanced: true,
-				XUIGroup:    "toggles",
 				XUIOrder:    int64Ptr(2),
 			},
 			"secretName": {
-				Type: StringOrArray{"string"},
+				Type: "string",
 				XUIResourceName: &UIResourceNameSelector{
 					APIVersion: "v1",
 					Kind:       "Secret",
@@ -198,7 +196,7 @@ func TestMarshalRoundtrip_xDeckhouseExtensions(t *testing.T) {
 			},
 		},
 		XValidations: []ValidationRule{
-			{Expression: "self.storageClass != ''", Message: "storageClass must be set"},
+			{Rule: "self.storageClass != ''", Message: "storageClass must be set"},
 		},
 	}
 
@@ -225,9 +223,6 @@ func TestMarshalRoundtrip_xDeckhouseExtensions(t *testing.T) {
 	if sc.XUIValidationMessage != "must reference an existing StorageClass" {
 		t.Errorf("x-deckhouse-ui-validation-message: got %q", sc.XUIValidationMessage)
 	}
-	if !sc.XImmutable {
-		t.Errorf("x-deckhouse-immutable: got false, want true")
-	}
 
 	rep, ok := restored.Properties["replicas"]
 	if !ok {
@@ -239,10 +234,7 @@ func TestMarshalRoundtrip_xDeckhouseExtensions(t *testing.T) {
 	if rep.XUIOrder == nil || *rep.XUIOrder != 2 {
 		t.Errorf("x-deckhouse-ui-order mismatch")
 	}
-	if rep.XUIGroup != "toggles" {
-		t.Errorf("x-deckhouse-ui-group: got %q, want toggles", rep.XUIGroup)
-	}
-	if len(restored.XValidations) != 1 || restored.XValidations[0].Expression != "self.storageClass != ''" {
+	if len(restored.XValidations) != 1 || restored.XValidations[0].Rule != "self.storageClass != ''" {
 		t.Errorf("x-deckhouse-validations: got %+v", restored.XValidations)
 	}
 
@@ -270,7 +262,7 @@ func TestUIResourceName_invalidTypeRejected(t *testing.T) {
 // TestUIResourceNameSelector_deepCopy verifies DeepCopy produces an independent labelSelector.
 func TestUIResourceNameSelector_deepCopy(t *testing.T) {
 	original := &OpenAPIV3Schema{
-		Type: StringOrArray{"string"},
+		Type: "string",
 		XUIResourceName: &UIResourceNameSelector{
 			APIVersion:    "v1",
 			Kind:          "Secret",
@@ -293,7 +285,7 @@ func TestUIResourceNameSelector_deepCopy(t *testing.T) {
 // holds a single schema (object form).
 func TestOrArray_singleSchema(t *testing.T) {
 	val := OpenAPIV3SchemaOrArray{
-		Schema: &OpenAPIV3Schema{Type: StringOrArray{"string"}},
+		Schema: &OpenAPIV3Schema{Type: "string"},
 	}
 	raw, err := json.Marshal(val)
 	if err != nil {
@@ -304,7 +296,7 @@ func TestOrArray_singleSchema(t *testing.T) {
 	if err := json.Unmarshal(raw, &restored); err != nil {
 		t.Fatal(err)
 	}
-	if restored.Schema == nil || !restored.Schema.Type.Contains("string") {
+	if restored.Schema == nil || restored.Schema.Type != "string" {
 		t.Errorf("single schema not restored: %+v", restored)
 	}
 	if len(restored.JSONSchemas) != 0 {
@@ -317,8 +309,8 @@ func TestOrArray_singleSchema(t *testing.T) {
 func TestOrArray_multiSchema(t *testing.T) {
 	val := OpenAPIV3SchemaOrArray{
 		JSONSchemas: []OpenAPIV3Schema{
-			{Type: StringOrArray{"string"}},
-			{Type: StringOrArray{"integer"}},
+			{Type: "string"},
+			{Type: "integer"},
 		},
 	}
 	raw, err := json.Marshal(val)
@@ -336,7 +328,7 @@ func TestOrArray_multiSchema(t *testing.T) {
 	if len(restored.JSONSchemas) != 2 {
 		t.Fatalf("expected 2 schemas, got %d", len(restored.JSONSchemas))
 	}
-	if !restored.JSONSchemas[0].Type.Contains("string") || !restored.JSONSchemas[1].Type.Contains("integer") {
+	if restored.JSONSchemas[0].Type != "string" || restored.JSONSchemas[1].Type != "integer" {
 		t.Errorf("schema types wrong: %+v", restored.JSONSchemas)
 	}
 }
@@ -346,7 +338,7 @@ func TestOrArray_multiSchema(t *testing.T) {
 func TestOrBool_schema(t *testing.T) {
 	val := OpenAPIV3SchemaOrBool{
 		Allows: true,
-		Schema: &OpenAPIV3Schema{Type: StringOrArray{"string"}},
+		Schema: &OpenAPIV3Schema{Type: "string"},
 	}
 	raw, err := json.Marshal(val)
 	if err != nil {
@@ -357,7 +349,7 @@ func TestOrBool_schema(t *testing.T) {
 	if err := json.Unmarshal(raw, &restored); err != nil {
 		t.Fatal(err)
 	}
-	if restored.Schema == nil || !restored.Schema.Type.Contains("string") {
+	if restored.Schema == nil || restored.Schema.Type != "string" {
 		t.Errorf("schema not restored: %+v", restored)
 	}
 	if !restored.Allows {
@@ -414,7 +406,7 @@ func TestOrBool_true(t *testing.T) {
 // TestOrStringArray_schema verifies marshalling Dependencies as a schema.
 func TestOrStringArray_schema(t *testing.T) {
 	val := OpenAPIV3SchemaOrStringArray{
-		Schema: &OpenAPIV3Schema{Type: StringOrArray{"object"}},
+		Schema: &OpenAPIV3Schema{Type: "object"},
 	}
 	raw, err := json.Marshal(val)
 	if err != nil {
@@ -425,7 +417,7 @@ func TestOrStringArray_schema(t *testing.T) {
 	if err := json.Unmarshal(raw, &restored); err != nil {
 		t.Fatal(err)
 	}
-	if restored.Schema == nil || !restored.Schema.Type.Contains("object") {
+	if restored.Schema == nil || restored.Schema.Type != "object" {
 		t.Errorf("schema not restored: %+v", restored)
 	}
 	if len(restored.Property) != 0 {
@@ -464,18 +456,18 @@ func TestOrStringArray_properties(t *testing.T) {
 // dependencies between fields.
 func realModuleSchema() *OpenAPIV3Schema {
 	return &OpenAPIV3Schema{
-		Type:        StringOrArray{"object"},
+		Type:        "object",
 		Description: "Application settings for the demo module",
 		Required:    []string{"storageClass", "replicas"},
 		Properties: map[string]OpenAPIV3Schema{
 			"storageClass": {
-				Type:        StringOrArray{"string"},
+				Type:        "string",
 				Description: "Storage class for persistent volumes",
 				XGrant:      "storageclasses",
 				XUIOrder:    int64Ptr(1),
 			},
 			"replicas": {
-				Type:        StringOrArray{"integer"},
+				Type:        "integer",
 				Default:     jsonPtr("1"),
 				Minimum:     float64Ptr(1),
 				Maximum:     float64Ptr(10),
@@ -483,15 +475,15 @@ func realModuleSchema() *OpenAPIV3Schema {
 				XUIOrder:    int64Ptr(2),
 				XValidations: []ValidationRule{
 					{
-						Expression: "self >= 1 && self <= 10",
-						Message:    "replicas must be between 1 and 10",
-						Reason:     stringPtr("FieldValueInvalid"),
-						FieldPath:  ".replicas",
+						Rule:      "self >= 1 && self <= 10",
+						Message:   "replicas must be between 1 and 10",
+						Reason:    stringPtr("FieldValueInvalid"),
+						FieldPath: ".replicas",
 					},
 				},
 			},
 			"mode": {
-				Type: StringOrArray{"string"},
+				Type: "string",
 				Enum: []apiextensionsv1.JSON{
 					{Raw: []byte(`"production"`)},
 					{Raw: []byte(`"staging"`)},
@@ -500,17 +492,17 @@ func realModuleSchema() *OpenAPIV3Schema {
 				Default: jsonPtr(`"production"`),
 			},
 			"ingress": {
-				Type: StringOrArray{"object"},
+				Type: "object",
 				Properties: map[string]OpenAPIV3Schema{
 					"enabled": {
-						Type:    StringOrArray{"boolean"},
+						Type:    "boolean",
 						Default: jsonPtr("false"),
 					},
 					"hosts": {
-						Type: StringOrArray{"array"},
+						Type: "array",
 						Items: &OpenAPIV3SchemaOrArray{
 							Schema: &OpenAPIV3Schema{
-								Type:   StringOrArray{"string"},
+								Type:   "string",
 								Format: "hostname",
 							},
 						},
@@ -518,43 +510,43 @@ func realModuleSchema() *OpenAPIV3Schema {
 				},
 			},
 			"resources": {
-				Type: StringOrArray{"object"},
+				Type: "object",
 				OneOf: []OpenAPIV3Schema{
 					{
-						Type: StringOrArray{"object"},
+						Type: "object",
 						Properties: map[string]OpenAPIV3Schema{
-							"requests": {Type: StringOrArray{"object"}},
-							"limits":   {Type: StringOrArray{"object"}},
+							"requests": {Type: "object"},
+							"limits":   {Type: "object"},
 						},
 					},
 					{
-						Type: StringOrArray{"null"},
+						Type: "null",
 					},
 				},
 			},
 			"labels": {
-				Type: StringOrArray{"object"},
+				Type: "object",
 				AdditionalProperties: &OpenAPIV3SchemaOrBool{
-					Schema: &OpenAPIV3Schema{Type: StringOrArray{"string"}},
+					Schema: &OpenAPIV3Schema{Type: "string"},
 				},
 			},
 			"env": {
-				Type: StringOrArray{"array"},
+				Type: "array",
 				Items: &OpenAPIV3SchemaOrArray{
 					JSONSchemas: []OpenAPIV3Schema{
 						{
-							Type:     StringOrArray{"object"},
+							Type:     "object",
 							Required: []string{"name"},
 							Properties: map[string]OpenAPIV3Schema{
-								"name":  {Type: StringOrArray{"string"}},
-								"value": {Type: StringOrArray{"string"}},
+								"name":  {Type: "string"},
+								"value": {Type: "string"},
 							},
 						},
 					},
 				},
 			},
 			"logLevel": {
-				Type:                 StringOrArray{"string"},
+				Type:                 "string",
 				Pattern:              "^(debug|info|warn|error)$",
 				Default:              jsonPtr(`"info"`),
 				XUIValidationMessage: "log level must be one of: debug, info, warn, error",
@@ -562,8 +554,8 @@ func realModuleSchema() *OpenAPIV3Schema {
 		},
 		XValidations: []ValidationRule{
 			{
-				Expression: "has(self.storageClass) && self.storageClass != ''",
-				Message:    "storageClass is required",
+				Rule:    "has(self.storageClass) && self.storageClass != ''",
+				Message: "storageClass is required",
 			},
 		},
 	}
@@ -584,7 +576,7 @@ func TestRealModuleSchema_roundtrip(t *testing.T) {
 		t.Fatalf("unmarshal: %v", err)
 	}
 
-	if !restored.Type.Contains("object") {
+	if restored.Type != "object" {
 		t.Errorf("type mismatch")
 	}
 	if len(restored.Properties) != 8 {
@@ -694,43 +686,5 @@ func TestDeepCopy_nilSafety(t *testing.T) {
 	var vr *ValidationRule
 	if vr.DeepCopy() != nil {
 		t.Error("DeepCopy on nil ValidationRule should return nil")
-	}
-}
-
-// TestTypeStringOrArray_roundtrip verifies both spellings of the JSON Schema
-// type field: a single name stays a plain string, alternatives stay an array.
-func TestTypeStringOrArray_roundtrip(t *testing.T) {
-	var single OpenAPIV3Schema
-	if err := json.Unmarshal([]byte(`{"type":"string"}`), &single); err != nil {
-		t.Fatalf("unmarshal single: %v", err)
-	}
-	if len(single.Type) != 1 || !single.Type.Contains("string") {
-		t.Errorf("single type: got %v", single.Type)
-	}
-	raw, err := json.Marshal(&single)
-	if err != nil {
-		t.Fatalf("marshal single: %v", err)
-	}
-	if string(raw) != `{"type":"string"}` {
-		t.Errorf("single form not preserved: %s", raw)
-	}
-
-	var multi OpenAPIV3Schema
-	if err := json.Unmarshal([]byte(`{"type":["integer","string"]}`), &multi); err != nil {
-		t.Fatalf("unmarshal multi: %v", err)
-	}
-	if len(multi.Type) != 2 || multi.Type[0] != "integer" || multi.Type[1] != "string" {
-		t.Errorf("multi type: got %v", multi.Type)
-	}
-	raw, err = json.Marshal(&multi)
-	if err != nil {
-		t.Fatalf("marshal multi: %v", err)
-	}
-	if string(raw) != `{"type":["integer","string"]}` {
-		t.Errorf("multi form not preserved: %s", raw)
-	}
-
-	if StringOrArray(nil).Contains("string") {
-		t.Error("nil type list contains nothing")
 	}
 }

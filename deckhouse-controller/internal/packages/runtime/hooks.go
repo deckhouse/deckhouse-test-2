@@ -97,11 +97,7 @@ func (r *Runtime) routeKubeEvent(ctx context.Context, src hookProvider, kubeEven
 				slog.String("event", kubeEvent.String()))
 
 			queueName := filepath.Join(src.GetName(), info.QueueName)
-			reschedule := func(name string) {
-				r.scheduler.Reschedule(name, reasonHookValuesChanged+":"+hook.GetName())
-			}
-
-			t := taskhookrun.NewTask(src, hook.GetName(), info.BindingContext, reschedule, r.nelmService, r.status, r.logger)
+			t := taskhookrun.NewTask(src, hook.GetName(), info.BindingContext, r.scheduler.Reschedule, r.nelmService, r.status, r.logger)
 			res[queueName] = append(res[queueName], t)
 		})
 	}
@@ -162,11 +158,7 @@ func (r *Runtime) routeScheduleEvent(ctx context.Context, src hookProvider, cron
 
 			// queue = <name>/<queue>
 			queueName := filepath.Join(src.GetName(), info.QueueName)
-			reschedule := func(name string) {
-				r.scheduler.Reschedule(name, reasonHookValuesChanged+":"+hook.GetName())
-			}
-
-			t := taskhookrun.NewTask(src, hook.GetName(), info.BindingContext, reschedule, r.nelmService, r.status, r.logger)
+			t := taskhookrun.NewTask(src, hook.GetName(), info.BindingContext, r.scheduler.Reschedule, r.nelmService, r.status, r.logger)
 
 			res[queueName] = append(res[queueName], t)
 		})

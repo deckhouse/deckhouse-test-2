@@ -1,8 +1,8 @@
 ---
-title: DP architecture (C4 model)
+title: DKP architecture (C4 model)
 permalink: en/architecture/c4-model.html
 search: C4 model, context diagram, subsystem diagram, module diagram
-description: Architecture of Deckhouse Platform represented using the C4 model, including context, subsystem, and module diagrams.
+description: Architecture of Deckhouse Kubernetes Platform represented using the C4 model, including context, subsystem, and module diagrams.
 relatedLinks:
   - title: "The C4 model for visualising software architecture"
     url: "https://c4model.com/"
@@ -36,7 +36,7 @@ Instead, the following intermediate diagrams are provided after the Level 1 diag
 
 Level 2 and higher diagrams are provided in the sections describing the architecture of individual modules.
 
-To get a general understanding of the Deckhouse Platform (DP) architecture,
+To get a general understanding of the Deckhouse Kubernetes Platform (DKP) architecture,
 it is sufficient to review the Level 1 diagram as well as the subsystem and module diagrams.
 For a detailed view of individual services, refer to the Level 2 and higher diagrams available in the relevant sections.
 
@@ -44,13 +44,13 @@ For a detailed view of individual services, refer to the Level 2 and higher diag
 
 The following graphical symbols are used in the diagrams:
 
-![Legend used in DP diagrams](../../images/architecture/c4-legend.png)
+![Legend used in DKP diagrams](../../images/architecture/c4-legend.png)
 
 ## Context diagram
 
-![DP context diagram](../../images/architecture/c4-l1-context.png)
+![DKP context diagram](../../images/architecture/c4-l1-context.png)
 
-The following roles interact with DP:
+The following roles interact with DKP:
 
 * **Administrator**: Installs and configures the platform.
 * **Security Engineer**: Manages information security.
@@ -61,13 +61,13 @@ Interactions with external services are described in the diagrams of subsequent 
 
 ## Subsystem diagram
 
-The diagram below shows the DP subsystems.
+The diagram below shows the DKP subsystems.
 
 {% alert level="info" %}
 Relationships between subsystems are shown in a generalized form and without detailed interactions.
 {% endalert %}
 
-![DP subsystem diagram](../../images/architecture/c4-subsystems.png)
+![DKP subsystem diagram](../../images/architecture/c4-subsystems.png)
 
 ## Module diagram
 
@@ -77,4 +77,4 @@ The diagram below shows all modules included in the Default [module bundle](../.
 Relationships between modules are shown in a generalized form and without detailed interactions.
 {% endalert %}
 
-![DP module diagram](../../images/architecture/c4-modules.png)
+![DKP module diagram](../../images/architecture/c4-modules.png)

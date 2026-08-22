@@ -1,4 +1,4 @@
-{{- if and .Values.global.modules.publicDomainTemplate (eq (include "helm_lib_module_ingress_enabled" .) "true") }}
+{{- if .Values.global.modules.publicDomainTemplate }}
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress

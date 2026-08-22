@@ -64,4 +64,3 @@ import:
 imageSpec:
   config:
     entrypoint: ["/opt/bin/kube-router"]
-{{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}

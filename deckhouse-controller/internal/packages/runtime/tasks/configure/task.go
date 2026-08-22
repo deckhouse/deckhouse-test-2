@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"log/slog"
 
+	addonutils "github.com/flant/addon-operator/pkg/utils"
 	"go.opentelemetry.io/otel"
 
 	"github.com/deckhouse/module-sdk/pkg/settingscheck"
@@ -27,7 +28,6 @@ import (
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/nelm"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/status"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/queue"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/addonutils"
 	"github.com/deckhouse/deckhouse/pkg/log"
 )
 

@@ -21,7 +21,6 @@ import (
 	"os"
 
 	"github.com/google/uuid"
-	"github.com/name212/govalue"
 	"k8s.io/utils/ptr"
 
 	libcon "github.com/deckhouse/lib-connection/pkg"
@@ -279,23 +278,18 @@ func (i *Attacher) scan(
 		}
 		res.ProviderSpecificClusterConfiguration = string(providerConfiguration)
 
-		// SSHProvider is nil when helper.SSHProviderOrNil tolerated a kubeconfig-driven request
-		// that supplied no master hosts.
-		if govalue.NotNil(i.Params.SSHProvider) {
-			sshCl, err := i.Params.SSHProvider.Client(ctx)
+		sshCl, err := i.Params.SSHProvider.Client(ctx)
+		if err != nil {
+			return err
+		}
+
+		// TODO keep keys in session instead of ReadFile
+		if len(sshCl.PrivateKeys()) > 0 {
+			sshPrivateKey, err := os.ReadFile(sshCl.PrivateKeys()[0].Key)
 			if err != nil {
-				return err
+				return fmt.Errorf("unable to read ssh private key: %w", err)
 			}
-
-			// TODO keep keys in session instead of ReadFile
-			if len(sshCl.PrivateKeys()) > 0 {
-				sshPrivateKey, err := os.ReadFile(sshCl.PrivateKeys()[0].Key)
-				if err != nil {
-					return fmt.Errorf("unable to read ssh private key: %w", err)
-				}
-
-				res.SSHPrivateKey = string(sshPrivateKey)
-			}
+			res.SSHPrivateKey = string(sshPrivateKey)
 		}
 
 		if metaConfig.ClusterType == config.StaticClusterType {

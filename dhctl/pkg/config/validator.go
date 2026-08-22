@@ -18,7 +18,7 @@ import (
 	"context"
 	"encoding/json"
 
-	validatev1 "github.com/deckhouse/deckhouse/go_lib/dhctl-provider-protocol/api/validate/v1"
+	proto "github.com/deckhouse/deckhouse/go_lib/dhctl-provider-protocol"
 )
 
 // ProviderInput is the native input for provider validation. Unlike a
@@ -30,7 +30,7 @@ type ProviderInput struct {
 	Layout                string
 	Operation             string
 	ProviderClusterConfig map[string]json.RawMessage
-	CloudProviderVars     *validatev1.CloudProviderVars
+	CloudProviderVars     *proto.CloudProviderVars
 }
 
 // ProviderValidateFunc checks a provider's configuration. Validation never

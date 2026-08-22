@@ -43,11 +43,8 @@ import (
 
 	capiv1beta2 "github.com/deckhouse/node-controller/api/cluster.x-k8s.io/v1beta2"
 	deckhousev1 "github.com/deckhouse/node-controller/api/deckhouse.io/v1"
-	"github.com/deckhouse/node-controller/internal/bootstrap"
 	"github.com/deckhouse/node-controller/internal/clusterprefix"
 	"github.com/deckhouse/node-controller/internal/common"
-	"github.com/deckhouse/node-controller/internal/controller/nodegroup/bashiblecontext"
-	ngcommon "github.com/deckhouse/node-controller/internal/controller/nodegroup/common"
 	"github.com/deckhouse/node-controller/internal/controller/nodegroup/derived_status"
 	"github.com/deckhouse/node-controller/internal/register"
 )
@@ -108,15 +105,6 @@ func (r *MachineDeploymentReconciler) SetupWatches(w register.Watcher) {
 	// can change every rendered MachineClass/MachineDeployment, so re-enqueue all NodeGroups.
 	w.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllNodeGroups),
 		builder.WithPredicates(predicate.NewPredicateFuncs(isCloudProviderSecret)))
-	// The MCM machine-class Secret carries the same cloud-init as the bootstrap Secrets and is
-	// built from the same three inputs, so the watches that keep those fresh are needed here too
-	// (bootstrapsecrets/controller.go SetupWatches explains each one).
-	w.Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllNodeGroups),
-		builder.WithPredicates(named(common.MachineNamespace, bootstrap.TemplatesConfigMapName)))
-	w.Watches(&corev1.ConfigMap{}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllNodeGroups),
-		builder.WithPredicates(named(common.MachineNamespace, bootstrap.ImagesDigestsConfigMapName)))
-	w.Watches(&corev1.Secret{}, handler.EnqueueRequestsFromMapFunc(r.enqueueAllNodeGroups),
-		builder.WithPredicates(named(common.MachineNamespace, bashiblecontext.PackagesProxyTokenSecretName)))
 	// The InstanceClass is what the MachineClass and the machine template are rendered from,
 	// and its checksum names the template — an edit here is exactly what must re-render. Without
 	// this watch the change waits for the resync, so the cloud keeps handing out the previous
@@ -142,17 +130,11 @@ func (r *MachineDeploymentReconciler) ForPredicates() []predicate.Predicate {
 }
 
 func mdToNodeGroup(_ context.Context, obj client.Object) []reconcile.Request {
-	ng, ok := obj.GetLabels()[ngcommon.MachineDeploymentNodeGroupLabel]
+	ng, ok := obj.GetLabels()["node-group"]
 	if !ok || ng == "" {
 		return nil
 	}
 	return []reconcile.Request{{NamespacedName: types.NamespacedName{Name: ng}}}
-}
-
-func named(namespace, name string) predicate.Predicate {
-	return predicate.NewPredicateFuncs(func(obj client.Object) bool {
-		return obj.GetNamespace() == namespace && obj.GetName() == name
-	})
 }
 
 func isCloudProviderSecret(obj client.Object) bool {
@@ -208,7 +190,7 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 		// Derive the engine instead of waiting for the status controller to publish
 		// status.engine: with the derived value the MachineDeployment is rendered in the
 		// first reconcile right after the NodeGroup is created. status.engine, once set,
-		// stays the pin (ResolveNodeGroup prefers it).
+		// stays the pin (ComputeEngine prefers it).
 		registration, err := r.readCloudProviderRegistration(ctx)
 		if err != nil {
 			return ctrl.Result{}, err
@@ -221,20 +203,13 @@ func (r *MachineDeploymentReconciler) Reconcile(ctx context.Context, req ctrl.Re
 			logger.V(1).Info("skipping: instanceClassAPIVersion is not published yet")
 			return ctrl.Result{RequeueAfter: resyncInterval}, nil
 		}
-		// Resolved once here and handed down: the engine branch and the rendered element must
-		// agree within one pass, and the snapshot behind ResolveNodeGroup already carries it.
-		ds := &derived_status.Service{Client: r.Client}
-		resolved, validationErr, err := ds.ResolveNodeGroup(ctx, ng)
-		if err != nil {
-			return ctrl.Result{}, fmt.Errorf("resolve NodeGroup %s: %w", ng.Name, err)
-		}
-		switch resolved.Engine {
+		switch derived_status.ComputeEngine(ng, registration) {
 		case engineCAPI:
-			if err := r.reconcileCloudMDsRendered(ctx, ng, resolved, validationErr); err != nil {
+			if err := r.reconcileCloudMDsRendered(ctx, ng); err != nil {
 				return ctrl.Result{}, err
 			}
 		case engineMCM:
-			if err := r.reconcileCloudMCMs(ctx, ng, resolved, validationErr); err != nil {
+			if err := r.reconcileCloudMCMs(ctx, ng); err != nil {
 				return ctrl.Result{}, err
 			}
 		default:
@@ -291,7 +266,7 @@ func (r *MachineDeploymentReconciler) cleanupMachineDeployments(ctx context.Cont
 	})
 	if err := r.Client.List(ctx, capiMDs,
 		client.InNamespace(common.MachineNamespace),
-		client.MatchingLabels{ngcommon.MachineDeploymentNodeGroupLabel: ngName},
+		client.MatchingLabels{"node-group": ngName},
 	); err != nil && client.IgnoreNotFound(err) != nil {
 		return false, fmt.Errorf("list CAPI MachineDeployments for NodeGroup %s: %w", ngName, err)
 	}
@@ -334,19 +309,6 @@ func (r *MachineDeploymentReconciler) cleanupMachineDeployments(ctx context.Cont
 	}
 	logger.V(1).Info("deleted StaticMachineTemplate for removed NodeGroup", "name", ngName)
 
-	// The bootstrap template of an immutable group. Its per-machine clones and
-	// their secrets are owned by the Machines and go with them; the template is
-	// ours to remove. Deleting one the group never had is a no-op.
-	tmpl := newUnstructured("bootstrap.deckhouse.io", "v1alpha1", "NodeBootstrapConfigTemplate")
-	tmpl.SetName(ngName)
-	tmpl.SetNamespace(common.MachineNamespace)
-	switch err := r.Client.Delete(ctx, tmpl); {
-	case err == nil:
-		logger.V(1).Info("deleted NodeBootstrapConfigTemplate for removed NodeGroup", "name", ngName)
-	case !errors.IsNotFound(err) && !meta.IsNoMatchError(err):
-		return false, fmt.Errorf("delete NodeBootstrapConfigTemplate %s: %w", ngName, err)
-	}
-
 	if staleMCMs > 0 {
 		logger.V(1).Info("waiting for MCM MachineDeployments to go away before deleting their MachineClasses",
 			"ng", ngName, "remaining", staleMCMs)
@@ -365,10 +327,10 @@ func buildStaticMD(ng *deckhousev1.NodeGroup) *unstructured.Unstructured {
 	}
 
 	commonLabels := map[string]interface{}{
-		"heritage":                               "deckhouse",
-		"module":                                 "node-manager",
-		ngcommon.MachineDeploymentNodeGroupLabel: ng.Name,
-		"app":                                    "caps-controller",
+		"heritage":   "deckhouse",
+		"module":     "node-manager",
+		"node-group": ng.Name,
+		"app":        "caps-controller",
 	}
 
 	return &unstructured.Unstructured{Object: map[string]interface{}{

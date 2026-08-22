@@ -52,10 +52,6 @@ const (
 	// defaultRequeueAfter is the retry delay for states that need an external change to
 	// make progress, such as a missing package or a version still in draft.
 	defaultRequeueAfter = 30 * time.Second
-
-	// removalRequeueAfter is how often a running teardown is re-checked. It completes in a queue
-	// callback the API server never sees, so the only way to notice is to ask the runtime again.
-	removalRequeueAfter = 5 * time.Second
 )
 
 // RegisterController registers the Application controller with the manager.
@@ -108,9 +104,8 @@ type moduleManager interface {
 
 // packageManager registers and unregisters applications in the package runtime.
 type packageManager interface {
-	UpdateApp(inst packageruntime.App)
-	// RemoveApp tears the application down and reports whether the teardown has finished.
-	RemoveApp(namespace, name string) bool
+	UpdateApp(repo registry.Remote, inst packageruntime.App)
+	RemoveApp(namespace, name string)
 	GetStatus(name string) packagestatus.Status
 	GetAppStatusQueue() workqueue.TypedRateLimitingInterface[string]
 	Cleanup(ctx context.Context, preserve []packageruntime.PreservePackage)
@@ -135,14 +130,6 @@ func (r *reconciler) preflight(ctx context.Context) error {
 
 	preserve := make([]packageruntime.PreservePackage, 0, len(appsList.Items))
 	for _, app := range appsList.Items {
-		// An application already being deleted is not preserved. The runtime forgets its teardown
-		// across a restart, so handleDelete would find nothing left to tear down and release the
-		// finalizer; this cleanup is the last owner of the release, and skipping it here is what
-		// makes that answer true.
-		if !app.DeletionTimestamp.IsZero() {
-			continue
-		}
-
 		preserve = append(preserve, packageruntime.PreservePackage{
 			PackageName: app.Spec.PackageName,
 			Repository:  app.Spec.PackageRepositoryName,
@@ -183,12 +170,11 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 
 	// handle delete event
 	if !app.DeletionTimestamp.IsZero() {
-		res, err := r.handleDelete(ctx, app)
-		if err != nil {
+		if err := r.handleDelete(ctx, app); err != nil {
 			return ctrl.Result{}, fmt.Errorf("delete: %w", err)
 		}
 
-		return res, nil
+		return ctrl.Result{}, nil
 	}
 
 	// handle create/update events
@@ -261,7 +247,7 @@ func (r *reconciler) handleCreateOrUpdate(ctx context.Context, app *v1alpha1.App
 		return err
 	}
 
-	r.manager.UpdateApp(packageruntime.App{
+	r.manager.UpdateApp(registry.BuildRemote(repo), packageruntime.App{
 		Name:      app.Name,
 		Namespace: app.Namespace,
 		Definition: apps.Definition{
@@ -270,7 +256,6 @@ func (r *reconciler) handleCreateOrUpdate(ctx context.Context, app *v1alpha1.App
 		},
 		Settings:    app.Spec.Settings.GetMap(),
 		Maintenance: app.Spec.Maintenance,
-		Repository:  registry.BuildRemote(repo),
 	})
 
 	// Both references are non-controller and block owner deletion, so neither the package
@@ -279,7 +264,7 @@ func (r *reconciler) handleCreateOrUpdate(ctx context.Context, app *v1alpha1.App
 		ctrlutils.OwnerReference(v1alpha1.ApplicationPackageVersionGVK, apv.Name, apv.UID),
 		ctrlutils.OwnerReference(v1alpha1.ApplicationPackageGVK, pkg.Name, pkg.UID),
 	)
-	delete(app.Annotations, v1alpha1.PackageAnnotationRegistrySpecChanged)
+	delete(app.Annotations, v1alpha1.ApplicationAnnotationRegistrySpecChanged)
 
 	if err := r.client.Patch(ctx, app, client.MergeFrom(original)); err != nil {
 		logger.Error("failed to patch application", log.Err(err))
@@ -289,29 +274,14 @@ func (r *reconciler) handleCreateOrUpdate(ctx context.Context, app *v1alpha1.App
 	return nil
 }
 
-// handleDelete unregisters the application from the package runtime and, once the runtime reports
-// the teardown finished, detaches the application from its package and version and releases the
-// finalizer. The wait is unbounded on purpose: holding the finalizer is what keeps a Helm release
-// from outliving the CR that owns it, so a teardown the queue keeps retrying keeps the application
-// in Terminating rather than orphaning its resources.
-func (r *reconciler) handleDelete(ctx context.Context, app *v1alpha1.Application) (ctrl.Result, error) {
+// handleDelete detaches the application from its package and version, unregisters it
+// from the package runtime and releases the finalizer.
+func (r *reconciler) handleDelete(ctx context.Context, app *v1alpha1.Application) error {
 	logger := r.logger.With(slog.String("name", app.Name), slog.String("namespace", app.Namespace))
 
 	logger.Debug("handle delete application")
 	defer logger.Debug("handle delete application complete")
 
-	// The runtime tears the application down asynchronously — the Disable task uninstalls the Helm
-	// release, Undeploy takes the files off disk, and the cleanup riding the last task drops the
-	// state — so RemoveApp is polled until it reports the teardown finished.
-	if !r.manager.RemoveApp(app.Namespace, app.Name) {
-		logger.Info("application is still being removed by the runtime")
-
-		return ctrl.Result{RequeueAfter: removalRequeueAfter}, nil
-	}
-
-	// Detach only after the teardown: releasing the version any earlier lets it be garbage
-	// collected — and its package files removed from disk — while the uninstall still needs them.
-	//
 	// Detach by owner reference, falling back to the spec: the reference names what the
 	// application was actually attached to, which a spec edit just before deletion would have
 	// changed, but it is written after the attach, so an attached application can lack it.
@@ -322,7 +292,7 @@ func (r *reconciler) handleDelete(ctx context.Context, app *v1alpha1.Application
 
 	if err := r.detachVersion(ctx, app, apvName); err != nil {
 		logger.Error("failed to detach the application package version", slog.String("apv", apvName), log.Err(err))
-		return ctrl.Result{}, err
+		return err
 	}
 
 	pkgName := ctrlutils.OwnerRefName(app, v1alpha1.ApplicationPackageKind)
@@ -332,11 +302,14 @@ func (r *reconciler) handleDelete(ctx context.Context, app *v1alpha1.Application
 
 	if err := r.detachPackage(ctx, app, pkgName); err != nil {
 		logger.Error("failed to detach the application package", slog.String("package", pkgName), log.Err(err))
-		return ctrl.Result{}, err
+		return err
 	}
 
+	// call PackageOperator method (PackageRemover interface)
+	r.manager.RemoveApp(app.Namespace, app.Name)
+
 	if !controllerutil.ContainsFinalizer(app, v1alpha1.ApplicationFinalizerStatisticRegistered) {
-		return ctrl.Result{}, nil
+		return nil
 	}
 
 	patch := client.MergeFrom(app.DeepCopy())
@@ -344,10 +317,10 @@ func (r *reconciler) handleDelete(ctx context.Context, app *v1alpha1.Application
 
 	if err := r.client.Patch(ctx, app, patch); err != nil {
 		logger.Error("failed to remove the application finalizer", log.Err(err))
-		return ctrl.Result{}, fmt.Errorf("patch application %s: %w", app.Name, err)
+		return fmt.Errorf("patch application %s: %w", app.Name, err)
 	}
 
-	return ctrl.Result{}, nil
+	return nil
 }
 
 // relink moves the application onto ap and apv, releasing the ones it switched away
@@ -393,7 +366,7 @@ func (r *reconciler) attachVersion(ctx context.Context, app *v1alpha1.Applicatio
 func (r *reconciler) attachPackage(ctx context.Context, app *v1alpha1.Application, pkg *v1alpha1.ApplicationPackage) error {
 	patch := client.MergeFrom(pkg.DeepCopy())
 
-	if !pkg.AddInstalledApp(app.Namespace, app.Name, app.Spec.PackageVersion, app.Spec.PackageRepositoryName) {
+	if !pkg.AddInstalledApp(app.Namespace, app.Name, app.Spec.PackageVersion) {
 		return nil
 	}
 

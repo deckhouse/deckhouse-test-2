@@ -38,9 +38,8 @@ var terraformProviders = []string{
 	"azure",
 }
 
-// External providers (dvp, yandex) are deliberately absent: they carry no candi
-// entry, their settings arrive with the bundle (see the bundle tests below).
 var tofuProviders = []string{
+	yandex.ProviderName,
 	"dynamix",
 	"zvirt",
 	"vsphere",
@@ -133,10 +132,10 @@ func TestProviderSettingsLoadedAndStoreInCache(t *testing.T) {
 	require.Equal(t, sFirst.store, sSecond.store)
 
 	// get settings for existing provider
-	settingsVCD, err := sFirst.GetSettings(t.Context(), vcd.ProviderName, cloud.ProviderAdditionalParams{})
+	settingsYandex, err := sFirst.GetSettings(t.Context(), yandex.ProviderName, cloud.ProviderAdditionalParams{})
 	require.NoError(t, err)
-	require.False(t, govalue.IsNil(settingsVCD))
-	require.Equal(t, settingsVCD.CloudName(), vcd.ProviderName)
+	require.False(t, govalue.IsNil(settingsYandex))
+	require.Equal(t, settingsYandex.CloudName(), yandex.ProviderName)
 	assertGettingDoesNotAffectStores(t, sFirst)
 
 	// returns error for non exists store
@@ -152,7 +151,7 @@ func TestProviderSettingsLoadedAndStoreInCache(t *testing.T) {
 // that invents one hides that the loader rejects it.
 func TestBundleSettingsMergedFromDownloadDir(t *testing.T) {
 	downloadDir := t.TempDir()
-	installProviderBundle(t, downloadDir, "dvp", "030-cloud-provider-dvp")
+	installDVPBundle(t, downloadDir, "dvp")
 
 	store, err := loadOrGetStore(t.Context(), writeCandiVersions(t), downloadDir)
 	require.NoError(t, err)
@@ -183,7 +182,7 @@ func TestBundleDeliveredAfterFirstBuildIsPickedUp(t *testing.T) {
 	require.NoError(t, err)
 	require.NotContains(t, before, "dvp", "bundle not delivered yet")
 
-	installProviderBundle(t, downloadDir, "dvp", "030-cloud-provider-dvp")
+	installDVPBundle(t, downloadDir, "dvp")
 
 	after, err := loadOrGetStore(t.Context(), candiFile, downloadDir)
 	require.NoError(t, err)
@@ -208,27 +207,27 @@ aws:
   destinationBinary: terraform-provider-aws
   vmResourceType: aws_instance
   useOpentofu: false
-vcd:
-  namespace: vmware
-  cloudName: VCD
-  type: vcd
-  version: "3.14.1"
-  artifact: terraform-provider-vcd-artifact
-  artifactBinary: terraform-provider-vcd
-  destinationBinary: terraform-provider-vcd
-  vmResourceType: vcd_vapp_vm
+yandex:
+  namespace: yandex-cloud
+  cloudName: Yandex
+  type: yandex
+  version: "0.121.0"
+  artifact: terraform-provider-yandex
+  artifactBinary: terraform-provider-yandex
+  destinationBinary: terraform-provider-yandex
+  vmResourceType: yandex_compute_instance
   useOpentofu: true
 `), 0o644))
 
 	return path
 }
 
-// installProviderBundle lays out an unpacked bundle from the files the provider
-// module ships, so the test breaks whenever the shipped artifact stops loading.
-func installProviderBundle(t *testing.T, downloadDir, dirName, moduleDir string) {
+// installDVPBundle lays out an unpacked bundle from the files the DVP module
+// ships, so the test breaks whenever the shipped artifact stops loading.
+func installDVPBundle(t *testing.T, downloadDir, dirName string) {
 	t.Helper()
 
-	moduleCandi := filepath.Join("..", "..", "..", "..", "..", "modules", moduleDir, "candi")
+	moduleCandi := filepath.Join("..", "..", "..", "..", "..", "modules", "030-cloud-provider-dvp", "candi")
 	tm := filepath.Join(downloadDir, dirName, "terraform-manager")
 	require.NoError(t, os.MkdirAll(tm, 0o755))
 
@@ -237,29 +236,6 @@ func installProviderBundle(t *testing.T, downloadDir, dirName, moduleDir string)
 		require.NoError(t, err)
 		require.NoError(t, os.WriteFile(filepath.Join(tm, name), data, 0o644))
 	}
-}
-
-// Yandex settings come from its bundle now that candi carries no yandex entry.
-// The fixture is what werf packs from the module, so this breaks if the module
-// stops shipping either half of the pair (a bundle without plan_rules.yml is
-// dropped whole by attachBundlePlanRules).
-func TestBundleSettingsForYandexComeFromModuleFiles(t *testing.T) {
-	downloadDir := t.TempDir()
-	installProviderBundle(t, downloadDir, yandex.ProviderName, "030-cloud-provider-yandex")
-
-	store, err := loadOrGetStore(t.Context(), writeCandiVersions(t), downloadDir)
-	require.NoError(t, err)
-
-	set, ok := store[yandex.ProviderName]
-	require.True(t, ok, "yandex settings must come from the unpacked bundle")
-	require.True(t, set.UseOpenTofu())
-	require.Equal(t, "1.12.0", set.InfrastructureVersion())
-	require.Equal(t, "yandex_compute_instance", set.VMResourceType())
-
-	rule := set.VMResource()
-	require.NotNil(t, rule, "plan_rules.yml must ship in the bundle")
-	require.Equal(t, "yandex_compute_instance", rule.Type)
-	require.Nil(t, rule.FieldEquals, "a yandex_compute_instance change is always a VM change")
 }
 
 // Only the canonical <provider> symlink is read: the digest dir it points at is
@@ -319,7 +295,7 @@ func TestBundleSettingsIgnoreInTreeAndBrokenBundles(t *testing.T) {
 	require.NoError(t, os.MkdirAll(broken, 0o755))
 	require.NoError(t, os.WriteFile(filepath.Join(broken, versionFile), []byte("not yaml: [{"), 0o644))
 
-	installProviderBundle(t, downloadDir, "dvp", "030-cloud-provider-dvp")
+	installDVPBundle(t, downloadDir, "dvp")
 
 	store, err := loadOrGetStore(t.Context(), writeCandiVersions(t), downloadDir)
 	require.NoError(t, err, "one unusable bundle must not take down the whole store")

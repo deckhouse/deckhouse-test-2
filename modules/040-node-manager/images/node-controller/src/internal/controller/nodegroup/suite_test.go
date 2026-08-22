@@ -18,7 +18,6 @@ package nodegroup
 
 import (
 	"context"
-	"path/filepath"
 	"testing"
 
 	. "github.com/onsi/ginkgo/v2"
@@ -77,14 +76,11 @@ var _ = BeforeSuite(func() {
 	var err error
 	testEnv, cfg, k8sClient, err = testenv.Start(
 		scheme,
-		append(
-			testenv.CRDPaths(
-				testenv.WithNodeGroupCRDFile(),
-				testenv.WithMCMCRDFile(),
-				testenv.WithMachineCRDFile(),
-				testenv.WithMachineDeploymentCRDFile(),
-			),
-			filepath.Join("testdata", "instanceclass-crd.yaml"),
+		testenv.CRDPaths(
+			testenv.WithNodeGroupCRDFile(),
+			testenv.WithMCMCRDFile(),
+			testenv.WithMachineCRDFile(),
+			testenv.WithMachineDeploymentCRDFile(),
 		)...,
 	)
 	Expect(err).NotTo(HaveOccurred())

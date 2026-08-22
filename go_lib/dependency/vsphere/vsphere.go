@@ -16,7 +16,6 @@ package vsphere
 
 import (
 	"context"
-	"crypto/x509"
 	"errors"
 	"fmt"
 	"net/url"
@@ -32,12 +31,9 @@ import (
 	"github.com/vmware/govmomi/pbm"
 	pbmTypes "github.com/vmware/govmomi/pbm/types"
 	"github.com/vmware/govmomi/property"
-	"github.com/vmware/govmomi/session"
 	"github.com/vmware/govmomi/vapi/rest"
 	"github.com/vmware/govmomi/vapi/tags"
-	"github.com/vmware/govmomi/vim25"
 	"github.com/vmware/govmomi/vim25/mo"
-	"github.com/vmware/govmomi/vim25/soap"
 	"github.com/vmware/govmomi/vim25/types"
 )
 
@@ -76,7 +72,6 @@ type Provider struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 	Insecure bool   `json:"insecure"`
-	CABundle string `json:"caBundle"`
 }
 
 type ZonedDataStore struct {
@@ -204,7 +199,6 @@ func createVsphereClient(config *ProviderClusterConfiguration) (client, error) {
 		username = config.Provider.Username
 		password = config.Provider.Password
 		insecure = config.Provider.Insecure
-		caBundle = config.Provider.CABundle
 	)
 
 	parsedURL, err := url.Parse(fmt.Sprintf("https://%s:%s@%s/sdk", url.PathEscape(strings.TrimSpace(username)), url.PathEscape(strings.TrimSpace(password)), url.PathEscape(strings.TrimSpace(host))))
@@ -212,26 +206,13 @@ func createVsphereClient(config *ProviderClusterConfiguration) (client, error) {
 		return client{}, err
 	}
 
-	soapClient := soap.NewClient(parsedURL, insecure)
-	if err := setCABundleIfNeed(soapClient, insecure, caBundle); err != nil {
-		return client{}, err
-	}
-
-	vimClient, err := vim25.NewClient(context.TODO(), soapClient)
+	vcClient, err := govmomi.NewClient(context.TODO(), parsedURL, insecure)
 	if err != nil {
 		return client{}, err
 	}
 
-	if !vimClient.IsVC() {
+	if !vcClient.IsVC() {
 		return client{}, errors.New("not connected to vCenter")
-	}
-
-	vcClient := &govmomi.Client{
-		Client:         vimClient,
-		SessionManager: session.NewManager(vimClient),
-	}
-	if err := vcClient.SessionManager.Login(context.TODO(), parsedURL.User); err != nil {
-		return client{}, err
 	}
 
 	restClient := rest.NewClient(vcClient.Client)
@@ -562,23 +543,4 @@ func isZoneAllowed(allowedZones map[string]any, zone string) bool {
 
 	_, allowed := allowedZones[zone]
 	return allowed
-}
-
-func setCABundleIfNeed(soapClient *soap.Client, insecure bool, caBundle string) error {
-	if caBundle == "" {
-		return nil
-	}
-
-	if insecure {
-		return nil
-	}
-
-	pool := x509.NewCertPool()
-	if !pool.AppendCertsFromPEM([]byte(caBundle)) {
-		return errors.New("failed to parse CA bundle")
-	}
-
-	soapClient.DefaultTransport().TLSClientConfig.RootCAs = pool
-
-	return nil
 }

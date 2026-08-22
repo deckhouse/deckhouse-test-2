@@ -182,10 +182,10 @@ func generatePKIArtifacts(nodeName, nodeIP, controlPlaneEndpoint string, cfg *co
 		return fmt.Errorf("invalid node IP %q", nodeIP)
 	}
 
-	// serviceSubnetCIDR in cfg.ClusterConfiguration is already set correctly from mc cpm/deprecated cluster-configuration.
+	// TODO: read from cfg.Settings once serviceSubnetCIDR is migrated to ModuleConfig.
 	serviceSubnetCIDR, _ := cfg.ClusterConfiguration["serviceSubnetCIDR"].(string)
 	if serviceSubnetCIDR == "" {
-		return fmt.Errorf("serviceSubnetCIDR is set neither in ModuleConfig control-plane-manager (spec.settings.network) nor in ClusterConfiguration")
+		return fmt.Errorf("serviceSubnetCIDR is missing or empty in clusterConfiguration")
 	}
 	// TODO: read from cfg.Settings once clusterDomain is migrated to ModuleConfig.
 	clusterDomain, _ := cfg.ClusterConfiguration["clusterDomain"].(string)

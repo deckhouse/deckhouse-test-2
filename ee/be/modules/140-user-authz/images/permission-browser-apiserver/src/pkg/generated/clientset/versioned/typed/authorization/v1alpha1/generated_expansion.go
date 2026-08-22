@@ -21,9 +21,3 @@ package v1alpha1
 type AccessibleNamespaceExpansion interface{}
 
 type BulkSubjectAccessReviewExpansion interface{}
-
-type RoleAccessReportExpansion interface{}
-
-type SubjectAccessReportExpansion interface{}
-
-type WhoCanExpansion interface{}

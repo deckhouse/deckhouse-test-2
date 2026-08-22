@@ -4,11 +4,7 @@ Licensed under the Deckhouse Platform Enterprise Edition (EE) license. See https
 */
 package crd
 
-import (
-	"strings"
-
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
+import metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 type IstioMulticluster struct {
 	metav1.TypeMeta `json:",inline"`
@@ -44,24 +40,7 @@ type IstioMulticlusterStatus struct {
 type MulticlusterPrivateMetadata struct {
 	IngressGateways *[]MulticlusterIngressGateways `json:"ingressGateways"`
 	APIHost         string                         `json:"apiHost,omitempty"`
-	ClusterID       string                         `json:"clusterID,omitempty"`
 	NetworkName     string                         `json:"networkName,omitempty"`
-}
-
-const NetworkNameClusterIDPrefix = "network-"
-
-func (m *MulticlusterPrivateMetadata) ClusterIDOrDerived() string {
-	if m == nil {
-		return ""
-	}
-	if m.ClusterID != "" {
-		return m.ClusterID
-	}
-	derived, ok := strings.CutPrefix(m.NetworkName, NetworkNameClusterIDPrefix)
-	if !ok {
-		return ""
-	}
-	return derived
 }
 
 type MulticlusterIngressGateways struct {

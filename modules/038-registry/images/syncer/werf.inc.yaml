@@ -56,8 +56,3 @@ import:
 imageSpec:
   config:
     entrypoint: ["/syncer"]
----
-{{- $_ := set . "FuzzEngine" "go" }}
-{{- $_ := set . "FuzzSrcAdd" "/app" }}
-{{- $_ := set . "FuzzPackages" "./pkg/config" }}
-{{- include "fuzz image" . }}

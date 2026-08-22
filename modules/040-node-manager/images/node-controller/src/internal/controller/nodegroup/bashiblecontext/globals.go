@@ -17,7 +17,6 @@ limitations under the License.
 package bashiblecontext
 
 import (
-	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -26,8 +25,6 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	sigsyaml "sigs.k8s.io/yaml"
-
-	"github.com/deckhouse/node-controller/internal/network"
 )
 
 const (
@@ -107,19 +104,6 @@ func (s *Service) readClusterConfiguration(ctx context.Context) *bashibleCluster
 	if err := sigsyaml.Unmarshal(raw, cfg); err != nil {
 		return nil
 	}
-
-	// TODO: Remove when cluster-configuration is removed and use only ModuleConfig
-	// ModuleConfig wins over these deprecated fields when set (see package network). A read
-	// failure here is treated the same as the two above: give nothing rather than silently fall
-	// back to the secret's values, which may already be stale or deleted after a migration.
-	mcNetwork, err := network.FromModuleConfig(ctx, s.reader())
-	if err != nil {
-		return nil
-	}
-	cfg.PodSubnetNodeCIDRPrefix = cmp.Or(mcNetwork.PodSubnetNodeCIDRPrefix, cfg.PodSubnetNodeCIDRPrefix)
-	cfg.PodSubnetCIDR = cmp.Or(mcNetwork.PodSubnetCIDR, cfg.PodSubnetCIDR)
-	cfg.ServiceSubnetCIDR = cmp.Or(mcNetwork.ServiceSubnetCIDR, cfg.ServiceSubnetCIDR)
-
 	return cfg
 }
 

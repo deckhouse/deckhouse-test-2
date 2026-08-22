@@ -30,7 +30,6 @@ package authzgeneraterulesforroles
 import (
 	"bytes"
 	"cmp"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -44,7 +43,6 @@ import (
 	"github.com/iancoleman/strcase"
 	"gopkg.in/yaml.v3"
 
-	"github.com/deckhouse/deckhouse/testing/library"
 	"github.com/deckhouse/deckhouse/testing/library/helm"
 
 	"tools/helm_generate/helper"
@@ -174,15 +172,11 @@ func run() error {
 		return fmt.Errorf("get deckhouse root: %w", err)
 	}
 
-	values, err := renderValues()
-	if err != nil {
-		return fmt.Errorf("build render values: %w", err)
-	}
-
+	// "github.com/deckhouse/deckhouse/testing/library" InitValues() can be used to seed render values.
 	renderContents, err := renderHelmTemplates(
 		deckhouseRoot,
 		filepath.Join(deckhouseRoot, "modules/140-user-authz"),
-		values,
+		`{"userAuthz":{"internal":{}},"global":{}}`,
 	)
 	if err != nil {
 		return fmt.Errorf("render user-authz templates: %w", err)
@@ -239,25 +233,6 @@ func run() error {
 		}
 	}
 	return nil
-}
-
-// renderValues seeds the global values the chart templates dereference unconditionally (HA helpers,
-// node selectors, module image digests), the same way the module template tests do. Only the
-// ClusterRoles are read from the render, so the values just have to let every template render.
-func renderValues() (string, error) {
-	digests, err := json.Marshal(library.DefaultImagesDigests)
-	if err != nil {
-		return "", fmt.Errorf("marshal image digests: %w", err)
-	}
-
-	return fmt.Sprintf(`{
-		"userAuthz": {"internal": {}},
-		"global": {
-			"enabledModules": [],
-			"discovery": {"clusterControlPlaneIsHighlyAvailable": false, "d8SpecificNodeCountByRole": {}},
-			"modulesImages": {"registry": {"base": "registry.example.com"}, "digests": %s}
-		}
-	}`, digests), nil
 }
 
 // renderHelmTemplates renders helm template for chart directory "dir" with values "values"

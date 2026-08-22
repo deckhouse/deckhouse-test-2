@@ -63,7 +63,8 @@ image: terraform-provider-kubernetes
 from: {{ index $.Images "builder/golang" }}
 final: false
 mount:
-{{ include "mount points for golang builds" . }}
+- fromPath: ~/go-pkg-cache
+  to: /go/pkg
 import:
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
   add: /src

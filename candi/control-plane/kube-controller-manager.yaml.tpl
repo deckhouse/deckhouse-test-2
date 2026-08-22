@@ -42,7 +42,6 @@ metadata:
   labels:
     component: kube-controller-manager
     tier: control-plane
-    security.deckhouse.io/security-policy-exception: kube-controller-manager
   name: kube-controller-manager
   namespace: kube-system
 spec:
@@ -113,7 +112,6 @@ spec:
         cpu: "{{ $c.milliCPU | default (div (mul $millicpu 10) 100) }}m"
         memory: "{{ $c.memoryBytes | default (div (mul $memory 10) 100) }}"
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL

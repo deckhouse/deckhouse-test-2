@@ -92,7 +92,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
@@ -110,7 +111,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
@@ -128,7 +130,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -149,7 +152,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -173,7 +177,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
@@ -191,7 +196,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
@@ -231,7 +237,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -252,7 +259,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -273,7 +281,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -294,7 +303,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -321,7 +331,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -344,7 +355,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -367,7 +379,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -402,7 +415,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -423,7 +437,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -450,7 +465,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:
@@ -477,7 +493,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+    - apiGroups: [""]
+      kinds: ["Pod"]
     scope: Namespaced
     {{- include "constraint_selector" (list $cr) }}
   parameters:

@@ -31,6 +31,8 @@ const (
 
 	PackageRepositoryFinalizerPackageVersionExists = "packages.deckhouse.io/package-version-exists"
 
+	PackageRepositoryAnnotationRegistryChecksum = "packages.deckhouse.io/registry-spec-checksum"
+
 	PackageRepositoryConditionLastScanSucceeded = "LastScanSucceeded"
 )
 

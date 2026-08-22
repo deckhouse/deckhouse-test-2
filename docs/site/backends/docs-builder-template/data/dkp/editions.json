@@ -1,19 +1,20 @@
 {
   "ce": {
-    "name": "Open/CE",
+    "name": "CE",
     "versionMapFile": "candi/version_map.yml",
     "modulesDir": "modules",
     "terraformProviders": [
       "aws",
       "azure",
       "gcp",
-      "yandex"
+      "yandex",
+      "kubernetes"
     ],
     "skipFixingImports": true,
     "buildIncludes": {
       "skipCandi": true
     },
-    "title": "Open/Community Edition"
+    "title": "Community Edition"
   },
   "be": {
     "name": "BE",
@@ -61,7 +62,7 @@
     ]
   },
   "ee": {
-    "name": "Ultimate/EE",
+    "name": "EE",
     "versionMapFile": "ee/candi/version_map.yml",
     "modulesDir": "ee/modules",
     "terraformProviders": [
@@ -70,7 +71,7 @@
       "decort",
       "huaweicloud"
     ],
-    "title": "Ultimate/Enterprise Edition"
+    "title": "Enterprise Edition"
   },
   "fe": {
     "name": "FE",
@@ -80,10 +81,7 @@
     "name": "CSE",
     "versionMapFile": "ee/cse/candi/version_map.yml",
     "modulesDir": "ee/cse/modules",
-    "excludeEditions": [
-      "FE"
-    ],
-    "availableModules": [
+    "AvailableModules": [
       "admission-policy-engine",
       "cert-manager",
       "chrony",
@@ -100,14 +98,18 @@
       "kube-dns",
       "local-path-provisioner",
       "log-shipper",
+      "loki",
       "metallb",
-      "monitoring-custom",
-      "monitoring-kubernetes",
+      "monitoring-deckhouse",
+      "monitoring-ping",
       "multitenancy-manager",
       "namespace-configurator",
       "node-local-dns",
       "node-manager",
+      "operator-prometheus",
       "priority-class",
+      "prometheus",
+      "prometheus-metrics-adapter",
       "registry",
       "registrypackages",
       "registry-packages-proxy",
@@ -115,63 +117,16 @@
       "secret-copier",
       "service-with-healthchecks",
       "terraform-manager",
-      "upmeter",
-      "user-authn",
-      "user-authz",
-      "vertical-pod-autoscaler"
-    ]
-  },
-  "core": {
-    "name": "Core",
-    "title": "Core",
-    "includeModules": [
-      "admission-policy-engine",
-      "cert-manager",
-      "chrony",
-      "cilium-hubble",
-      "cloud-provider-aws",
-      "cloud-provider-azure",
-      "cloud-provider-dvp",
-      "cloud-provider-gcp",
-      "cloud-provider-huaweicloud",
-      "cloud-provider-openstack",
-      "cloud-provider-yandex",
-      "cni-cilium",
-      "cni-flannel",
-      "cni-simple-bridge",
-      "control-plane-manager",
-      "deckhouse",
-      "deckhouse-tools",
-      "descheduler",
-      "documentation",
-      "istio",
-      "keepalived",
-      "kube-dns",
-      "kube-proxy",
-      "local-path-provisioner",
-      "metallb",
-      "monitoring-deckhouse",
-      "monitoring-kubernetes-control-plane",
-      "multitenancy-manager",
-      "namespace-configurator",
-      "network-gateway",
-      "network-policy-engine",
-      "node-local-dns",
-      "node-manager",
-      "openvpn",
-      "registry",
-      "registry-packages-proxy",
-      "secret-copier",
-      "terraform-manager",
       "user-authn",
       "user-authz",
       "vertical-pod-autoscaler"
     ]
   },
   "cse-lite": {
-    "name": "Certified Core/CSE Lite",
-    "name_version": "Certified Core/CSE Lite (1.73)",
-    "title": "Certified Core/CSE Lite (1.73)",
+    "name": "CSE Lite",
+    "name_version": "CSE Lite (1.73)",
+    "title": "Certified Security Edition Lite (1.73)",
+    "title_version": "Certified Security Edition Lite",
     "languages": [
       "ru"
     ],
@@ -213,8 +168,6 @@
       "operator-prometheus",
       "operator-trivy",
       "prometheus",
-      "prometheus-metrics-adapter",
-      "prompp",
       "registry",
       "registry-packages-proxy",
       "registrypackages",
@@ -228,16 +181,16 @@
       "storage-volume-data-manager",
       "stronghold",
       "terraform-manager",
-      "upmeter",
       "user-authn",
       "user-authz",
       "vertical-pod-autoscaler"
     ]
   },
   "cse-pro": {
-    "name": "Certified Pro/CSE Pro",
-    "name_version": "Certified Pro/CSE Pro (1.73)",
-    "title": "Certified Pro/CSE Pro",
+    "name": "CSE Pro",
+    "name_version": "CSE Pro (1.73)",
+    "title": "Certified Security Edition Pro",
+    "title_version": "Certified Security Edition Pro (1.73)",
     "languages": [
       "ru"
     ],
@@ -293,7 +246,6 @@
       "storage-volume-data-manager",
       "stronghold",
       "terraform-manager",
-      "upmeter",
       "user-authn",
       "user-authz",
       "vertical-pod-autoscaler",

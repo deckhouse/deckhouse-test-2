@@ -25,10 +25,8 @@ spec:
   hostNetwork: true
   containers:
   - name: distribution
-    image: {{ quote .Images.Distribution }}
+    image: {{ .Images.Distribution }}
     imagePullPolicy: IfNotPresent
-    securityContext:
-      readOnlyRootFilesystem: true
     args:
       - serve
       - /config/config.yaml
@@ -37,21 +35,21 @@ spec:
     env:
       {{- if .HTTP }}
       - name: HTTP_PROXY
-        value: {{ quote .HTTP }}
+        value: {{ .HTTP }}
       - name: http_proxy
-        value: {{ quote .HTTP }}
+        value: {{ .HTTP }}
       {{- end }}
       {{- if .HTTPS }}
       - name: HTTPS_PROXY
-        value: {{ quote .HTTPS }}
+        value: {{ .HTTPS }}
       - name: https_proxy
-        value: {{ quote .HTTPS }}
+        value: {{ .HTTPS }}
       {{- end }}
       {{- if .NoProxy }}
       - name: NO_PROXY
-        value: {{ quote .NoProxy }}
+        value: {{ .NoProxy }}
       - name: no_proxy
-        value: {{ quote .NoProxy }}
+        value: {{ .NoProxy }}
       {{- end }}
   {{- end }}
 {{- end }}
@@ -85,10 +83,8 @@ spec:
       - mountPath: /pki
         name: pki
   - name: auth
-    image: {{ quote .Images.Auth }}
+    image: {{ .Images.Auth }}
     imagePullPolicy: IfNotPresent
-    securityContext:
-      readOnlyRootFilesystem: true
     ports:
       - name: auth
         containerPort: 5051
@@ -122,10 +118,8 @@ spec:
         name: pki
   {{- if .HasMirrorer }}
   - name: mirrorer
-    image: {{ quote .Images.Mirrorer }}
+    image: {{ .Images.Mirrorer }}
     imagePullPolicy: IfNotPresent
-    securityContext:
-      readOnlyRootFilesystem: true
     args:
       - /config/config.yaml
     volumeMounts:

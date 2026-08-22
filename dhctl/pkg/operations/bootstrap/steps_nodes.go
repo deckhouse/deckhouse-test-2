@@ -41,18 +41,12 @@ func BootstrapTerraNodes(
 	terraNodeGroups []config.TerraNodeGroupSpec,
 	infrastructureContext *infrastructure.Context,
 	globalOptions *options.GlobalOptions,
-	build operations.ImmutablePayloadBuilder,
 ) error {
 	return dhlog.RunProcess(ctx, dhlog.FromContext(ctx), "Create CloudPermanent NG", func(ctx context.Context) error {
-		return operations.ParallelCreateNodeGroup(ctx, kubeCl, metaConfig, terraNodeGroups, infrastructureContext, globalOptions, build)
+		return operations.ParallelCreateNodeGroup(ctx, kubeCl, metaConfig, terraNodeGroups, infrastructureContext, globalOptions)
 	})
 }
 
-// masterPayloadBuilder renders the cloud-init an additional master boots with.
-// nil means the group's own published cloud config is used instead.
-type masterPayloadBuilder func(ctx context.Context, kubeCl *client.KubernetesClient, metaConfig *config.MetaConfig, nodeName string) (string, error)
-
-// BootstrapAdditionalMasterNodes creates every master past the first one.
 func BootstrapAdditionalMasterNodes(
 	ctx context.Context,
 	kubeCl *client.KubernetesClient,
@@ -61,7 +55,6 @@ func BootstrapAdditionalMasterNodes(
 	infrastructureContext *infrastructure.Context,
 	stateCache state.Cache,
 	globalOptions *options.GlobalOptions,
-	buildPayload masterPayloadBuilder,
 ) error {
 	if metaConfig.MasterNodeGroupSpec.Replicas == 1 {
 		dhlog.FromContext(ctx).DebugContext(ctx, "Skipping additional master node bootstrap because replicas == 1")
@@ -69,48 +62,17 @@ func BootstrapAdditionalMasterNodes(
 	}
 
 	return dhlog.RunProcess(ctx, dhlog.FromContext(ctx), "Bootstrap additional master nodes", func(ctx context.Context) error {
-		// The group's published cloud config is a bashible bundle. A caller that
-		// renders the payload itself has a node which cannot run that bundle, and
-		// its payload carries the node's own name — hence per node, below.
-		masterCloudConfig := ""
-		if buildPayload == nil {
-			var err error
-			masterCloudConfig, err = entity.GetCloudConfig(ctx, kubernetes.NewSimpleKubeClientGetter(kubeCl), global.MasterNodeGroupName, global.ShowDeckhouseLogs)
-			if err != nil {
-				return err
-			}
+		masterCloudConfig, err := entity.GetCloudConfig(ctx, kubernetes.NewSimpleKubeClientGetter(kubeCl), global.MasterNodeGroupName, global.ShowDeckhouseLogs)
+		if err != nil {
+			return err
 		}
 
 		for i := 1; i < metaConfig.MasterNodeGroupSpec.Replicas; i++ {
-			nodeName := fmt.Sprintf("%s-master-%d", metaConfig.ClusterPrefix, i)
-
-			nodeCloudConfig := masterCloudConfig
-			if buildPayload != nil {
-				var err error
-				nodeCloudConfig, err = buildPayload(ctx, kubeCl, metaConfig, nodeName)
-				if err != nil {
-					return fmt.Errorf("build the payload of %s: %w", nodeName, err)
-				}
-			}
-
-			outputs, err := operations.BootstrapAdditionalMasterNode(ctx, kubeCl, metaConfig, i, nodeCloudConfig, infrastructureContext, globalOptions)
+			outputs, err := operations.BootstrapAdditionalMasterNode(ctx, kubeCl, metaConfig, i, masterCloudConfig, infrastructureContext, globalOptions)
 			if err != nil {
 				return err
 			}
-
-			// Converge builds its SSH session from this cache, and a host that
-			// answers no sshd stalls it — which is every node whose payload is
-			// rendered here. The first master is kept out of the cache likewise.
-			if buildPayload != nil {
-				// One at a time: etcd admits a single learner, so the next machine
-				// must not start joining until this one is a voting member. The
-				// static path has always waited here; the cloud path did not.
-				if err := waitForImmutableMasterControlPlane(ctx, kubeCl, nodeName); err != nil {
-					return err
-				}
-				continue
-			}
-			addressTracker[nodeName] = outputs.MasterIPForSSH
+			addressTracker[fmt.Sprintf("%s-master-%d", metaConfig.ClusterPrefix, i)] = outputs.MasterIPForSSH
 
 			state.SaveMasterHostsToCache(ctx, stateCache, addressTracker)
 		}

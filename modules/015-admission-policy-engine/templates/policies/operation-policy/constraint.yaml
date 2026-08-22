@@ -48,9 +48,6 @@
   {{- if hasKey $cr.spec.policies "disallowedTolerations" }}
     {{- include "disallowed_tolerations_policy" (list $context $cr) }}
   {{- end }}
-  {{- if hasKey $cr.spec.policies "gpuResourceRestriction" }}
-    {{- include "gpu_resource_restriction_policy" (list $context $cr) }}
-  {{- end }}
 {{- end }}
 
 {{- end }} # end if bootstrapped
@@ -68,7 +65,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     repos:
@@ -89,7 +87,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     {{- if $cr.spec.policies.requiredResources.limits }}
@@ -116,7 +115,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     tags:
@@ -185,7 +185,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     probes:
@@ -228,7 +229,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     policy: {{$cr.spec.policies.imagePullPolicy | quote }}
@@ -248,7 +250,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     priorityClassNames:
@@ -310,7 +313,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
 
@@ -327,7 +331,8 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
 {{- end }}
 
@@ -367,35 +372,11 @@ spec:
   enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
   match:
     kinds:
-{{- include "workload_kinds" . }}
+      - apiGroups: [""]
+        kinds: ["Pod"]
     {{- include "constraint_selector" (list $cr) }}
   parameters:
     tolerations:
       {{- $tolerations | toYaml | nindent 6 }}
   {{- end }}
-{{- end }}
-
-{{- define "gpu_resource_restriction_policy" }}
-  {{- $context := index . 0 }}
-  {{- $cr := index . 1 }}
-  {{- $policy := $cr.spec.policies.gpuResourceRestriction | default dict }}
-  {{- $namespaceLabel := $policy.namespaceLabel | default dict }}
----
-apiVersion: constraints.gatekeeper.sh/v1beta1
-kind: D8GpuResourceRestriction
-metadata:
-  name: {{$cr.metadata.name}}
-  {{- include "helm_lib_module_labels" (list $context (dict "security.deckhouse.io/operation-policy" "")) | nindent 2 }}
-spec:
-  enforcementAction: {{ $cr.spec.enforcementAction | default "deny" | lower }}
-  match:
-    kinds:
-{{- include "workload_kinds" . }}
-    {{- include "constraint_selector" (list $cr) }}
-  parameters:
-    namespaceLabel:
-      key: {{ dig "key" "gpu.deckhouse.io/enabled" $namespaceLabel | quote }}
-      value: {{ dig "value" "true" $namespaceLabel | quote }}
-    gpuResourcePatterns:
-      {{- $policy.gpuResourcePatterns | default (list "^nvidia\\.com/.*$") | toYaml | nindent 6 }}
 {{- end }}

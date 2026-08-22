@@ -1,8 +1,6 @@
 {{- $moduleGateway := dict }}
 {{- include "helm_lib_module_gateway" (list . $moduleGateway) }}
-{{- $ingressEnabled := eq (include "helm_lib_module_ingress_enabled" .) "true" }}
-{{- $gatewayEnabled := eq (include "helm_lib_module_gateway_enabled" .) "true" }}
-{{- if and .Values.istio.internal.deployDexAuthenticator (or $ingressEnabled $gatewayEnabled) }}
+{{- if .Values.istio.internal.deployDexAuthenticator }}
 ---
 apiVersion: deckhouse.io/v1
 kind: DexAuthenticator
@@ -14,12 +12,12 @@ metadata:
     dexauthenticator.deckhouse.io/allow-access-to-kubernetes: "true"
 spec:
   applicationDomain: {{ include "helm_lib_module_public_domain" (list . "istio") }}
-  {{- if and $ingressEnabled (include "helm_lib_module_https_ingress_tls_enabled" .) }}
+  {{- if (include "helm_lib_module_https_ingress_tls_enabled" .) }}
   applicationIngressCertificateSecretName: {{ include "helm_lib_module_https_secret_name" (list . "istio-ingress-tls") }}
-  {{- end }}
-  {{- if and $gatewayEnabled (include "helm_lib_module_https_route_tls_enabled" .) }}
+    {{- if $moduleGateway }}
   gatewayAPI:
     applicationHTTPRouteListenerSetName: "istio"
+    {{- end }}
   {{- end }}
   applicationIngressClassName: {{ include "helm_lib_module_ingress_class" . | quote }}
   signOutURL: "/logout"

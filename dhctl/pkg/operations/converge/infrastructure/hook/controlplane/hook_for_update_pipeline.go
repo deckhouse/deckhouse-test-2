@@ -51,7 +51,6 @@ type HookForUpdatePipeline struct {
 	nodeToConverge    string
 	oldMasterIPForSSH string
 	commanderMode     bool
-	immutableNode     bool
 	clientSwitcher    ClientSwitcher
 }
 
@@ -61,16 +60,12 @@ func NewHookForUpdatePipeline(
 	nodeToHostForChecks map[string]string,
 	commanderMode bool,
 	skipChecks bool,
-	immutableNode bool,
 ) *HookForUpdatePipeline {
 	checkers := []hook.NodeChecker{
 		hook.NewKubeNodeReadinessChecker(kubeGetter),
 	}
 
-	// An immutable node answers no sshd: the check would fail on every master, and
-	// what it proves — that the machine is alive and serving — the control plane
-	// checker below proves through the cluster.
-	if !commanderMode && !skipChecks && !immutableNode {
+	if !commanderMode && !skipChecks {
 		checkers = append(
 			checkers,
 			NewSSHChecker(
@@ -95,7 +90,6 @@ func NewHookForUpdatePipeline(
 		kubeGetter:    kubeGetter,
 		sshProvider:   sshProvider,
 		commanderMode: commanderMode,
-		immutableNode: immutableNode,
 	}
 }
 
@@ -148,11 +142,8 @@ func (h *HookForUpdatePipeline) BeforeAction(ctx context.Context, runner infrast
 		return false, fmt.Errorf("failed to get master node pipeline outputs: %w", err)
 	}
 
-	// An immutable node is retired over the Kubernetes API alone, so a missing SSH
-	// address says nothing about whether it can be done. Skipping on it would recreate
-	// the VM while the old node is still a voting etcd member.
 	masterIP := outputs.MasterIPForSSH
-	if masterIP == "" && !h.immutableNode {
+	if masterIP == "" {
 		h.oldMasterIPForSSH = ""
 		dhlog.FromContext(ctx).InfoContext(ctx, fmt.Sprintf("Got empty master IP for ssh for node %s.", h.nodeToConverge))
 		return false, nil
@@ -164,19 +155,6 @@ func (h *HookForUpdatePipeline) BeforeAction(ctx context.Context, runner infrast
 		}
 	}
 
-	// The switch above moves an SSH-tunnelled client off the machine about to be
-	// destroyed. An sshless converge has no session to move: whoever runs it decides
-	// which apiserver the kubeconfig names, and if that is this machine the run loses
-	// the cluster mid-flight. Saying so before the destruction beats a stack trace
-	// after it — the converge state is saved, so a rerun continues where this stopped.
-	if h.immutableNode {
-		dhlog.FromContext(ctx).WarnContext(ctx, fmt.Sprintf(
-			"About to destroy %s (%s). This converge talks to the cluster over the Kubernetes API: "+
-				"if the kubeconfig points at this very node, the connection dies with it and the run stops. "+
-				"Rerun converge afterwards — the saved state resumes from here.",
-			h.nodeToConverge, masterIP))
-	}
-
 	h.oldMasterIPForSSH = masterIP
 
 	kubeClient, err := h.kubeGetter.KubeClientCtx(ctx)
@@ -184,7 +162,7 @@ func (h *HookForUpdatePipeline) BeforeAction(ctx context.Context, runner infrast
 		return false, fmt.Errorf("Could not get kube client: %w", err)
 	}
 
-	err = removeControlPlaneRoleFromNode(ctx, kubeClient, h.kubeGetter, h.nodeToConverge, h.commanderMode, h.immutableNode)
+	err = removeControlPlaneRoleFromNode(ctx, kubeClient, h.kubeGetter, h.nodeToConverge, h.commanderMode)
 	if err != nil {
 		return false, fmt.Errorf("failed to remove control plane role from node '%s': %v", h.nodeToConverge, err)
 	}
@@ -212,11 +190,10 @@ func (h *HookForUpdatePipeline) AfterAction(ctx context.Context, runner infrastr
 		return fmt.Errorf("failed to get master node pipeline outputs: %w", err)
 	}
 
-	// Nothing to move for an immutable node: no session was ever pinned to it.
-	if !h.commanderMode && !h.immutableNode {
+	if !h.commanderMode {
 		cl, err := h.sshProvider.Client(ctx)
 		if err != nil {
-			return fmt.Errorf("get ssh client to move the session to the recreated node: %w", err)
+			panic("Node interface is not ssh")
 		}
 
 		if h.oldMasterIPForSSH != "" {

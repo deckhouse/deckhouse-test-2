@@ -16,10 +16,6 @@ limitations under the License.
 
 package v1alpha1
 
-import (
-	deckhousev1 "caps-controller-manager/api/deckhouse.io/v1alpha2"
-)
-
 // Conditions and Reasons defined on StaticInstance.
 const (
 	StaticInstanceAddedToNodeGroupCondition = "AddedToNodeGroup"
@@ -30,11 +26,11 @@ const (
 	// Checking the linked object for authorization (SSHCredentials)
 	StaticInstanceWaitingForCredentialsRefReason = "WaitingForCredentialsRefToBeAssigned"
 
-	// Checking tcp connection. Declared in api/deckhouse.io/v1alpha2, where ToPending clears it.
-	StaticInstanceCheckTCPConnection = deckhousev1.StaticInstanceCheckTCPConnectionCondition
+	// Checking tcp connection
+	StaticInstanceCheckTCPConnection = "CheckTcpConnection"
 
-	// Checking ssh connection. Declared in api/deckhouse.io/v1alpha2, where ToPending clears it.
-	StaticInstanceCheckSSHCondition = deckhousev1.StaticInstanceCheckSSHConnectionCondition
+	// Checking ssh connection
+	StaticInstanceCheckSSHCondition = "CheckSshCondition"
 
 	StaticInstanceCheckFailedReason = "CheckFailed"
 	StaticInstanceCheckPassedReason = "CheckPassed"

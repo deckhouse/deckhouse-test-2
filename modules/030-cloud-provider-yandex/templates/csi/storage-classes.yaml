@@ -1,4 +1,3 @@
-{{- if not (default false (dig "storage" "disabled" false .Values.cloudProviderYandex)) }}
 {{- range $index, $storageClass := .Values.cloudProviderYandex.internal.storageClasses }}
 ---
 apiVersion: storage.k8s.io/v1
@@ -10,10 +9,6 @@ metadata:
 provisioner: yandex.csi.flant.com
 parameters:
   typeID: {{ $storageClass.type | quote }}
-{{- if $storageClass.blockSize }}
-  blockSize: {{ $storageClass.blockSize | quote }}
-{{- end }}
 allowVolumeExpansion: true
 volumeBindingMode: WaitForFirstConsumer
-{{- end }}
 {{- end }}

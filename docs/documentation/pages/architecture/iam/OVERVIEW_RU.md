@@ -3,18 +3,18 @@ title: Подсистема IAM
 permalink: ru/architecture/iam/
 lang: ru
 search: iam, identity and access management, управление идентификацией и доступом
-description: Архитектура подсистемы Identity and Access Management в Deckhouse Platform.
+description: Архитектура подсистемы Identity and Access Management в Deckhouse Kubernetes Platform.
 extractedLinksOnlyMax: 0
 extractedLinksMax: 0
 ---
 
-В данном подразделе описывается архитектура подсистемы IAM (Identity and Access Management, идентификация и управление доступом) платформы Deckhouse Platform (DP).
+В данном подразделе описывается архитектура подсистемы IAM (Identity and Access Management, идентификация и управление доступом) платформы Deckhouse Kubernetes Platform (DKP).
 
 {% alert level="info" %}
-Практики безопасности, связанные с IAM, подробно разобраны в курсе [«Инструменты безопасности в Deckhouse Platform»](https://deckhouse.ru/courses/security-tools-in-dkp/) в [Deckhouse Академии](https://deckhouse.ru/academy/).
+Практики безопасности, связанные с IAM, подробно разобраны в курсе [«Инструменты безопасности в Deckhouse Kubernetes Platform»](https://deckhouse.ru/courses/security-tools-in-dkp/) в [Deckhouse Академии](https://deckhouse.ru/academy/).
 {% endalert %}
 
-Подсистема IAM отвечает за следующие функции в DP:
+Подсистема IAM отвечает за следующие функции в DKP:
 
 * [аутентификация пользователей](authentication.html);
 * ролевая модель управления доступом (RBAC);

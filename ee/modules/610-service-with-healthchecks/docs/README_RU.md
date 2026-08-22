@@ -1,6 +1,6 @@
 ---
 title: "Модуль service-with-healthchecks"
-description: "Readiness-пробы с модулем service-with-healthchecks в Deckhouse Platform"
+description: "Readiness-пробы с модулем service-with-healthchecks в Deckhouse Kubernetes Platform"
 ---
 
 ## Ограничения стандартного балансировщика Service

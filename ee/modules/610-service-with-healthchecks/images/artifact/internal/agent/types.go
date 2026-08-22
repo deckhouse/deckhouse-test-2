@@ -37,7 +37,6 @@ type HealthcheckTarget struct {
 	podNamespace       string
 	podUID             types.UID
 	podReady           bool
-	podTerminating     bool
 	probeResultDetails []ProbeResultDetail
 }
 

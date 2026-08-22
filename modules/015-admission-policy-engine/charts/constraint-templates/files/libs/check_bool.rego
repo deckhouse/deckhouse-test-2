@@ -11,8 +11,6 @@
 package lib.check_bool
 
 import data.lib.common.get_field
-import data.lib.common.effective_labels
-import data.lib.common.normalized_pod_object
 import data.lib.exception.allowed_values_or_empty
 import data.lib.exception.path_value_resolved
 import data.lib.exception.resolve_spe_for_container
@@ -32,7 +30,8 @@ check_container_bool(container, field_path, field_name, expected, default_val, s
   exception := resolve_spe_for_container(container, labels, namespace)
   allowed_values := allowed_values_or_empty(exception, spe_path)
   count(allowed_values) > 0
-  spe_allows(allowed_values, actual)
+  allowed_value := allowed_values[0]
+  allowed_value == actual
   result := {"allowed": true, "msg": "", "detail": {}}
 }
 
@@ -54,7 +53,7 @@ check_container_bool(container, field_path, field_name, expected, default_val, s
 
 spe_allows(allowed_values, actual) if {
   count(allowed_values) > 0
-  allowed_values[_] == actual
+  allowed_values[0] == actual
 }
 
 bool_violation_msg(field_name, actual, expected, false, _) := out if {
@@ -66,27 +65,17 @@ bool_violation_msg(field_name, actual, expected, true, spe_allowed) := out if {
   out := sprintf("%v has value %v, expected %v. %v", [field_name, actual, expected, ctx])
 }
 
-# Check a boolean field on a pod spec against expected value, with SPE support.
-#
-# field_path is relative to the object, e.g. ["spec", "hostNetwork"]. It is
-# resolved against the object normalized to a pod-like shape, so a controller's
-# pod template is read instead of the controller's own spec.
-#
-# Not currently referenced by any shipped ConstraintTemplate — the templates
-# resolve pod-level fields through lib.common.pod_spec directly. Kept for
-# handwritten constraints, and kept in step with
-# lib.check_set.check_pod_value_in_set so wiring either one up cannot silently
-# read the wrong spec.
+# Check a boolean field on a pod spec against expected value, with SPE support
 check_pod_bool(obj, field_path, field_name, expected, default_val, spe_path) := result if {
-  actual := get_field(normalized_pod_object(obj), field_path, default_val)
+  actual := get_field(obj, field_path, default_val)
   actual == expected
   result := {"allowed": true, "msg": "", "detail": {}}
 }
 
 check_pod_bool(obj, field_path, field_name, expected, default_val, spe_path) := result if {
-  actual := get_field(normalized_pod_object(obj), field_path, default_val)
+  actual := get_field(obj, field_path, default_val)
   actual != expected
-  labels := effective_labels(obj)
+  labels := object.get(obj, ["metadata", "labels"], {})
   namespace := object.get(obj, ["metadata", "namespace"], "")
   exception := resolve_spe_from_labels(labels, namespace)
   spe_val := object.get(exception, spe_path, null)
@@ -96,9 +85,9 @@ check_pod_bool(obj, field_path, field_name, expected, default_val, spe_path) := 
 }
 
 check_pod_bool(obj, field_path, field_name, expected, default_val, spe_path) := result if {
-  actual := get_field(normalized_pod_object(obj), field_path, default_val)
+  actual := get_field(obj, field_path, default_val)
   actual != expected
-  labels := effective_labels(obj)
+  labels := object.get(obj, ["metadata", "labels"], {})
   namespace := object.get(obj, ["metadata", "namespace"], "")
   exception := resolve_spe_from_labels(labels, namespace)
   spe_val := object.get(exception, spe_path, null)

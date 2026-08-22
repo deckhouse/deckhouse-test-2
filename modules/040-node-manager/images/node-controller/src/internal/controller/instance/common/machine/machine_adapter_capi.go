@@ -25,7 +25,6 @@ import (
 
 	capi "github.com/deckhouse/node-controller/api/cluster.x-k8s.io/v1beta2"
 	deckhousev1alpha2 "github.com/deckhouse/node-controller/api/deckhouse.io/v1alpha2"
-	ngcommon "github.com/deckhouse/node-controller/internal/controller/nodegroup/common"
 )
 
 type capiMachine struct {
@@ -46,7 +45,7 @@ func (m *capiMachine) GetNodeGroup() string {
 	if m.machine.Labels == nil {
 		return ""
 	}
-	return m.machine.Labels[ngcommon.MachineDeploymentNodeGroupLabel]
+	return m.machine.Labels["node-group"]
 }
 
 func (m *capiMachine) GetMachineRef() *deckhousev1alpha2.MachineRef {

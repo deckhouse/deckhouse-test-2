@@ -4,14 +4,11 @@ metadata:
   name: container-resources
 spec:
   objectKind: Pod
-  objectKinds:
-    - Pod
-    - Deployment
   objectFields:
     - path: spec.containers[].resources
       level: container
       description: Every container must define required limits and requests (cpu/memory) according to policy parameters.
-      requiredScenarios: [positive, negative]
+      requiredScenarios: [positive, negative, initContainer, ephemeralContainer]
   applicableTracks:
     functional: true
     spePod: false

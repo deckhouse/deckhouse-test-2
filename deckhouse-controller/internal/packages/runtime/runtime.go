@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"net/http"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -26,17 +27,19 @@ import (
 
 	"github.com/Masterminds/semver/v3"
 	addonmodules "github.com/flant/addon-operator/pkg/module_manager/models/modules"
+	addonutils "github.com/flant/addon-operator/pkg/utils"
 	klient "github.com/flant/kube-client/client"
 	objectpatch "github.com/flant/shell-operator/pkg/kube/object_patch"
 	kubeeventsmanager "github.com/flant/shell-operator/pkg/kube_events_manager"
 	schedulemanager "github.com/flant/shell-operator/pkg/schedule_manager"
+	"github.com/go-chi/chi/v5"
 	"go.opentelemetry.io/otel"
-	"golang.org/x/sync/errgroup"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/client-go/util/retry"
 	"k8s.io/client-go/util/workqueue"
 	kclient "sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/yaml"
 
 	"github.com/deckhouse/module-sdk/pkg/settingscheck"
 
@@ -53,8 +56,7 @@ import (
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/modules"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/modules/global"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/nelm"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/api/socket"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/api/tcp"
+	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/debug"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/hookevent"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/lifecycle"
 	taskconfigure "github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/runtime/tasks/configure"
@@ -67,10 +69,10 @@ import (
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/queue"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/registry"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/tools/verity"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/addonutils"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/apis/deckhouse.io/v1alpha1"
 	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/edition"
 	"github.com/deckhouse/deckhouse/go_lib/dependency"
+	d8requirements "github.com/deckhouse/deckhouse/go_lib/dependency/requirements"
 	"github.com/deckhouse/deckhouse/pkg/log"
 	metricsstorage "github.com/deckhouse/deckhouse/pkg/metrics-storage"
 )
@@ -86,35 +88,16 @@ const (
 	// runtimeTracer identifies tracing spans emitted by the package runtime.
 	runtimeTracer = "package-runtime"
 
-	// apiSocketPath is the Unix socket the package runtime API listens on.
-	apiSocketPath = "/tmp/deckhouse-debug.socket"
-	// apiTCPAddress and apiTCPPort are the loopback TCP endpoint serving the
-	// subset of the API that is safe for the pod network.
+	// debugSocketPath is the Unix socket the package runtime debug API listens on.
+	debugSocketPath = "/tmp/deckhouse-debug.socket"
+	// debugAddress and debugPort are the loopback TCP endpoint serving the same API.
 	// 9652 is taken by the shell-operator debug server.
-	apiTCPAddress = "127.0.0.1"
-	apiTCPPort    = "9653"
+	debugAddress = "127.0.0.1"
+	debugPort    = "9653"
 	// nelmMonitorRequestTimeout bounds discovery and metadata requests made by the NELM monitor client.
 	nelmMonitorRequestTimeout = 30 * time.Second
-	// apiShutdownTimeout bounds how long shutdown waits for in-flight API requests.
-	apiShutdownTimeout = 5 * time.Second
-)
-
-// Reschedule reasons the runtime hands to the scheduler. They travel on the
-// resulting EventSchedule and become the cancellation cause of the run that the
-// reschedule cut short, so a cancelled install can name its trigger.
-const (
-	reasonSettingsChanged   = "SettingsChanged"
-	reasonEnabledChanged    = "EnabledIntentChanged"
-	reasonConfigChanged     = "ConfigChanged"
-	reasonDriftDetected     = "DriftDetected"
-	reasonHookValuesChanged = "HookValuesChanged"
-)
-
-// Cancellation causes reported by tasks whose context the runtime replaces.
-var (
-	errRescheduled     = lifecycle.CancelCause("package rescheduled")
-	errPackageDisabled = lifecycle.CancelCause("package disabled")
-	errPackageRemoved  = lifecycle.CancelCause("package removed")
+	// debugShutdownTimeout bounds how long shutdown waits for in-flight debug requests.
+	debugShutdownTimeout = 5 * time.Second
 )
 
 // Runtime orchestrates the full lifecycle of application packages: discovery,
@@ -137,11 +120,9 @@ type Runtime struct {
 	moduleDeployer   deployerI          // Deploys and undeploys module package images
 	registry         *registry.Service  // Registry service for managing package digests
 
-	status       *status.Service     // Tracks per-package condition chain
-	scheduler    *schedule.Scheduler // Evaluates enable/disable based on version constraints
-	socketServer *socket.Server      // Full API surface over the Unix socket
-	tcpServer    *tcp.Server         // Subset safe for the pod network, over loopback TCP
-	apiServers   errgroup.Group      // Serve loops of both API servers
+	status      *status.Service     // Tracks per-package condition chain
+	scheduler   *schedule.Scheduler // Evaluates enable/disable based on version constraints
+	debugServer *debug.Server       // Debug API: full over the Unix socket, opt-in subset over HTTP
 
 	crdService        *crd.Service                        // Installs CRDs from package paths
 	objectPatcher     *objectpatch.ObjectPatcher          // Applies resource patches from hooks
@@ -259,7 +240,13 @@ func Build(cli kclient.Client, moduleManager moduleManagerI, dc dependency.Conta
 		return nil, fmt.Errorf("build health service: %w", err)
 	}
 
-	r.buildAPIServers()
+	if err := r.registerDebugServer(debug.Config{
+		SocketPath: debugSocketPath,
+		Address:    debugAddress,
+		Port:       debugPort,
+	}); err != nil {
+		return nil, fmt.Errorf("register debug server: %w", err)
+	}
 
 	return r, nil
 }
@@ -292,6 +279,149 @@ func (r *Runtime) loadGlobal(ctx context.Context) error {
 	r.status.SetConditionTrue(r.global.GetName(), status.ConditionReadyOnFilesystem)
 	r.status.SetConditionTrue(r.global.GetName(), status.ConditionLoaded)
 	r.packages.Update(r.global.GetName(), r.global.GetVersion().String(), 0, make(addonutils.Values), "", false)
+
+	return nil
+}
+
+// registerDebugServer exposes debug endpoints for package state introspection
+// (/packages/dump, /packages/global/dump, /packages/queues/dump, /packages/render/{name})
+// over a Unix socket and a loopback TCP address, then starts serving them.
+//
+// Only endpoints marked debug.AddHTTP reach the TCP listener. Everything that
+// serializes package values, rendered manifests or hook snapshots stays
+// debug.SocketOnly: those carry registry credentials and Secret contents, and
+// the pod's loopback is shared with sidecars and `kubectl port-forward`.
+//
+// Every route is registered before Start because the router does not tolerate
+// registration while requests are being served.
+func (r *Runtime) registerDebugServer(cfg debug.Config) error {
+	r.debugServer = debug.NewServer(cfg, r.logger)
+
+	var errs []error
+
+	registerGet := func(url string, exposure debug.Exposure, handler http.HandlerFunc) {
+		if err := r.debugServer.Register(http.MethodGet, url, handler, exposure); err != nil {
+			errs = append(errs, err)
+		}
+	}
+
+	// Values include registry credentials and generated passwords.
+	registerGet("/packages/dump", debug.SocketOnly, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+
+		if name := req.URL.Query().Get("name"); name != "" {
+			w.Write(r.DumpByName(name)) //nolint:errcheck
+		} else {
+			w.Write(r.Dump()) //nolint:errcheck
+		}
+	})
+
+	// Global values carry cluster-wide secrets.
+	registerGet("/packages/global/dump", debug.SocketOnly, func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+
+		w.Write(r.DumpGlobal()) //nolint:errcheck
+	})
+
+	registerGet("/packages/queues/dump", debug.AddHTTP, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+
+		queues := r.collectQueues(req.URL.Query().Get("name"))
+		w.Write(r.queueService.Dump(queues...)) //nolint:errcheck
+	})
+
+	registerGet("/packages/scheduler/dump", debug.AddHTTP, func(w http.ResponseWriter, req *http.Request) {
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+
+		if name := req.URL.Query().Get("name"); name != "" {
+			w.Write(r.scheduler.DumpByName(name)) //nolint:errcheck
+		} else {
+			w.Write(r.scheduler.Dump()) //nolint:errcheck
+		}
+	})
+
+	// Rendered manifests contain Secret objects in cleartext.
+	registerGet("/packages/render/{name}", debug.SocketOnly, func(w http.ResponseWriter, req *http.Request) {
+		packageName := chi.URLParam(req, "name")
+		if packageName == "" {
+			http.Error(w, "package name is required", http.StatusBadRequest)
+			return
+		}
+
+		rendered, err := r.renderManifests(req.Context(), packageName)
+		if err != nil {
+			if errors.Is(err, nelm.ErrPackageNotHelm) {
+				http.Error(w, "package has no Helm chart", http.StatusBadRequest)
+				return
+			}
+			http.Error(w, fmt.Sprintf("render failed: %v", err), http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(rendered)) //nolint:errcheck
+	})
+
+	// Hook snapshots hold the raw objects the bindings matched, Secrets included.
+	registerGet("/packages/snapshots/{name}", debug.SocketOnly, func(w http.ResponseWriter, req *http.Request) {
+		packageName := chi.URLParam(req, "name")
+		if packageName == "" {
+			http.Error(w, "package name is required", http.StatusBadRequest)
+			return
+		}
+
+		r.mu.RLock()
+		app := r.apps[packageName]
+		mod := r.modules[packageName]
+		r.mu.RUnlock()
+
+		var data []byte
+		switch {
+		case app != nil:
+			data = app.GetHookSnapshotsDump()
+		case mod != nil:
+			data = mod.GetHookSnapshotsDump()
+		case packageName == r.global.GetName():
+			data = r.global.GetHookSnapshotsDump()
+		default:
+			http.Error(w, "package not found", http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data) //nolint:errcheck
+	})
+
+	registerGet("/requirements", debug.AddHTTP, func(w http.ResponseWriter, _ *http.Request) {
+		data, _ := yaml.Marshal(d8requirements.DumpValues()) //nolint:errcheck
+		w.Header().Set("Content-Type", "application/yaml")
+		w.WriteHeader(http.StatusOK)
+		w.Write(data) //nolint:errcheck
+	})
+
+	registerGet("/healthz", debug.AddHTTP, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok")) //nolint:errcheck
+	})
+
+	registerGet("/readyz", debug.AddHTTP, func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok")) //nolint:errcheck
+	})
+
+	if err := errors.Join(errs...); err != nil {
+		return fmt.Errorf("register debug endpoints: %w", err)
+	}
+
+	if err := r.debugServer.Start(); err != nil {
+		return fmt.Errorf("start debug server: %w", err)
+	}
 
 	return nil
 }
@@ -377,9 +507,7 @@ func (r *Runtime) buildNelmService() error {
 		return fmt.Errorf("initialize nelm service client: %w", err)
 	}
 
-	reschedule := func(name string) { r.scheduler.Reschedule(name, reasonDriftDetected) }
-
-	r.nelmService = nelm.NewService(client, reschedule, r.status, r.logger)
+	r.nelmService = nelm.NewService(client, r.scheduler.Reschedule, r.status, r.logger)
 
 	return nil
 }
@@ -536,15 +664,10 @@ func (r *Runtime) buildScheduler(cli kclient.Client) {
 		schedule.WithKubeVersionGetter(kubernetesVersionGetter))
 }
 
-// Run binds the API listeners and starts the scheduler event loop in a
-// background goroutine. The loop listens for schedule and disable events from
-// the scheduler and dispatches them to the appropriate handler, driving the
-// enable/disable lifecycle for all packages.
-func (r *Runtime) Run() error {
-	if err := r.startAPIServers(); err != nil {
-		return fmt.Errorf("start api servers: %w", err)
-	}
-
+// Run starts the scheduler event loop in a background goroutine. It listens for
+// schedule and disable events from the scheduler and dispatches them to the
+// appropriate handler, driving the enable/disable lifecycle for all packages.
+func (r *Runtime) Run() {
 	r.hookEventHandler.Start()
 	r.healthService.Start()
 
@@ -556,18 +679,16 @@ func (r *Runtime) Run() error {
 					// global is the scheduler's order-0 barrier: it ensures the enabled
 					// modules' CRDs and publishes global values, then completes to release
 					// the modules waiting behind it.
-					r.scheduleGlobal(event.Enabled, event.Reason)
+					r.scheduleGlobal(event.Enabled)
 					continue
 				}
-				r.schedulePackage(event.Name, event.Reason)
+				r.schedulePackage(event.Name)
 			case schedule.EventDisable:
 				r.disablePackage(event.Name, event.Reason, event.Message)
 			default:
 			}
 		}
 	}()
-
-	return nil
 }
 
 // scheduleGlobal runs the global node's work whenever the scheduler schedules it,
@@ -582,14 +703,13 @@ func (r *Runtime) Run() error {
 // EventSchedule context, mirroring how schedulePackage scopes a package's tasks:
 // rescheduling global renews that context and cancels the in-flight run. onDone
 // completes the global node, unblocking the modules waiting behind it.
-func (r *Runtime) scheduleGlobal(enabled []string, reason string) {
+func (r *Runtime) scheduleGlobal(enabled []string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.logger.Debug("schedule global package", slog.String("reason", reason))
+	r.logger.Debug("schedule global package")
 
-	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, r.global.GetName(),
-		fmt.Errorf("%w: %s", errRescheduled, reason))
+	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, r.global.GetName())
 	if ctx == nil {
 		return
 	}
@@ -607,11 +727,8 @@ func (r *Runtime) scheduleGlobal(enabled []string, reason string) {
 		}
 	}
 
-	// Late-bound, as for every other package: the settings a Module handed over through
-	// UpdateGlobalSettings since the last pass are picked up here, and their schema version
-	// with them, so the conversions in the global hooks dir apply.
-	settings, settingsVersion := r.packages.GetPendingSettings(r.global.GetName())
-	r.queueService.Enqueue(ctx, r.global.GetName(), taskconfigure.NewTask(r.global, settings, settingsVersion, nelm.Managed, r.status, r.logger))
+	settings, _ := r.packages.GetPendingSettings(r.global.GetName())
+	r.queueService.Enqueue(ctx, r.global.GetName(), taskconfigure.NewTask(r.global, settings, 0, nelm.Managed, r.status, r.logger))
 
 	// Enable initializes and syncs the global hooks; its OnStartup step is a no-op
 	// because global has no OnStartup hooks. globalrun then runs BeforeAll, ensures
@@ -620,7 +737,7 @@ func (r *Runtime) scheduleGlobal(enabled []string, reason string) {
 	enableTask := taskenable.NewTask(r.global, r.nelmService, r.queueService, r.status, r.logger)
 	r.queueService.Enqueue(ctx, r.global.GetName(), enableTask)
 
-	runTask := taskglobalrun.NewTask(r.global, enabledModules, r.crdService, r.nelmService, r.objectPatcher, r.queueService, r.status, r.logger)
+	runTask := taskglobalrun.NewTask(r.global, enabledModules, r.crdService, r.queueService, r.status, r.logger)
 	r.queueService.Enqueue(ctx, r.global.GetName(), runTask, onDone)
 }
 
@@ -636,18 +753,17 @@ func (r *Runtime) scheduleGlobal(enabled []string, reason string) {
 //
 // Both schedulePackage and disablePackage use EventSchedule, so enqueueing here
 // implicitly cancels any in-flight disable context for the same package.
-func (r *Runtime) schedulePackage(name, reason string) {
+func (r *Runtime) schedulePackage(name string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
-	r.logger.Debug("schedule package", slog.String("name", name), slog.String("reason", reason))
+	r.logger.Debug("schedule package", slog.String("name", name))
 
 	onDone := queue.WithOnDone(func() {
 		r.scheduler.Complete(name)
 	})
 
-	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, name,
-		fmt.Errorf("%w: %s", errRescheduled, reason))
+	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, name)
 	if ctx == nil {
 		return
 	}
@@ -687,8 +803,7 @@ func (r *Runtime) disablePackage(name, reason, msg string) {
 
 	r.logger.Debug("disable package", slog.String("name", name))
 
-	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, name,
-		fmt.Errorf("%w: %s", errPackageDisabled, reason))
+	ctx := r.packages.HandleEvent(lifecycle.EventSchedule, name)
 	if ctx == nil {
 		return
 	}
@@ -764,12 +879,12 @@ func (r *Runtime) Stop() {
 	// Stop reflecting status to CRs (unblocks the status consumer loop)
 	r.status.Shutdown()
 
-	// Close the API listeners last so state stays introspectable during shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), apiShutdownTimeout)
+	// Close the debug listeners last so state stays introspectable during shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), debugShutdownTimeout)
 	defer cancel()
 
-	if err := r.stopAPIServers(ctx); err != nil {
-		r.logger.Warn("stop api servers failed", log.Err(err))
+	if err := r.debugServer.Stop(ctx); err != nil {
+		r.logger.Warn("stop debug server failed", log.Err(err))
 	}
 }
 
@@ -807,113 +922,7 @@ func (r *Runtime) Cleanup(ctx context.Context, preserves []PreservePackage) {
 	}
 
 	// do not cleanup modules namespace
-	if err := r.nelmService.Cleanup(ctx, keepReleases, app.NamespaceDeckhouse); err != nil {
-		r.logger.Warn("cleanup releases failed", log.Err(err))
-	}
-}
-
-// PreserveApplication identifies one installed application instance to preserve during CleanupV2.
-type PreserveApplication struct {
-	Namespace string
-	Name      string
-
-	PackageName string
-	Repository  string
-	Version     string
-}
-
-// PreserveModule identifies one installed module to preserve during CleanupV2. A module releases
-// under its own name in the Deckhouse namespace, and an embedded one owns such a release while
-// its package ships in the image, outside the deployer root.
-type PreserveModule struct {
-	Name       string
-	Repository string
-	Version    string
-
-	Embedded bool
-}
-
-// CleanupV2 removes package directories on disk — downloaded and mounted alike — and orphan nelm
-// releases in the cluster that no preserved application or module claims. Applications and modules
-// are passed apart because each deployer is scoped to its own root and a preserved package cannot
-// say which root it belongs to.
-//
-// Both lists are the whole desired state, so this runs once during bootstrap: after that state is
-// settled and before any package is deployed.
-func (r *Runtime) CleanupV2(ctx context.Context, preserveApps []PreserveApplication, preserveModules []PreserveModule) error {
-	// the image always ships modules, so an empty list is a state never read rather than one to act
-	// on — acting on it would drop every module on disk and uninstall every module release
-	if len(preserveModules) == 0 {
-		return errors.New("no module to preserve")
-	}
-
-	r.mu.Lock()
-	defer r.mu.Unlock()
-
-	var errs error
-	if err := r.appDeployer.Cleanup(ctx, appPreservePackages(preserveApps)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("cleanup application packages: %w", err))
-	}
-
-	if err := r.moduleDeployer.Cleanup(ctx, modulePreservePackages(preserveModules)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("cleanup module packages: %w", err))
-	}
-
-	// every release is kept by name now, so the Deckhouse namespace is no longer exempt
-	if err := r.nelmService.Cleanup(ctx, releasePreserveKeys(preserveApps, preserveModules)); err != nil {
-		errs = errors.Join(errs, fmt.Errorf("cleanup releases: %w", err))
-	}
-
-	return errs
-}
-
-// appPreservePackages maps applications onto the packages the application deployer keys on.
-func appPreservePackages(preserves []PreserveApplication) []deployer.PreservePackage {
-	packages := make([]deployer.PreservePackage, 0, len(preserves))
-	for _, preserve := range preserves {
-		packages = append(packages, deployer.PreservePackage{
-			Name:       preserve.PackageName,
-			Repository: preserve.Repository,
-			Version:    preserve.Version,
-		})
-	}
-
-	return packages
-}
-
-// modulePreservePackages does the same for modules, skipping the embedded ones: their packages sit
-// outside the deployer root, so the module deployer can drop nothing of theirs.
-func modulePreservePackages(preserves []PreserveModule) []deployer.PreservePackage {
-	packages := make([]deployer.PreservePackage, 0, len(preserves))
-	for _, preserve := range preserves {
-		if preserve.Embedded {
-			continue
-		}
-
-		packages = append(packages, deployer.PreservePackage{
-			Name:       preserve.Name,
-			Repository: preserve.Repository,
-			Version:    preserve.Version,
-		})
-	}
-
-	return packages
-}
-
-// releasePreserveKeys returns the releases to keep, keyed "<namespace>/<release>". An embedded
-// module is kept here, unlike on disk: it owns a release as any other module does.
-func releasePreserveKeys(preserveApps []PreserveApplication, preserveModules []PreserveModule) map[string]struct{} {
-	keep := make(map[string]struct{}, len(preserveApps)+len(preserveModules))
-
-	for _, preserve := range preserveApps {
-		keep[preserve.Namespace+"/"+apps.BuildName(preserve.Namespace, preserve.Name)] = struct{}{}
-	}
-
-	for _, preserve := range preserveModules {
-		keep[app.NamespaceDeckhouse+"/"+preserve.Name] = struct{}{}
-	}
-
-	return keep
+	r.nelmService.Cleanup(ctx, keepReleases, app.NamespaceDeckhouse)
 }
 
 // GetStatus returns package status.

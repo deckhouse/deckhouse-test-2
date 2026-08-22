@@ -201,7 +201,7 @@ func (r *reconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Resu
 			return ctrl.Result{}, nil
 		}
 		r.logger.Error("failed to get module source", slog.String("name", req.Name), log.Err(err))
-		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	// handle delete event
@@ -229,10 +229,7 @@ func (r *reconciler) handleModuleSource(ctx context.Context, source *v1alpha1.Mo
 	opts := utils.GenerateRegistryOptionsFromModuleSource(source, r.clusterUUID, r.logger)
 
 	// create a registry client
-	// Translated because this dials it. The repository is recorded as the in-cluster address,
-	// which is also what the images under it are rendered from, and only the loopback one can
-	// actually be connected to from here.
-	registryClient, err := r.dc.GetRegistryClient(utils.Dial(source.Spec.Registry.Repo), opts...)
+	registryClient, err := r.dc.GetRegistryClient(source.Spec.Registry.Repo, opts...)
 	if err != nil {
 		r.logger.Error("failed to get registry client for the module source", slog.String("source_name", source.Name), log.Err(err))
 		if uerr := r.updateModuleSourceStatusMessage(ctx, source, err.Error()); uerr != nil {
@@ -261,7 +258,7 @@ func (r *reconciler) handleModuleSource(ctx context.Context, source *v1alpha1.Mo
 		}
 		// requeue module source after modifying annotation
 		r.logger.Debug("module source will be requeued", slog.String("source_name", source.Name))
-		return ctrl.Result{RequeueAfter: 1 * time.Second}, nil
+		return ctrl.Result{Requeue: true}, nil
 	}
 
 	span.AddEvent("fetch tags from the registry")
@@ -365,7 +362,7 @@ func (r *reconciler) processModules(ctx context.Context, source *v1alpha1.Module
 
 		availableModule.Policy = policy.Name
 
-		logger = logger.With(slog.String("release_channel", policy.Spec.ReleaseChannel))
+		logger = logger.With(slog.String("release channel", policy.Spec.ReleaseChannel))
 
 		// create or update module
 		module, err := r.ensureModule(ctx, source.Name, moduleName, policy.Spec.ReleaseChannel)

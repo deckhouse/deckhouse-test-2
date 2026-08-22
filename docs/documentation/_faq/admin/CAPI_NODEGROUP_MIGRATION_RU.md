@@ -5,7 +5,7 @@ subsystems:
 lang: ru
 ---
 
-Deckhouse Platform переводит управление узлами типа CloudEphemeral с Machine Controller Manager (MCM) на Cluster API (CAPI).
+Deckhouse Kubernetes Platform переводит управление узлами типа CloudEphemeral с Machine Controller Manager (MCM) на Cluster API (CAPI).
 
 На данный момент миграция с MCM на CAPI поддерживается для следующих облачных провайдеров:
 

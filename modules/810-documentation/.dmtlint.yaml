@@ -22,6 +22,5 @@ linters-settings:
   no-cyrillic:
     exclude-rules:
       files:
-        - images/web/documentation/_data/topnav.yml
-        - images/web/documentation/_data/sidebars/cse.yml
+        - images/web/site/_data/topnav.yml
         - images/docs-builder/modules-docs/hugo.yaml

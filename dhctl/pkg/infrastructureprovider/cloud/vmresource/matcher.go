@@ -33,17 +33,9 @@ func Match(rc plan.ResourceChange, rule *Rule) bool {
 	if rule.FieldEquals == nil {
 		return true
 	}
-	path := strings.Split(rule.FieldEquals.Path, ".")
-	value, found, err := unstructured.NestedString(rc.Change.After, path...)
+	value, _, err := unstructured.NestedString(rc.Change.After, strings.Split(rule.FieldEquals.Path, ".")...)
 	if err != nil {
 		return false
-	}
-	if !found {
-		// A pure delete carries no After, so the kind is only in Before.
-		value, _, err = unstructured.NestedString(rc.Change.Before, path...)
-		if err != nil {
-			return false
-		}
 	}
 	return value == rule.FieldEquals.Value
 }

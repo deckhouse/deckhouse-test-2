@@ -45,12 +45,12 @@ const (
 // case the CRD root receives a synthesized example carrying apiVersion, kind and
 // metadata. A node that already has an explicit examples marker is left
 // untouched: explicit examples always win over generated ones.
-func (e *Enricher) generateExamples(spec, names map[string]any, version string, root map[string]any, fs *fileState) {
+func (e *Enricher) generateExamples(spec, names map[string]any, version string, root map[string]any) {
 	if root == nil {
 		return
 	}
 
-	if fs != nil && fs.exampleScope == exampleScopeTree {
+	if e.exampleScope == exampleScopeTree {
 		e.attachTreeExamples(root)
 	}
 

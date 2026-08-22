@@ -28,7 +28,6 @@ import (
 	"gopkg.in/yaml.v3"
 
 	"github.com/deckhouse/deckhouse/deckhouse-controller/internal/packages/dto"
-	"github.com/deckhouse/deckhouse/deckhouse-controller/pkg/apis/deckhouse.io/v1alpha1"
 	moduletypes "github.com/deckhouse/deckhouse/deckhouse-controller/pkg/controller/moduleloader/types"
 	"github.com/deckhouse/deckhouse/pkg/log"
 )
@@ -47,14 +46,6 @@ const (
 	// changelogFileYML is the alternate extension used by some packages.
 	changelogFileYML = "changelog.yml"
 
-	// settingsSchemaFile is the OpenAPI schema of the user-facing package settings;
-	// legacySettingsSchemaFile is its older name, used when the preferred one is absent.
-	settingsSchemaFile       = "openapi/settings.yaml"
-	legacySettingsSchemaFile = "openapi/config-values.yaml"
-
-	// valuesSchemaFile is the OpenAPI schema of the effective package values.
-	valuesSchemaFile = "openapi/values.yaml"
-
 	// maxMetadataFileSize bounds each metadata file extracted from the tar archive.
 	// This guards against OOM from malicious or corrupted images.
 	maxMetadataFileSize = 1 << 20 // 1 MB
@@ -67,7 +58,6 @@ type moduleMetadata struct {
 	changelog         packageChangelog
 	packageDefinition *dto.ModuleDefinition
 	moduleDefinition  *moduletypes.Definition
-	schemas           *v1alpha1.PackageVersionStatusSchemas
 }
 
 // packageChangelog represents user-facing release notes for a package version.
@@ -79,31 +69,24 @@ type packageChangelog struct {
 // metadataReader buffers the raw content of each metadata file extracted from the tar.
 // Each buffer may remain empty if the corresponding file is absent from the archive.
 type metadataReader struct {
-	versionReader        *bytes.Buffer
-	changelogReader      *bytes.Buffer
-	packageReader        *bytes.Buffer
-	moduleReader         *bytes.Buffer
-	settingsReader       *bytes.Buffer
-	legacySettingsReader *bytes.Buffer
-	valuesReader         *bytes.Buffer
+	versionReader   *bytes.Buffer
+	changelogReader *bytes.Buffer
+	packageReader   *bytes.Buffer
+	moduleReader    *bytes.Buffer
 }
 
 // parseVersionMetadataByImage extracts module metadata from a tar-formatted image reader.
 // It looks for: version.json, package.yaml (v2 definition), module.yaml (legacy
-// definition), changelog.yaml, and the openapi schema files (settings.yaml with
-// the config-values.yaml fallback, values.yaml). All files are optional — missing
-// files result in zero-value fields in the returned metadata.
+// definition), and changelog.yaml. All files are optional — missing files result
+// in zero-value fields in the returned metadata.
 func (r *reconciler) parseVersionMetadataByImage(_ context.Context, img io.Reader) (*moduleMetadata, error) {
 	meta := new(moduleMetadata)
 
 	mr := &metadataReader{
-		versionReader:        bytes.NewBuffer(nil),
-		changelogReader:      bytes.NewBuffer(nil),
-		packageReader:        bytes.NewBuffer(nil),
-		moduleReader:         bytes.NewBuffer(nil),
-		settingsReader:       bytes.NewBuffer(nil),
-		legacySettingsReader: bytes.NewBuffer(nil),
-		valuesReader:         bytes.NewBuffer(nil),
+		versionReader:   bytes.NewBuffer(nil),
+		changelogReader: bytes.NewBuffer(nil),
+		packageReader:   bytes.NewBuffer(nil),
+		moduleReader:    bytes.NewBuffer(nil),
 	}
 
 	if err := mr.untarMetadata(img); err != nil {
@@ -146,26 +129,13 @@ func (r *reconciler) parseVersionMetadataByImage(_ context.Context, img io.Reade
 		}
 	}
 
-	// Prefer settings.yaml; fall back to the legacy config-values.yaml name.
-	settingsRaw := mr.settingsReader.Bytes()
-	if len(settingsRaw) == 0 {
-		settingsRaw = mr.legacySettingsReader.Bytes()
-	}
-
-	schemas, err := v1alpha1.ParsePackageSchemas(settingsRaw, mr.valuesReader.Bytes())
-	if err != nil {
-		return nil, fmt.Errorf("parse package schemas: %w", err)
-	}
-
-	meta.schemas = schemas
-
 	return meta, nil
 }
 
 // untarMetadata iterates through the tar archive and copies the content of recognized
-// metadata files (version.json, package.yaml, module.yaml, changelog.yaml/yml, the
-// openapi schema files) into their respective buffers. Unrecognized entries are
-// skipped. Each file read is bounded by maxMetadataFileSize.
+// metadata files (version.json, package.yaml, module.yaml, changelog.yaml/yml) into
+// their respective buffers. Unrecognized entries are skipped. Each file read is
+// bounded by maxMetadataFileSize.
 func (r *metadataReader) untarMetadata(rc io.Reader) error {
 	tr := tar.NewReader(rc)
 	for {
@@ -194,30 +164,14 @@ func (r *metadataReader) untarMetadata(rc io.Reader) error {
 			if _, err = io.Copy(r.changelogReader, io.LimitReader(tr, maxMetadataFileSize)); err != nil {
 				return err
 			}
-		case settingsSchemaFile:
-			if _, err = io.Copy(r.settingsReader, io.LimitReader(tr, maxMetadataFileSize)); err != nil {
-				return err
-			}
-		case legacySettingsSchemaFile:
-			if _, err = io.Copy(r.legacySettingsReader, io.LimitReader(tr, maxMetadataFileSize)); err != nil {
-				return err
-			}
-		case valuesSchemaFile:
-			if _, err = io.Copy(r.valuesReader, io.LimitReader(tr, maxMetadataFileSize)); err != nil {
-				return err
-			}
 		default:
 			continue
 		}
 
-		// All known metadata files captured — skip remaining tar entries. The
-		// legacy settings name never satisfies the exit: settings.yaml may still
-		// come later in the tar and must win over it.
+		// All known metadata files captured — skip remaining tar entries.
 		if r.versionReader.Len() > 0 &&
 			r.changelogReader.Len() > 0 &&
-			(r.packageReader.Len() > 0 || r.moduleReader.Len() > 0) &&
-			r.settingsReader.Len() > 0 &&
-			r.valuesReader.Len() > 0 {
+			(r.packageReader.Len() > 0 || r.moduleReader.Len() > 0) {
 			return nil
 		}
 	}

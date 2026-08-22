@@ -62,7 +62,14 @@ func (c *DefaultClient) GetPackage(ctx context.Context, log log.Logger, config *
 		remoteOpts...)
 
 	if err != nil {
-		return 0, "", nil, mapTransportError(log, err)
+		e := &transport.Error{}
+		if errors.As(err, &e) {
+			log.Error(e.Error())
+			if e.StatusCode == http.StatusNotFound {
+				return 0, "", nil, ErrPackageNotFound
+			}
+		}
+		return 0, "", nil, err
 	}
 
 	manifest, err := image.Manifest()
@@ -143,7 +150,14 @@ func (c *DefaultClient) ResolveTag(ctx context.Context, log log.Logger, config *
 
 	desc, err := remote.Get(repository.Tag(tag), remoteOpts...)
 	if err != nil {
-		return "", mapTransportError(log, err)
+		e := &transport.Error{}
+		if errors.As(err, &e) {
+			log.Error(e.Error())
+			if e.StatusCode == http.StatusNotFound {
+				return "", ErrPackageNotFound
+			}
+		}
+		return "", err
 	}
 
 	// For a multi-platform image index, resolve to the per-platform child manifest
@@ -217,7 +231,14 @@ func (c *DefaultClient) GetRawManifest(ctx context.Context, log log.Logger, conf
 
 	desc, err := remote.Get(reference, remoteOpts...)
 	if err != nil {
-		return nil, "", mapTransportError(log, err)
+		e := &transport.Error{}
+		if errors.As(err, &e) {
+			log.Error(e.Error())
+			if e.StatusCode == http.StatusNotFound {
+				return nil, "", ErrPackageNotFound
+			}
+		}
+		return nil, "", err
 	}
 
 	return desc.Manifest, string(desc.MediaType), nil
@@ -242,28 +263,17 @@ func (c *DefaultClient) ListTags(ctx context.Context, log log.Logger, config *Cl
 
 	tags, err := remote.List(repository, remoteOpts...)
 	if err != nil {
-		return nil, mapTransportError(log, err)
+		e := &transport.Error{}
+		if errors.As(err, &e) {
+			log.Error(e.Error())
+			if e.StatusCode == http.StatusNotFound {
+				return nil, ErrPackageNotFound
+			}
+		}
+		return nil, err
 	}
 
 	return tags, nil
-}
-
-// mapTransportError converts an HTTP 404 into ErrPackageNotFound, logging it
-// at debug level: the proxy probes candidate repositories, so a missing image
-// is routine. Other transport errors keep the error-level log.
-func mapTransportError(log log.Logger, err error) error {
-	e := &transport.Error{}
-	if !errors.As(err, &e) {
-		return err
-	}
-
-	if e.StatusCode == http.StatusNotFound {
-		log.Debugf("%s", e.Error())
-		return ErrPackageNotFound
-	}
-
-	log.Error(e.Error())
-	return err
 }
 
 func newNameOptions(scheme string) []name.Option {

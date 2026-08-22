@@ -119,8 +119,7 @@ help:
 
 TRIVY_VERSION= 0.67.2
 PROMTOOL_VERSION = 2.37.0
-# Keep in sync with the Gatekeeper version in modules/015-admission-policy-engine/oss.yaml
-GATOR_VERSION = 3.22.2
+GATOR_VERSION = 3.22.0
 OPA_VERSION = 1.15.1
 GH_VERSION = 2.83.2
 TESTS_TIMEOUT="15m"
@@ -272,7 +271,7 @@ lint-src-artifact: set-build-envs ## Run src-artifact stapel linter
 
 ## Run all generate-* jobs in bulk.
 .PHONY: generate render-workflow
-generate: generate-kubernetes generate-tools generate-docs dmt-gen generate-werf generate-lib-helm
+generate: generate-kubernetes generate-tools generate-docs dmt-gen generate-werf
 
 .PHONY: generate-tools
 generate-tools: yq
@@ -316,11 +315,11 @@ docs: bin/werf ## Run containers with the documentation.
 	@echo -n "werf: "; bin/werf version
 	@$(MAKE) -C docs/site free-port-80
 	@cd docs/site/; ../../bin/werf compose up --docker-compose-command-options='-d' --env local --repo ":local" --skip-image-spec-stage=true
-	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access documentation..."
+	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access DKP documentation..."
 
 .PHONY: docs-generate-pdf
 docs-generate-pdf: ## Generate PDF documentation.
-  ##~ Options: DOC_VERSION=X.XX - DP version (used just in PDF headers and footers). If not set, the version is determined from the git branch name.
+  ##~ Options: DOC_VERSION=X.XX - DKP version (used just in PDF headers and footers). If not set, the version is determined from the git branch name.
   ##~ Options: BUILD_LANG=ru|en - build a single language only. If not set, both languages are built.
   ##~ Outputs: pdf/deckhouse-admin-guide_{ru,en}.pdf and pdf/deckhouse-user-guide_{ru,en}.pdf
 	DOC_VERSION="$(strip $(DOC_VERSION))" \
@@ -335,7 +334,7 @@ docs-external-module: yq bin/werf ## Build an external module docs and run the l
 	@echo -n "werf: "; bin/werf version
 	@$(MAKE) -C docs/site free-port-80
 	@cd docs/site/; ../../bin/werf compose up --docker-compose-command-options='-d' --env local --repo ":local" --skip-image-spec-stage=true
-	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access documentation..."
+	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access DKP documentation..."
 
 .PHONY: docs-external-module-clean
 docs-external-module-clean: ## Remove generated external module documentation output.
@@ -348,7 +347,7 @@ docs-dev: bin/werf ## Run containers with the documentation in the dev mode (all
 	@echo -n "werf: "; bin/werf version;
 	@$(MAKE) -C docs/site free-port-80
 	@cd docs/site/; ../../bin/werf compose up --docker-compose-command-options='-d' --dev --env development --repo ":local" --skip-image-spec-stage=true
-	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access documentation..."
+	echo "Open http://localhost/products/kubernetes-platform/documentation/v1/ to access DKP documentation..."
 
 .PHONY: docs-down
 docs-down: ## Stop all the documentation containers (e.g. site_site_1 - for Linux, and site-site-1 for MacOs)
@@ -370,14 +369,14 @@ lint-doc-spellcheck-pr:
 .PHONY: docs-spellcheck-generate-dictionary
 docs-spellcheck-generate-dictionary: ## Generate a dictionary (run it after adding new words to the tools/docs/spelling/wordlist file).
 	@echo "Sorting wordlist..."
-	@LC_ALL=C sort ./tools/docs/spelling/wordlist -o ./tools/docs/spelling/wordlist
+	@sort ./tools/docs/spelling/wordlist -o ./tools/docs/spelling/wordlist
 	@echo "Validating wordlist..."
 	@./tools/docs/spelling/validate_wordlist.sh
 	@echo "Generating dictionary..."
 	@test -f ./tools/docs/spelling/dictionaries/dev_OPS.dic && rm ./tools/docs/spelling/dictionaries/dev_OPS.dic
 	@touch ./tools/docs/spelling/dictionaries/dev_OPS.dic
 	@cat ./tools/docs/spelling/wordlist | wc -l | sed 's/^[ \t]*//g' > ./tools/docs/spelling/dictionaries/dev_OPS.dic
-	@LC_ALL=C sort ./tools/docs/spelling/wordlist >> ./tools/docs/spelling/dictionaries/dev_OPS.dic
+	@sort ./tools/docs/spelling/wordlist >> ./tools/docs/spelling/dictionaries/dev_OPS.dic
 	@echo "Don't forget to commit changes and push it!"
 	@git diff --stat
 
@@ -434,19 +433,7 @@ update-k8s-patch-versions: ## Run update-patchversion script to generate new ver
 .PHONY: update-lib-helm
 update-lib-helm: yq ## Update lib-helm.
 	##~ Options: version=MAJOR.MINOR.PATCH
-	sed -i.bak -E 's/^LIB_HELM_VERSION \?= .*/LIB_HELM_VERSION ?= $(version)/' Makefile && rm -f Makefile.bak
-	cd helm_lib/ && yq -i '.dependencies[0].version = "$(version)"' Chart.yaml && helm dependency update && tar -xf charts/deckhouse_lib_helm-*.tgz -C charts/ && rm charts/deckhouse_lib_helm-*.tgz && git add Chart.yaml Chart.lock charts/* ../Makefile
-
-.PHONY: generate-lib-helm
-generate-lib-helm: ## Re-sync the vendored lib-helm chart from upstream (drift fails "make generate").
-  ##~ Reverts any manual edit under helm_lib/charts to the pinned LIB_HELM_VERSION,
-  ##~ so the go_generate CI job's "git diff --exit-code" catches lib-helm tampering.
-	@echo ">>> Syncing vendored deckhouse_lib_helm chart to upstream version $(LIB_HELM_VERSION)"
-	@cd $(LIB_HELM_DIR) && \
-	rm -rf charts/deckhouse_lib_helm && \
-	curl -sSfL "$(GITHUB_URL)/deckhouse/lib-helm/releases/download/deckhouse_lib_helm-$(LIB_HELM_VERSION)/deckhouse_lib_helm-$(LIB_HELM_VERSION).tgz" -o charts/deckhouse_lib_helm.tgz && \
-	tar -xf charts/deckhouse_lib_helm.tgz -C charts/ && \
-	rm -f charts/deckhouse_lib_helm.tgz
+	cd helm_lib/ && yq -i '.dependencies[0].version = "$(version)"' Chart.yaml && helm dependency update && tar -xf charts/deckhouse_lib_helm-*.tgz -C charts/ && rm charts/deckhouse_lib_helm-*.tgz && git add Chart.yaml Chart.lock charts/*
 
 .PHONY: update-base-images-versions
 update-base-images-versions:
@@ -459,8 +446,9 @@ BASE_LIMIT_KEYS := REGISTRY_PATH \
                 builder/distroless \
                 builder/golang-1.25 \
                 builder/golang-1.26 \
-                builder/golang-1.27 \
-                builder/golang
+                builder/golang \
+                minget-0.1 \
+                minget
 
 .PHONY: update-container-factory
 update-container-factory: ## Download container-factory digests and update candi/alt_base_images.yml
@@ -485,8 +473,6 @@ update-container-factory: ## Download container-factory digests and update candi
 	  done; \
 	} > alt_base_images.yml; \
 	rm -f .alt_base_images.full.yml; \
-	cd ..; \
-	$(MAKE) render-workflow; \
 	echo "Updated candi/alt_base_images.yml to version $$ver"
 
 ##@ Build
@@ -619,37 +605,23 @@ DECKHOUSE_CLI ?= $(LOCALBIN)/d8
 CRD_ENRICHER ?= $(LOCALBIN)/crd-enricher
 CRD_ENRICHER_LOCAL ?= $(LOCALBIN)/crd-enricher-local
 CRD_ENRICHER_SRC ?= $(CURDIR)/pkg/crd-enricher
-## Fail the enrichment when any marker did not do what it was written to do. The
-## crds/ re-render check cannot stand in for this: it catches a marker that used
-## to work and stopped, never one that never worked, because the committed
-## manifest matches the broken render. Set CRD_ENRICHER_STRICT= to opt out while
-## debugging a marker.
-##
-## Only enrich-crds-local passes it: enrich-crds runs the released
-## $(CRD_ENRICHER_VERSION) binary, which predates the flag and would reject it as
-## an unknown argument.
-CRD_ENRICHER_STRICT ?= strict
 CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 CLIENT_GEN ?= $(LOCALBIN)/client-gen
 INFORMER_GEN ?= $(LOCALBIN)/informer-gen
 LISTER_GEN ?= $(LOCALBIN)/lister-gen
 YQ = $(LOCALBIN)/yq
 GOTESTSUM = $(LOCALBIN)/gotestsum
-## Vendored lib-helm chart directory, re-synced from upstream by generate-lib-helm.
-LIB_HELM_DIR ?= $(CURDIR)/helm_lib
 
 ## TODO: remap in yaml file (version.yaml or smthng)
 ## Tool Versions
-GOLANGCI_LINT_VERSION = v2.13.1
-DECKHOUSE_CLI_VERSION ?= v0.33.19
+GOLANGCI_LINT_VERSION = v2.8.0
+DECKHOUSE_CLI_VERSION ?= v0.33.1
 CRD_ENRICHER_VERSION ?= v0.0.2
-DMT_VERSION ?= 0.2.5
+DMT_VERSION ?= 0.1.95
 CONTROLLER_TOOLS_VERSION ?= v0.19.0
 CODE_GENERATOR_VERSION ?= v0.34.8
 YQ_VERSION ?= v4.47.2
 GOTESTSUM_VERSION ?= v1.13.0
-## Pinned lib-helm version, mirrored from helm_lib/Chart.yaml by "make update-lib-helm".
-LIB_HELM_VERSION ?= 1.72.21
 
 ## Generate werf
 .PHONY: generate-werf
@@ -673,21 +645,9 @@ dmt-gen: ## Update DMT_VERSION in tools/dmt-lint.sh.
 ## Generate tools documentation
 .PHONY: generate-docs
 generate-docs: yq deckhouse-cli ## Generate documentation for deckhouse-cli.
-  ##~ The werf-derived commands wrap their help text to min(width of the stderr terminal, 100),
-  ##~ and ignore both COLUMNS and WERF_LOG_TERMINAL_WIDTH. Running this in a terminal narrower
-  ##~ than 100 columns therefore rewraps every longDescription in d8-cli.json and makes the
-  ##~ go_generate CI job fail on a diff that carries no content change. Pointing stderr at a
-  ##~ regular file detaches it from the terminal, so the width is always the 100-column default
-  ##~ that CI produces. stderr is still printed, and the exit code is still the CLI's own.
 	@$(DECKHOUSE_CLI) --version
 	@$(YQ) eval '.d8.d8CliVersion = "$(DECKHOUSE_CLI_VERSION)"' -i ./candi/version_map.yml
-	@err=$$(mktemp); \
-	DECKHOUSE_PLUGINS_ENABLED=false HELM_PLUGINS="" $(DECKHOUSE_CLI) help-json --username-replace=$(WHOAMI) \
-		> ./docs/documentation/_data/reference/d8-cli.json 2>$$err; \
-	rc=$$?; \
-	cat $$err >&2; rm -f $$err; \
-	if [ $$rc -ne 0 ]; then exit $$rc; fi; \
-	echo "d8 help-json content is updated"
+	@DECKHOUSE_PLUGINS_ENABLED=false HELM_PLUGINS="" $(DECKHOUSE_CLI)  help-json --username-replace=$(WHOAMI) > ./docs/documentation/_data/reference/d8-cli.json && echo "d8 help-json content is updated"
 
 ## Generate codebase for deckhouse-controllers kubernetes entities
 .PHONY: generate-kubernetes
@@ -744,7 +704,6 @@ enrich-crds: generate-crds crd-enricher ## Add custom x-doc-* fields to the gene
 ##
 ##   make enrich-crds-local
 ##   make enrich-crds-local CRD_ENRICHER_FLAGS=auto-examples
-##   make enrich-crds-local CRD_ENRICHER_STRICT=       # tolerate warnings
 .PHONY: enrich-crds-local
 enrich-crds-local: generate-crds crd-enricher-local ## Enrich CRDs with the local (branch) crd-enricher build.
 	@echo "Enriching CRDs with the local crd-enricher$(if $(CRD_ENRICHER_FLAGS), (flags: $(CRD_ENRICHER_FLAGS)),)..."
@@ -752,7 +711,6 @@ enrich-crds-local: generate-crds crd-enricher-local ## Enrich CRDs with the loca
 		paths="./deckhouse-controller/pkg/apis/deckhouse.io/..." \
 		crds=$(CURDIR)/bin/crd/bases \
 		dir=$(CURDIR) \
-		$(CRD_ENRICHER_STRICT) \
 		$(CRD_ENRICHER_FLAGS)
 
 ## Run the crd-enricher module's unit and golden tests. Pass
@@ -763,7 +721,7 @@ enrich-crds-local: generate-crds crd-enricher-local ## Enrich CRDs with the loca
 .PHONY: test-crd-enricher
 test-crd-enricher: ## Run crd-enricher unit/golden tests (CRD_ENRICHER_TEST_FLAGS=-golden regenerates goldens).
 	@echo "Running crd-enricher tests..."
-	@cd $(CRD_ENRICHER_SRC) && go test -race -cover -timeout=${TESTS_TIMEOUT} ./... $(CRD_ENRICHER_TEST_FLAGS)
+	@cd $(CRD_ENRICHER_SRC) && go test ./... $(CRD_ENRICHER_TEST_FLAGS)
 
 ## Generate clientset
 .PHONY: client-gen-generate

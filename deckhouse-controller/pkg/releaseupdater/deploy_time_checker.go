@@ -186,9 +186,10 @@ func (c *DeployTimeService) CalculatePatchDeployTime(release v1alpha1.Release, m
 	return result
 }
 
-// CalculateMinorDeployTime calculates deploy time, returns deploy time or postpone time and reason.
+// CalculatePatchDeployTime calculates deploy time, returns deploy time or postpone time and reason.
 // To calculate deploy time, we need to check:
 //
+// 1) Cooldown (TODO: deprecated?)
 // 1) Canary (in any mode, except "Manual")
 // 2) Notify
 // 3) Window (only in "Auto" mode)

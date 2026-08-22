@@ -48,8 +48,6 @@ spec:
 
               import data.lib.check_bool.check_container_bool
               import data.lib.common.input_containers
-              import data.lib.common.object_labels
-              import data.lib.common.object_namespace
               import data.lib.message.violation_message
 
               violation contains {"msg": msg, "details": {}} if {
@@ -62,8 +60,8 @@ spec:
                   true,
                   false,
                   ["spec", "securityContext", "readOnlyRootFilesystem", "allowedValue"],
-                  object_labels,
-                  object_namespace
+                  object.get(input.review.object.metadata, "labels", {}),
+                  object.get(input.review.object.metadata, "namespace", "")
                 )
                 not result.allowed
                 msg := violation_message("only read-only root filesystem container is allowed", sprintf("container: %v", [c.name]), result.detail)

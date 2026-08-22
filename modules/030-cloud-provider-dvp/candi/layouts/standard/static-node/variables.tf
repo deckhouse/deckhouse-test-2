@@ -126,10 +126,7 @@ locals {
     "AlwaysOnUnlessStoppedManually",
   )
 
-  additional_labels = merge(
-    lookup(local.instance_class.virtualMachine, "additionalLabels", {}),
-    try(module.migration.settings.spec.settings.nodes.parameters.additionalVMLabels, {}),
-  )
+  additional_labels      = lookup(local.instance_class.virtualMachine, "additionalLabels", {})
   additional_annotations = lookup(local.instance_class.virtualMachine, "additionalAnnotations", {})
   priority_class_name    = lookup(local.instance_class.virtualMachine, "priorityClassName", null)
   node_selector          = lookup(local.instance_class.virtualMachine, "nodeSelector", {})

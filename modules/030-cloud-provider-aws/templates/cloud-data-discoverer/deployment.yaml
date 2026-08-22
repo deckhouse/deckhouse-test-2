@@ -10,9 +10,7 @@
       name: cloud-controller-manager
       key: aws-secret-access-key
 - name: AWS_REGION
-  value: {{ .Values.cloudProviderAws.internal.region | quote }}
-- name: AWS_NODE_IAM_INSTANCE_PROFILE
-  value: {{ .Values.cloudProviderAws.internal.instances.iamProfileName | quote }}
+  value: {{ .Values.cloudProviderAws.internal.region }}
 {{- end -}}
 
 {{- define "aws_cdd_pod_annotations" -}}

@@ -45,8 +45,6 @@ func (ng *NodeGroup) ConvertTo(dstRaw conversion.Hub) error {
 		dst.Spec.NodeType = v1.NodeType(ng.Spec.NodeType)
 	}
 
-	dst.Spec.SystemType = v1.SystemType(ng.Spec.SystemType)
-
 	// Convert CRI
 	if ng.Spec.CRI != nil {
 		dst.Spec.CRI = &v1.CRISpec{
@@ -180,8 +178,6 @@ func (ng *NodeGroup) ConvertFrom(srcRaw conversion.Hub) error {
 	default:
 		ng.Spec.NodeType = NodeType(src.Spec.NodeType)
 	}
-
-	ng.Spec.SystemType = SystemType(src.Spec.SystemType)
 
 	// Convert CRI
 	if src.Spec.CRI != nil {

@@ -263,15 +263,7 @@ apiVersions:
               Список адресов рекурсивных DNS внутренней сети.
           internalNetworkSecurity: &internalNetworkSecurity_ru
             description: |
-              Определяет необходимость настройки [SecurityGroups](https://deckhouse.ru/modules/cloud-provider-openstack/faq.html#как-проверить-поддерживает-ли-провайдер-securitygroups) и [AllowedAddressPairs](https://docs.openstack.org/developer/dragonflow/specs/allowed_address_pairs.html) на портах внутренней сети.
-
-              При включении DP создаёт группу безопасности с именем префикса кластера (`prefix`) и следующими правилами входящего трафика по умолчанию:
-              - TCP/22 (SSH) из CIDR в [`sshAllowList`](#openstackclusterconfiguration-sshallowlist) (по умолчанию `0.0.0.0/0`);
-              - ICMP из `0.0.0.0/0`;
-              - TCP NodePort `30000–32767` из `0.0.0.0/0`;
-              - весь входящий трафик от узлов той же группы безопасности.
-
-              Подробнее — в разделе [«OpenStack: схемы размещения»](layouts.html#standard).
+              Флаг, который определяет необходимость настройки [SecurityGroups](https://deckhouse.ru/modules/cloud-provider-openstack/faq.html#как-проверить-поддерживает-ли-провайдер-securitygroups) и [AllowedAddressPairs](https://docs.openstack.org/developer/dragonflow/specs/allowed_address_pairs.html) на портах внутренней сети.
           externalNetworkName: &externalNetworkName_ru
             description: |
               Имя сети для внешнего взаимодействия.

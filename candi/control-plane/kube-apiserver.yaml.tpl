@@ -93,7 +93,6 @@ metadata:
   labels:
     component: kube-apiserver
     tier: control-plane
-    security.deckhouse.io/security-policy-exception: kube-apiserver
   name: kube-apiserver
   namespace: kube-system
 spec:
@@ -257,7 +256,6 @@ spec:
         cpu: "{{ $c.milliCPU | default (div (mul $millicpu 45) 100) }}m"
         memory: "{{ $c.memoryBytes | default (div (mul $memory 45) 100) }}"
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL

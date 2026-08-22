@@ -8,9 +8,3 @@ spec:
     kinds:
       - apiGroups: [""]
         kinds: ["Pod"]
-      - apiGroups: ["apps"]
-        kinds: ["Deployment", "StatefulSet", "DaemonSet"]
-      - apiGroups: [""]
-        kinds: ["ReplicationController"]
-      - apiGroups: ["batch"]
-        kinds: ["Job", "CronJob"]

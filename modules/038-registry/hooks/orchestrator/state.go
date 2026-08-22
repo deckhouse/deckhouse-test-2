@@ -516,16 +516,6 @@ func (state *State) transitionToProxy(log go_hook.Logger, inputs Inputs) error {
 	// Registry service
 	state.RegistryService = registryservice.ModeNodeServices
 
-	// Params for fallback to the Legacy Unmanaged mode.
-	// Must be stored before updating the deckhouse-registry secret (next step).
-	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
-		ImagesRepo: inputs.Params.ImagesRepo,
-		Scheme:     inputs.Params.Scheme,
-		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
-		Username:   inputs.Params.UserName,
-		Password:   inputs.Params.Password,
-	}
-
 	// Update Deckhouse-registry secret and wait
 	processedRegistrySwitcher, err := state.processRegistrySwitcher(registrySecretParams, inputs)
 	if err != nil {
@@ -566,6 +556,13 @@ func (state *State) transitionToProxy(log go_hook.Logger, inputs Inputs) error {
 
 	// All done
 	state.Mode = state.TargetMode
+	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
+		ImagesRepo: inputs.Params.ImagesRepo,
+		Scheme:     inputs.Params.Scheme,
+		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
+		Username:   inputs.Params.UserName,
+		Password:   inputs.Params.Password,
+	}
 	state.setReadyCondition(true, inputs)
 
 	return nil
@@ -671,16 +668,6 @@ func (state *State) transitionToDirect(log go_hook.Logger, inputs Inputs) error 
 	// Registry service
 	state.RegistryService = registryservice.ModeInClusterProxy
 
-	// Params for fallback to the Legacy Unmanaged mode.
-	// Must be stored before updating the deckhouse-registry secret (next step).
-	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
-		ImagesRepo: inputs.Params.ImagesRepo,
-		Scheme:     inputs.Params.Scheme,
-		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
-		Username:   inputs.Params.UserName,
-		Password:   inputs.Params.Password,
-	}
-
 	// Update Deckhouse-registry secret and wait
 	processedRegistrySwitcher, err := state.processRegistrySwitcher(registrySecretParams, inputs)
 	if err != nil {
@@ -718,6 +705,13 @@ func (state *State) transitionToDirect(log go_hook.Logger, inputs Inputs) error 
 
 	// All done
 	state.Mode = state.TargetMode
+	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
+		ImagesRepo: inputs.Params.ImagesRepo,
+		Scheme:     inputs.Params.Scheme,
+		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
+		Username:   inputs.Params.UserName,
+		Password:   inputs.Params.Password,
+	}
 	state.setReadyCondition(true, inputs)
 
 	return nil
@@ -782,16 +776,6 @@ func (state *State) transitionToConfigurableUnmanaged(inputs Inputs) error {
 		return nil
 	}
 
-	// Params for fallback to the Legacy Unmanaged mode.
-	// Must be stored before updating the deckhouse-registry secret (next step).
-	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
-		ImagesRepo: inputs.Params.ImagesRepo,
-		Scheme:     inputs.Params.Scheme,
-		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
-		Username:   inputs.Params.UserName,
-		Password:   inputs.Params.Password,
-	}
-
 	// Update Deckhouse-registry secret and wait
 	processedRegistrySwitcher, err := state.processRegistrySwitcher(registrySecretParams, inputs)
 	if err != nil {
@@ -838,6 +822,13 @@ func (state *State) transitionToConfigurableUnmanaged(inputs Inputs) error {
 
 	// All done
 	state.Mode = state.TargetMode
+	state.Bashible.UnmanagedParams = &bashible.UnmanagedModeParams{
+		ImagesRepo: inputs.Params.ImagesRepo,
+		Scheme:     inputs.Params.Scheme,
+		CA:         string(encodeCertificateIfExist(inputs.Params.CA)),
+		Username:   inputs.Params.UserName,
+		Password:   inputs.Params.Password,
+	}
 	state.setReadyCondition(true, inputs)
 
 	return nil

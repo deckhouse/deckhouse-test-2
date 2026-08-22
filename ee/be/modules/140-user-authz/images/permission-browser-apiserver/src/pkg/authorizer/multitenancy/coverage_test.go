@@ -7,6 +7,9 @@ package multitenancy
 
 import (
 	"context"
+	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,41 +18,158 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apiserver/pkg/authentication/user"
 	"k8s.io/apiserver/pkg/authorization/authorizer"
-
-	"github.com/deckhouse/deckhouse/go_lib/user-authz/rules"
-
-	"permission-browser-apiserver/pkg/authorizer/multitenancy/mttest"
+	"k8s.io/client-go/informers"
+	"k8s.io/client-go/kubernetes/fake"
 )
 
-// coverageEngine builds an engine over the rules, with no namespace lister (none of the scenarios
-// below exercise a namespaceSelector's matchLabels) and the core resource scope.
-func coverageEngine(t *testing.T, rs ...rules.Rule) *Engine {
-	t.Helper()
-	engine, err := NewEngine(mttest.Rules(rs...), mttest.NoBindings(), nil, nil, coreResourceScope())
-	require.NoError(t, err)
-	return engine
-}
-
-// TestEngine_InitialConfigLoad tests that the rules of a subject reach the directory.
+// TestEngine_InitialConfigLoad tests initial configuration loading
 func TestEngine_InitialConfigLoad(t *testing.T) {
-	engine := coverageEngine(t, rules.Rule{
-		Name:            "test-rule",
-		LimitNamespaces: []string{"allowed-ns"},
-		Subjects:        []rules.Subject{{Kind: "User", Name: "testuser"}},
-	})
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
 
-	entries := engine.affectedEntries("testuser", nil)
+	// Configuration with a rule
+	config := UserAuthzConfig{CRDs: []struct {
+		Name string `json:"name"`
+		Spec struct {
+			AccessLevel                   string             `json:"accessLevel"`
+			PortForwarding                bool               `json:"portForwarding"`
+			AllowScale                    bool               `json:"allowScale"`
+			AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+			LimitNamespaces               []string           `json:"limitNamespaces"`
+			NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+			AdditionalRoles               []struct {
+				APIGroup string `json:"apiGroup"`
+				Kind     string `json:"kind"`
+				Name     string `json:"name"`
+			} `json:"additionalRoles"`
+			Subjects []struct {
+				Kind      string `json:"kind"`
+				Name      string `json:"name"`
+				Namespace string `json:"namespace"`
+			} `json:"subjects"`
+		} `json:"spec,omitempty"`
+	}{
+		{
+			Name: "test-rule",
+			Spec: struct {
+				AccessLevel                   string             `json:"accessLevel"`
+				PortForwarding                bool               `json:"portForwarding"`
+				AllowScale                    bool               `json:"allowScale"`
+				AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+				LimitNamespaces               []string           `json:"limitNamespaces"`
+				NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+				AdditionalRoles               []struct {
+					APIGroup string `json:"apiGroup"`
+					Kind     string `json:"kind"`
+					Name     string `json:"name"`
+				} `json:"additionalRoles"`
+				Subjects []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				} `json:"subjects"`
+			}{
+				LimitNamespaces: []string{"allowed-ns"},
+				Subjects: []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				}{
+					{Kind: "User", Name: "testuser"},
+				},
+			},
+		},
+	}}
+
+	writeConfig(t, configPath, config)
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
+
+	// Should have an entry for testuser
+	entries := engine.affectedDirs("testuser", nil)
 	assert.Len(t, entries, 1, "should have one entry for testuser")
 }
 
 // TestEngine_SystemNamespaces tests restrictions on system namespaces
 func TestEngine_SystemNamespaces(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+
 	// Configuration WITHOUT access to system namespaces
-	engine := coverageEngine(t, rules.Rule{
-		Name:                          "limited-user-rule",
-		AllowAccessToSystemNamespaces: false,
-		Subjects:                      []rules.Subject{{Kind: "User", Name: "limited-user"}},
-	})
+	config := UserAuthzConfig{CRDs: []struct {
+		Name string `json:"name"`
+		Spec struct {
+			AccessLevel                   string             `json:"accessLevel"`
+			PortForwarding                bool               `json:"portForwarding"`
+			AllowScale                    bool               `json:"allowScale"`
+			AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+			LimitNamespaces               []string           `json:"limitNamespaces"`
+			NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+			AdditionalRoles               []struct {
+				APIGroup string `json:"apiGroup"`
+				Kind     string `json:"kind"`
+				Name     string `json:"name"`
+			} `json:"additionalRoles"`
+			Subjects []struct {
+				Kind      string `json:"kind"`
+				Name      string `json:"name"`
+				Namespace string `json:"namespace"`
+			} `json:"subjects"`
+		} `json:"spec,omitempty"`
+	}{
+		{
+			Name: "limited-user-rule",
+			Spec: struct {
+				AccessLevel                   string             `json:"accessLevel"`
+				PortForwarding                bool               `json:"portForwarding"`
+				AllowScale                    bool               `json:"allowScale"`
+				AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+				LimitNamespaces               []string           `json:"limitNamespaces"`
+				NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+				AdditionalRoles               []struct {
+					APIGroup string `json:"apiGroup"`
+					Kind     string `json:"kind"`
+					Name     string `json:"name"`
+				} `json:"additionalRoles"`
+				Subjects []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				} `json:"subjects"`
+			}{
+				AllowAccessToSystemNamespaces: false,
+				Subjects: []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				}{
+					{Kind: "User", Name: "limited-user"},
+				},
+			},
+		},
+	}}
+
+	writeConfig(t, configPath, config)
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
 
 	systemNamespaces := []string{"kube-system", "kube-public", "d8-system", "default"}
 
@@ -73,11 +193,74 @@ func TestEngine_SystemNamespaces(t *testing.T) {
 
 // TestEngine_GroupBasedRules tests group-based authorization rules
 func TestEngine_GroupBasedRules(t *testing.T) {
-	engine := coverageEngine(t, rules.Rule{
-		Name:            "developers-rule",
-		LimitNamespaces: []string{"dev-.*"},
-		Subjects:        []rules.Subject{{Kind: "Group", Name: "developers"}},
-	})
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+
+	config := UserAuthzConfig{CRDs: []struct {
+		Name string `json:"name"`
+		Spec struct {
+			AccessLevel                   string             `json:"accessLevel"`
+			PortForwarding                bool               `json:"portForwarding"`
+			AllowScale                    bool               `json:"allowScale"`
+			AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+			LimitNamespaces               []string           `json:"limitNamespaces"`
+			NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+			AdditionalRoles               []struct {
+				APIGroup string `json:"apiGroup"`
+				Kind     string `json:"kind"`
+				Name     string `json:"name"`
+			} `json:"additionalRoles"`
+			Subjects []struct {
+				Kind      string `json:"kind"`
+				Name      string `json:"name"`
+				Namespace string `json:"namespace"`
+			} `json:"subjects"`
+		} `json:"spec,omitempty"`
+	}{
+		{
+			Name: "developers-rule",
+			Spec: struct {
+				AccessLevel                   string             `json:"accessLevel"`
+				PortForwarding                bool               `json:"portForwarding"`
+				AllowScale                    bool               `json:"allowScale"`
+				AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+				LimitNamespaces               []string           `json:"limitNamespaces"`
+				NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+				AdditionalRoles               []struct {
+					APIGroup string `json:"apiGroup"`
+					Kind     string `json:"kind"`
+					Name     string `json:"name"`
+				} `json:"additionalRoles"`
+				Subjects []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				} `json:"subjects"`
+			}{
+				LimitNamespaces: []string{"dev-.*"},
+				Subjects: []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				}{
+					{Kind: "Group", Name: "developers"},
+				},
+			},
+		},
+	}}
+
+	writeConfig(t, configPath, config)
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
 
 	tests := []struct {
 		name       string
@@ -116,11 +299,74 @@ func TestEngine_GroupBasedRules(t *testing.T) {
 
 // TestEngine_ServiceAccountRules tests ServiceAccount authorization rules
 func TestEngine_ServiceAccountRules(t *testing.T) {
-	engine := coverageEngine(t, rules.Rule{
-		Name:            "sa-rule",
-		LimitNamespaces: []string{"app-ns"},
-		Subjects:        []rules.Subject{{Kind: "ServiceAccount", Name: "my-sa", Namespace: "app-ns"}},
-	})
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+
+	config := UserAuthzConfig{CRDs: []struct {
+		Name string `json:"name"`
+		Spec struct {
+			AccessLevel                   string             `json:"accessLevel"`
+			PortForwarding                bool               `json:"portForwarding"`
+			AllowScale                    bool               `json:"allowScale"`
+			AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+			LimitNamespaces               []string           `json:"limitNamespaces"`
+			NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+			AdditionalRoles               []struct {
+				APIGroup string `json:"apiGroup"`
+				Kind     string `json:"kind"`
+				Name     string `json:"name"`
+			} `json:"additionalRoles"`
+			Subjects []struct {
+				Kind      string `json:"kind"`
+				Name      string `json:"name"`
+				Namespace string `json:"namespace"`
+			} `json:"subjects"`
+		} `json:"spec,omitempty"`
+	}{
+		{
+			Name: "sa-rule",
+			Spec: struct {
+				AccessLevel                   string             `json:"accessLevel"`
+				PortForwarding                bool               `json:"portForwarding"`
+				AllowScale                    bool               `json:"allowScale"`
+				AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+				LimitNamespaces               []string           `json:"limitNamespaces"`
+				NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+				AdditionalRoles               []struct {
+					APIGroup string `json:"apiGroup"`
+					Kind     string `json:"kind"`
+					Name     string `json:"name"`
+				} `json:"additionalRoles"`
+				Subjects []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				} `json:"subjects"`
+			}{
+				LimitNamespaces: []string{"app-ns"},
+				Subjects: []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				}{
+					{Kind: "ServiceAccount", Name: "my-sa", Namespace: "app-ns"},
+				},
+			},
+		},
+	}}
+
+	writeConfig(t, configPath, config)
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
 
 	// ServiceAccount user format: system:serviceaccount:<namespace>:<name>
 	saUser := "system:serviceaccount:app-ns:my-sa"
@@ -158,12 +404,77 @@ func TestEngine_ServiceAccountRules(t *testing.T) {
 
 // TestEngine_MatchAnySelector tests MatchAny selector behavior
 func TestEngine_MatchAnySelector(t *testing.T) {
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+
 	// Rule with MatchAny = true - allows all namespaces
-	engine := coverageEngine(t, rules.Rule{
-		Name:              "match-any-rule",
-		NamespaceSelector: &rules.NamespaceSelector{MatchAny: true},
-		Subjects:          []rules.Subject{{Kind: "User", Name: "super-user"}},
-	})
+	config := UserAuthzConfig{CRDs: []struct {
+		Name string `json:"name"`
+		Spec struct {
+			AccessLevel                   string             `json:"accessLevel"`
+			PortForwarding                bool               `json:"portForwarding"`
+			AllowScale                    bool               `json:"allowScale"`
+			AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+			LimitNamespaces               []string           `json:"limitNamespaces"`
+			NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+			AdditionalRoles               []struct {
+				APIGroup string `json:"apiGroup"`
+				Kind     string `json:"kind"`
+				Name     string `json:"name"`
+			} `json:"additionalRoles"`
+			Subjects []struct {
+				Kind      string `json:"kind"`
+				Name      string `json:"name"`
+				Namespace string `json:"namespace"`
+			} `json:"subjects"`
+		} `json:"spec,omitempty"`
+	}{
+		{
+			Name: "match-any-rule",
+			Spec: struct {
+				AccessLevel                   string             `json:"accessLevel"`
+				PortForwarding                bool               `json:"portForwarding"`
+				AllowScale                    bool               `json:"allowScale"`
+				AllowAccessToSystemNamespaces bool               `json:"allowAccessToSystemNamespaces"`
+				LimitNamespaces               []string           `json:"limitNamespaces"`
+				NamespaceSelector             *NamespaceSelector `json:"namespaceSelector"`
+				AdditionalRoles               []struct {
+					APIGroup string `json:"apiGroup"`
+					Kind     string `json:"kind"`
+					Name     string `json:"name"`
+				} `json:"additionalRoles"`
+				Subjects []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				} `json:"subjects"`
+			}{
+				NamespaceSelector: &NamespaceSelector{
+					MatchAny: true,
+				},
+				Subjects: []struct {
+					Kind      string `json:"kind"`
+					Name      string `json:"name"`
+					Namespace string `json:"namespace"`
+				}{
+					{Kind: "User", Name: "super-user"},
+				},
+			},
+		},
+	}}
+
+	writeConfig(t, configPath, config)
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
 
 	// With MatchAny=true user should not be blocked in any namespace
 	attrs := &testAttrs{
@@ -181,7 +492,20 @@ func TestEngine_MatchAnySelector(t *testing.T) {
 
 // TestEngine_NonResourceRequestSkipped tests that non-resource requests are skipped
 func TestEngine_NonResourceRequestSkipped(t *testing.T) {
-	engine := coverageEngine(t)
+	tmpDir := t.TempDir()
+	configPath := filepath.Join(tmpDir, "config.json")
+	writeConfig(t, configPath, UserAuthzConfig{})
+
+	fakeClient := fake.NewSimpleClientset()
+	informerFactory := informers.NewSharedInformerFactory(fakeClient, 0)
+
+	engine, err := NewEngine(
+		configPath,
+		informerFactory.Core().V1().Namespaces().Lister(),
+		func() bool { return true },
+		fakeClient.Discovery(),
+	)
+	require.NoError(t, err)
 
 	attrs := &testAttrs{
 		user:            &user.DefaultInfo{Name: "anyone"},
@@ -196,6 +520,13 @@ func TestEngine_NonResourceRequestSkipped(t *testing.T) {
 }
 
 // === Helpers ===
+
+func writeConfig(t *testing.T, path string, config UserAuthzConfig) {
+	data, err := json.Marshal(config)
+	require.NoError(t, err)
+	err = os.WriteFile(path, data, 0644)
+	require.NoError(t, err)
+}
 
 type testAttrs struct {
 	user            user.Info

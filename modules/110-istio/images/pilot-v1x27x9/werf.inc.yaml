@@ -1,3 +1,4 @@
+{{- if ne $.Env "CSE" }}
 ---
 {{- $istioVersion := include "get_oss_version_by_id" (list "istio-1-27" $ ) }}
 {{- $istioImageVersion := (printf "v%s" (replace "." "x" $istioVersion)) }} {{- /* 1.27.9 -> v1x27x9 */}}
@@ -63,3 +64,4 @@ shell:
   - chown 64535:64535 /src/istio/out/pilot-discovery
 ---
 {{- include "vex mitigation" (list $ (printf "%s/%s" $.ModuleName $.ImageName)) }}
+{{- end }}

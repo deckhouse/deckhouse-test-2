@@ -72,18 +72,19 @@ func (c CidrIntersectionStaticCheck) Run(ctx context.Context) error {
 	return nil
 }
 
-// Subnet CIDRs are set via network.go, which determines if values are set in mc control-plane-manager or deprecated cluster-configuration.
 func getCIDRs(meta *config.MetaConfig) (string, string, error) {
-	network := meta.Network()
+	var podCIDR string
+	var serviceCIDR string
 
-	if network.PodSubnetCIDR == "" {
-		return "", "", fmt.Errorf("podSubnetCIDR is set neither in ModuleConfig control-plane-manager (spec.settings.network) nor in ClusterConfiguration")
-	}
-	if network.ServiceSubnetCIDR == "" {
-		return "", "", fmt.Errorf("serviceSubnetCIDR is set neither in ModuleConfig control-plane-manager (spec.settings.network) nor in ClusterConfiguration")
+	if err := json.Unmarshal(meta.ClusterConfig["podSubnetCIDR"], &podCIDR); err != nil {
+		return "", "", fmt.Errorf("missing podSubnetCIDR field in ClusterConfiguration")
 	}
 
-	return network.PodSubnetCIDR, network.ServiceSubnetCIDR, nil
+	if err := json.Unmarshal(meta.ClusterConfig["serviceSubnetCIDR"], &serviceCIDR); err != nil {
+		return "", "", fmt.Errorf("missing serviceSubnetCIDR field in ClusterConfiguration")
+	}
+
+	return podCIDR, serviceCIDR, nil
 }
 
 func internalNetworkCIDRs(meta *config.MetaConfig) ([]string, error) {

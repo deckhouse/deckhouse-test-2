@@ -51,7 +51,7 @@ func (r *Reconciler) reconcileNode(ctx context.Context, node *corev1.Node, ng *v
 		}
 	}
 
-	if ng.Name == masterNodeGroupName {
+	if ng.Name == "master" {
 		logger.V(1).Info("applying master node role labels and fixing master taints", "node", node.Name)
 		if working.Labels == nil {
 			working.Labels = make(map[string]string)
@@ -67,7 +67,7 @@ func (r *Reconciler) reconcileNode(ctx context.Context, node *corev1.Node, ng *v
 		if working.Annotations == nil {
 			working.Annotations = make(map[string]string)
 		}
-		working.Annotations[scaleDownDisabledAnnotation] = "true"
+		working.Annotations["cluster-autoscaler.kubernetes.io/scale-down-disabled"] = "true"
 	}
 
 	if !nodeChanged(base, working) {

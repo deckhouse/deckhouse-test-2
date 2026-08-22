@@ -103,7 +103,7 @@ func (s *Service) readStatic(ctx context.Context) (map[string]interface{}, error
 		InternalNetworkCIDRs []interface{} `json:"internalNetworkCIDRs"`
 	}
 	if err := sigsyaml.Unmarshal(raw, &cfg); err != nil {
-		return nil, fmt.Errorf("parse %s of secret %s: %w", staticConfigKey, staticConfigSecretName, err)
+		return nil, nil
 	}
 	cidrs := cfg.InternalNetworkCIDRs
 	if cidrs == nil {

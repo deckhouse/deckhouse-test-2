@@ -1,13 +1,13 @@
 ---
-title: What to do if there are problems updating DP?
+title: What to do if there are problems updating DKP?
 subsystems:
   - deckhouse
 lang: en
 ---
 
-#### Deckhouse Platform update fails, one or more Deckhouse pods are in an unworkable state
+#### Deckhouse Kubernetes Platform update fails, one or more Deckhouse pods are in an unworkable state
 
-If the Deckhouse Platform update fails, one or more Deckhouse pods in the `d8-system` namespace are in an unworkable state. Perform the following steps:
+If the Deckhouse Kubernetes Platform update fails, one or more Deckhouse pods in the `d8-system` namespace are in an unworkable state. Perform the following steps:
 
 1. Check the Deckhouse logs using the command:
 
@@ -53,7 +53,7 @@ If the Deckhouse Platform update fails, one or more Deckhouse pods in the `d8-sy
    {: .nowrap-default }
    <!-- markdownlint-enable MD031 -->
 
-#### DP update is stuck in the Release is suspended status
+#### DKP update is stuck in the Release is suspended status
 
 The status `Release is suspended` indicates that it has been postponed and is currently unavailable (not recommended) for installation. In this case, it is recommended to remain on the latest available release or on the one currently installed (it will have the status `Deployed`).
 

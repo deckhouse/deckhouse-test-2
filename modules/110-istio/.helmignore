@@ -4,6 +4,5 @@ enabled
 openapi
 hooks
 images
-tools
 template_tests
 README.md

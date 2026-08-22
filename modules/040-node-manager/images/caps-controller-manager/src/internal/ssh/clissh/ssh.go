@@ -18,7 +18,6 @@ package clissh
 
 import (
 	"bytes"
-	"context"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -27,7 +26,6 @@ import (
 	"strings"
 
 	deckhousev1 "caps-controller-manager/api/deckhouse.io/v1alpha2"
-	capsssh "caps-controller-manager/internal/ssh"
 )
 
 type SSH struct {
@@ -43,10 +41,7 @@ func CreateSSHClient(address string, credentials deckhousev1.SSHCredentialsSpec)
 }
 
 // ExecSSHCommand executes a command on the StaticInstance.
-func (s *SSH) ExecSSHCommand(ctx context.Context, command string, stdout io.Writer, stderr io.Writer) error {
-	ctx, cancel := context.WithTimeout(ctx, capsssh.CommandTimeout)
-	defer cancel()
-
+func (s *SSH) ExecSSHCommand(command string, stdout io.Writer, stderr io.Writer) error {
 	privateSSHKey, err := base64.StdEncoding.DecodeString(s.credentials.PrivateSSHKey)
 	if err != nil {
 		return fmt.Errorf("failed to decode private ssh key: %w", err)
@@ -76,8 +71,6 @@ func (s *SSH) ExecSSHCommand(ctx context.Context, command string, stdout io.Writ
 		sshKey.Name(),
 		"-o",
 		"StrictHostKeyChecking=no",
-		"-o",
-		fmt.Sprintf("ConnectTimeout=%d", int(capsssh.ConnectTimeout.Seconds())),
 		fmt.Sprintf("-p %d", s.credentials.SSHPort),
 	}
 
@@ -112,7 +105,7 @@ func (s *SSH) ExecSSHCommand(ctx context.Context, command string, stdout io.Writ
 		command,
 	}...)
 
-	cmd := exec.CommandContext(ctx, "ssh", args...)
+	cmd := exec.Command("ssh", args...)
 
 	cmd.Stdin = stdin
 
@@ -136,10 +129,10 @@ func (s *SSH) ExecSSHCommand(ctx context.Context, command string, stdout io.Writ
 }
 
 // ExecSSHCommandToString executes a command on the StaticInstance and returns the output as a string.
-func (s *SSH) ExecSSHCommandToString(ctx context.Context, command string) (string, error) {
+func (s *SSH) ExecSSHCommandToString(command string) (string, error) {
 	stdout := &bytes.Buffer{}
 	stderr := &bytes.Buffer{}
-	err := s.ExecSSHCommand(ctx, command, stdout, stderr)
+	err := s.ExecSSHCommand(command, stdout, stderr)
 	if err != nil {
 		stderrBytes, err2 := io.ReadAll(stderr)
 		if err2 != nil {

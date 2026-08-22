@@ -10,21 +10,6 @@ spec:
       - ''
       kinds:
       - Pod
-    - apiGroups:
-      - apps
-      kinds:
-      - Deployment
-      - StatefulSet
-      - DaemonSet
-    - apiGroups:
-      - ''
-      kinds:
-      - ReplicationController
-    - apiGroups:
-      - batch
-      kinds:
-      - Job
-      - CronJob
     namespaceSelector:
       matchExpressions:
       - key: security.deckhouse.io/pod-policy

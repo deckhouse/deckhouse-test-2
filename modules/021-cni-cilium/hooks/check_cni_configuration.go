@@ -253,7 +253,6 @@ func checkCni(_ context.Context, input *go_hook.HookInput) error {
 				secretMatchesMC = false
 			}
 		default:
-			//nolint:sloglint
 			input.Logger.Warn("An unknown cilium mode was specified in the d8-cni-configuration secret, so the default cni mode will be used instead.", slog.String("specified mode", cniSecret.Cilium.Mode))
 		}
 
@@ -271,7 +270,6 @@ func checkCni(_ context.Context, input *go_hook.HookInput) error {
 				secretMatchesMC = false
 			}
 		default:
-			//nolint:sloglint
 			input.Logger.Warn("An unknown cilium masqueradeMode was specified in the d8-cni-configuration secret, so the default cni masqueradeMode will be used instead.", slog.String("specified masqueradeMode", cniSecret.Cilium.Mode))
 		}
 

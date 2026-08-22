@@ -1,6 +1,6 @@
 ---
 image: {{ $.ModuleName }}/{{ $.ImageName }}
-from: {{ index $.Images "base/distroless-fin" }}
+fromImage: common/distroless
 import:
 {{- include "image mount points" . }}
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
@@ -8,11 +8,25 @@ import:
   to: /dvp-csi-driver
   before: setup
 - image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
-  add: /out
+  add: /relocate
   to: /
   before: install
   includePaths:
   - '**/*'
+- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+  add: /lib64
+  to: /lib64
+  before: install
+  includePaths:
+  - 'libresolv*'
+- image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
+  add: /lib/udev/scsi_id
+  to: /lib/udev/scsi_id
+  before: setup
+- from: {{ index $.Images "tools/util-linux" }}
+  add: /bin/lsblk
+  to: /bin/lsblk
+  before: setup
 imageSpec:
   config:
     entrypoint: ["/dvp-csi-driver"]
@@ -50,7 +64,8 @@ image: {{ $.ModuleName }}/{{ $.ImageName }}-artifact
 final: false
 from: {{ index $.Images "builder/golang" }}
 mount:
-{{ include "mount points for golang builds" . }}
+- fromPath: ~/go-pkg-cache
+  to: /go/pkg
 import:
   - image: {{ $.ModuleName }}/{{ $.ImageName }}-src-artifact
     add: /src
@@ -65,9 +80,14 @@ shell:
   - chown 64535:64535 /dvp-csi-driver
   - chmod 0755 /dvp-csi-driver
 ---
+{{- $csiBinaries := "/bin/chmod /bin/mount /bin/mkdir /bin/rmdir /bin/umount /bin/findmnt /sbin/badblocks /sbin/blockdev /sbin/blk* /sbin/btrfs* /sbin/dumpe2fs /sbin/e2* /sbin/findfs /sbin/fsck* /sbin/fsfreeze /sbin/fstrim /sbin/mke2fs /sbin/mkfs* /sbin/resize2fs /sbin/xfs_repair /usr/sbin/nvme /usr/sbin/parted /usr/sbin/xfs*" }}
+---
 image: {{ $.ModuleName }}/{{ $.ImageName }}-binaries-artifact
 final: false
-from: {{ index $.Images "builder/distroless" }}
+fromImage: common/relocate-artifact
 shell:
+  beforeInstall:
+  - apt-get update -y
+  - apt-get install -y e2fsprogs xfsprogs parted btrfs-progs nvme udev
   install:
-  - pm install coreutils e2fsprogs xfsprogs util-linux parted nvme-cli btrfs-progs udev libc -d /out
+    - /binary_replace.sh -i "{{ $csiBinaries }}" -o /relocate

@@ -20,6 +20,7 @@ import (
 
 	dhlog "github.com/deckhouse/lib-dhctl/pkg/logger"
 
+	"github.com/deckhouse/deckhouse/dhctl/pkg/config"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/global"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/entity"
@@ -93,7 +94,6 @@ func (c *CloudPermanentNodeGroupController) addNodes(ctx *context.Context) error
 			ctx.InfrastructureContext(metaConfig),
 			false,
 			c.globalOptions,
-			c.payloadBuilder(ctx),
 		)
 		return err
 	})
@@ -107,7 +107,7 @@ func (c *CloudPermanentNodeGroupController) beforeUpdateNodes(*context.Context) 
 	return nil
 }
 
-func (c *CloudPermanentNodeGroupController) updateNode(ctx *context.Context, nodeName string, nodeIndex int) error {
+func (c *CloudPermanentNodeGroupController) updateNode(ctx *context.Context, nodeName string) error {
 	metaConfig, err := ctx.MetaConfig()
 	if err != nil {
 		return err
@@ -119,6 +119,12 @@ func (c *CloudPermanentNodeGroupController) updateNode(ctx *context.Context, nod
 		nodeState = c.state.State[nodeName]
 	}
 
+	nodeIndex, err := config.GetIndexFromNodeName(nodeName)
+	if err != nil {
+		dhlog.FromContext(ctx.Ctx()).ErrorContext(ctx.Ctx(), fmt.Sprintf("can't extract index from infrastructure state secret (%v), skipping %s", err, nodeName))
+		return nil
+	}
+
 	kubeClient, err := ctx.KubeClientCtx(ctx.Ctx())
 	if err != nil {
 		return fmt.Errorf("Could not get kube client: %w", err)
@@ -127,21 +133,7 @@ func (c *CloudPermanentNodeGroupController) updateNode(ctx *context.Context, nod
 	nodeGroupName := c.name
 
 	// Node group settings are only for the static node.
-	nodeGroupSettingsFromConfig, err := metaConfig.FindTerraNodeGroup(ctx.Ctx(), c.name)
-	if err != nil {
-		return err
-	}
-
-	// The payload only reaches the machine when the VM is recreated: the cloud-init
-	// secret is immutable and its name carries the plan's destructive hash. Building it
-	// here means a recreated node joins with a live token and live apiservers.
-	cloudConfig := c.cloudConfig
-	if c.immutable {
-		cloudConfig, err = immutableNodePayload(ctx, c.name, nodeName)
-		if err != nil {
-			return err
-		}
-	}
+	nodeGroupSettingsFromConfig := metaConfig.FindTerraNodeGroup(ctx.Ctx(), c.name)
 
 	nodeRunner, err := ctx.InfrastructureContext(metaConfig).GetConvergeNodeRunner(ctx.Ctx(), metaConfig, infrastructure.NodeRunnerOptions{
 		NodeName:        nodeName,
@@ -149,7 +141,7 @@ func (c *CloudPermanentNodeGroupController) updateNode(ctx *context.Context, nod
 		NodeGroupStep:   c.layoutStep,
 		NodeIndex:       nodeIndex,
 		NodeState:       nodeState,
-		NodeCloudConfig: cloudConfig,
+		NodeCloudConfig: c.cloudConfig,
 		CommanderMode:   ctx.CommanderMode(),
 		StateCache:      ctx.StateCache(),
 		AdditionalStateSaverDestinations: []infrastructure.SaverDestination{
@@ -209,13 +201,4 @@ func (c *CloudPermanentNodeGroupController) deleteNodes(
 			)
 		},
 	)
-}
-
-// payloadBuilder renders the document each machine of this group boots with, and nil
-// for a group whose machines run the cloud config the cluster publishes for it.
-func (c *CloudPermanentNodeGroupController) payloadBuilder(ctx *context.Context) operations.ImmutablePayloadBuilder {
-	if !c.immutable {
-		return nil
-	}
-	return NewImmutablePayloadBuilder(ctx)
 }

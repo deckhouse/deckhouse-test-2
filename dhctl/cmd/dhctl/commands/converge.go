@@ -29,7 +29,6 @@ import (
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructureprovider/cloud"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kpcontext"
-	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/kubeerrors"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/operations/converge"
 	statecache "github.com/deckhouse/deckhouse/dhctl/pkg/state/cache"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/system/providerinitializer"
@@ -63,12 +62,6 @@ func DefineConvergeCommand(cmd *kingpin.CmdClause, opts *options.Options) *kingp
 
 		defer providerinitializer.CleanupSSHProvider(ctx, sshProviderInitializer)
 
-		kubeProvider, stopBastionChannel, err := kubeProviderThroughBastion(ctx, opts, sshProviderInitializer, kubeProvider)
-		if err != nil {
-			return err
-		}
-		defer stopBastionChannel()
-
 		providerGetter := infrastructureprovider.CloudProviderGetter(infrastructureprovider.CloudProviderGetterParams{
 			TmpDir:           opts.Global.TmpDir,
 			AdditionalParams: cloud.ProviderAdditionalParams{},
@@ -79,7 +72,6 @@ func DefineConvergeCommand(cmd *kingpin.CmdClause, opts *options.Options) *kingp
 		converger := converge.NewConverger(&converge.Params{
 			SSHProviderInitializer: sshProviderInitializer,
 			KubeProvider:           kubeProvider,
-			KubeOwnCredentials:     providerinitializer.KubeAuthMode(&opts.Kube) == kubeerrors.AuthModeOwnCredentials,
 			ChangesSettings: infrastructure.ChangeActionSettings{
 				SkipChangesOnDeny: false,
 				AutomaticSettings: infrastructure.AutomaticSettings{
@@ -236,7 +228,6 @@ func DefineConvergeMigrationCommand(cmd *kingpin.CmdClause, opts *options.Option
 		converger := converge.NewConverger(&converge.Params{
 			SSHProviderInitializer: sshProviderInitializer,
 			KubeProvider:           kubeProvider,
-			KubeOwnCredentials:     providerinitializer.KubeAuthMode(&opts.Kube) == kubeerrors.AuthModeOwnCredentials,
 			ChangesSettings: infrastructure.ChangeActionSettings{
 				AutomaticSettings: infrastructure.AutomaticSettings{
 					AutoDismissDestructive: true,

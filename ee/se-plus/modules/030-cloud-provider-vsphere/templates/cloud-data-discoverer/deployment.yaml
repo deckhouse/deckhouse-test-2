@@ -1,7 +1,4 @@
 {{- define "vsphere_cdd_pod_annotations" -}}
-{{- if eq (include "vsphere_has_provider_caBundle" .) "true" }}
-checksum/ca: {{ include (print $.Template.BasePath "/ca-secret.yaml") . | sha256sum }}
-{{- end }}
 checksum/config: {{ include (print $.Template.BasePath "/cloud-data-discoverer/secret.yaml") . | sha256sum }}
 {{- end -}}
 
@@ -26,13 +23,6 @@ checksum/config: {{ include (print $.Template.BasePath "/cloud-data-discoverer/s
     secretKeyRef:
       name: cloud-data-discoverer
       key: insecure
-{{- if eq (include "vsphere_has_provider_caBundle" .) "true" }}
-- name: GOVMOMI_CA_BUNDLE
-  valueFrom:
-    secretKeyRef:
-      name: vsphere-ca-certs
-      key: ca.crt
-{{- end }}
 - name: REGION
   valueFrom:
     secretKeyRef:

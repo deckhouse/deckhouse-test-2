@@ -20,7 +20,6 @@ metadata:
   labels:
     component: etcd
     tier: control-plane
-    security.deckhouse.io/security-policy-exception: etcd
   name: etcd
   namespace: kube-system
 spec:
@@ -96,7 +95,6 @@ spec:
         cpu: "{{ $c.milliCPU | default (div (mul $millicpu 35) 100) }}m"
         memory: "{{ $c.memoryBytes | default (div (mul $memory 35) 100) }}"
     securityContext:
-      allowPrivilegeEscalation: false
       capabilities:
         drop:
         - ALL

@@ -31,9 +31,8 @@ spec:
     matchLabels:
       projects.deckhouse.io/project: demo
   resources:
-    # A non-empty allow-list restricts the resource to it (baseline None is inferred); set
-    # availabilityDefault explicitly only to flip the baseline without a list. Empty allowed: []
-    # does not lock anything.
+    # An allow-list restricts the resource to it (baseline None is inferred); set availabilityDefault
+    # explicitly only to flip the baseline without a list (All to open fully, None to lock down).
     - resourceName: storageclasses
       allowed:
         - local

@@ -68,15 +68,13 @@ spec:
         {{- include "node_driver_registrar_resources" $context | nindent 8 }}
       maxAllowed:
         cpu: 25m
-        memory: 64Mi
-    {{- /* The node container is the driver itself, so its peak depends on the backend: the
-           observed 7-day peaks range from 24Mi/1m for csi-nfs to 84Mi/70m for csi-huawei. */}}
+        memory: 50Mi
     - containerName: "node"
       minAllowed:
         {{- include "node_resources" $context | nindent 8 }}
       maxAllowed:
-        cpu: 100m
-        memory: 128Mi
+        cpu: 25m
+        memory: 50Mi
     {{- end }}
 ---
 kind: DaemonSet
@@ -173,28 +171,6 @@ spec:
           exec:
             command:
         {{- $additionalNodeLivenessProbesCmd | toYaml | nindent 12 }}
-      {{- else if $livenessProbePort }}
-        {{- /*
-          The probe belongs to the container that serves the port: it is
-          node-driver-registrar that listens on --http-endpoint above, and
-          /healthz there reports whether registration succeeded. Restarting the
-          registrar is exactly the remedy for a failed registration.
-        */}}
-        livenessProbe:
-          httpGet:
-            path: /healthz
-            port: {{ $livenessProbePort }}
-          initialDelaySeconds: 5
-          timeoutSeconds: 5
-      {{- end }}
-      {{- if and $livenessProbePort $startupProbeFailureThreshold }}
-        startupProbe:
-          httpGet:
-            path: /healthz
-            port: {{ $livenessProbePort }}
-          periodSeconds: 10
-          failureThreshold: {{ $startupProbeFailureThreshold }}
-          timeoutSeconds: 5
       {{- end }}
         volumeMounts:
         - name: plugin-dir
@@ -234,20 +210,23 @@ spec:
         lifecycle:
           {{- $csiNodeLifecycle | toYaml | nindent 10 }}
       {{- end }}
-        {{- /*
-          No httpGet probe here on purpose. livenessProbePort is served by
-          node-driver-registrar, not by the driver, so a probe on it made this
-          container's life depend on a sibling's - and the registrar exits by
-          design when registration fails ("restarting registration container").
-          The two then deadlocked: the registrar exited, its port went with it,
-          the probe killed the driver, the CSI socket went away, and the
-          restarted registrar could no longer connect to it ("Still
-          connecting" -> "context deadline exceeded"). Observed on a csi-hpe
-          node with 17 restarts and no csi.hpe.com in its CSINode while five
-          sibling nodes were fine. The probe never reported on this container
-          anyway: once registration succeeded it stayed green regardless of the
-          driver's own state.
-        */}}
+      {{- if $livenessProbePort }}
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: {{ $livenessProbePort }}
+          initialDelaySeconds: 5
+          timeoutSeconds: 5
+      {{- end }}
+      {{- if and $livenessProbePort $startupProbeFailureThreshold }}
+        startupProbe:
+          httpGet:
+            path: /healthz
+            port: {{ $livenessProbePort }}
+          periodSeconds: 10
+          failureThreshold: {{ $startupProbeFailureThreshold }}
+          timeoutSeconds: 5
+      {{- end }}
         volumeMounts:
         - name: kubelet-dir
           mountPath: /var/lib/kubelet

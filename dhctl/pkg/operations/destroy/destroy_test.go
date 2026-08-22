@@ -23,7 +23,6 @@ import (
 	"github.com/stretchr/testify/require"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/deckhouse/deckhouse/dhctl/pkg/app/options"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/global"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/infrastructure/controller"
 	"github.com/deckhouse/deckhouse/dhctl/pkg/kubernetes/actions/manifests"
@@ -36,12 +35,7 @@ import (
 )
 
 func TestInitStateLoader(t *testing.T) {
-	// Params.Options is nil in these tests, so ParseConfigFromCluster resolves
-	// to the fixed default download dir (withDownloadDir(nil)). Yandex's
-	// external validator ships in the terraform-manager bundle, not in-tree,
-	// so fake the delivery there instead of hitting the registry.
-	tests.StubDeliveredProviderBundle(t, options.DefaultTmpDir(), "yandex")
-
+	tests.RequireDir(t, "/deckhouse/candi/cloud-providers", "werf bundles cloud-providers from modules/030-cloud-provider-* at CI time")
 	createKubeProvider := func() kube.ClientProviderWithCleanup {
 		kubeCl := testCreateFakeKubeClient()
 		return newFakeKubeClientProvider(kubeCl)
