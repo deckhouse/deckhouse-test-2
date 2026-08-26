@@ -34,6 +34,9 @@ jobs:
     runs-on: [self-hosted, regular]
     # needs:
     # - skip_tests_repos
+    permissions:
+      contents: write   # нужен для checkout + операций с ветками/PR
+      id-token: write    # нужен для OIDC-токена (vault-action)
     steps:
 
     # <template: checkout_step>
