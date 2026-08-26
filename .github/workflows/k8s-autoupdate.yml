@@ -32,8 +32,8 @@ jobs:
 
   update_k8s:
     runs-on: [self-hosted, regular]
-    needs:
-    - skip_tests_repos
+    # needs:
+    # - skip_tests_repos
     steps:
 
     # <template: checkout_step>
