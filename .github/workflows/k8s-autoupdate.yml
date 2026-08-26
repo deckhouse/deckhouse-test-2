@@ -35,7 +35,7 @@ jobs:
     # needs:
     # - skip_tests_repos
     permissions:
-      contents: read   # нужен для checkout + операций с ветками/PR
+      contents: write   # нужен для checkout + операций с ветками/PR
       id-token: read    # нужен для OIDC-токена (vault-action)
     steps:
 
