@@ -1,0 +1,41 @@
+version: "3"
+
+tasks:
+  fuzz:list:
+    cmds:
+      - go test -vet=off ${FUZZ_PACKAGES:-./...} -list '^Fuzz'
+
+  fuzz:run:
+    cmds:
+      - |
+        set --
+        if [ -n "${FUZZ_TIME:-}" ]; then
+          set -- "$@" "-fuzztime=${FUZZ_TIME}"
+        fi
+        if [ -n "${FUZZ_WORKERS:-}" ]; then
+          set -- "$@" "-parallel=${FUZZ_WORKERS}"
+        fi
+        go test -vet=off "${FUZZ_PKG}" \
+          -run '^$' \
+          -fuzz "^${FUZZ_TARGET}$" \
+          "$@" \
+          -count=1 \
+          -v
+
+  fuzz:coverage:
+    cmds:
+      - |
+        go test -vet=off "${FUZZ_PKG}" \
+          -run "^${FUZZ_TARGET}$" \
+          -count=1 \
+          -covermode=atomic \
+          -coverpkg=./... \
+          -coverprofile="${FUZZ_COVERAGE_FILE}"
+
+  fuzz:replay:
+    cmds:
+      - |
+        go test -vet=off "${FUZZ_PKG}" \
+          -run "^${FUZZ_TARGET}$" \
+          -count=1 \
+          -v
