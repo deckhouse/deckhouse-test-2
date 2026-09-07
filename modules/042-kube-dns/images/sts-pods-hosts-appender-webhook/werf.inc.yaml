@@ -15,6 +15,7 @@ shell:
 image: {{ .ModuleName }}/{{ $.ImageName }}-artifact
 from: {{ index $.Images "builder/golang" }}
 final: false
+fromCacheVersion: "17.07.26-01"
 mount:
 {{ include "mount points for golang builds" . }}
 import:
