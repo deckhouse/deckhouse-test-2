@@ -4332,6 +4332,7 @@ jobs:
           CONTAINER_ID=$(docker run -d -w /deckhouse --tmpfs /tmp:mode=1777,exec -v ${{github.workspace}}:/deckhouse -e HOME=/tmp -e "TERM=xterm-256color" -e GOFLAGS=-buildvcs=false -e GOCACHE=/go-build-cache -v ~/go-mod-cache-node-controller:/go/pkg -v ~/envtest-assets:/envtest-assets -v ~/go-build-cache-node-controller:/go-build-cache ${TESTS_IMAGE_NAME} sleep infinity)
           docker exec -u $(id -u):$(id -g) -e HOME=/tmp -w /deckhouse ${CONTAINER_ID} sh -c "cd modules/040-node-manager/images/node-controller/src && make test LOCALBIN=/envtest-assets GOTESTFMT_CI=github"
           docker rm -f ${CONTAINER_ID}
+          exit 1
     # </template: tests_node_controller_envtest_template>
 
   tests_python_webhooks:
@@ -4388,7 +4389,7 @@ jobs:
         env:
           DISTRO_PACKAGES_PROXY: "${{ steps.secrets.outputs.DISTRO_PACKAGES_PROXY }}"
         run: |
-          make tests-webhooks
+          exit 1
     # </template: tests_webhooks_template>
 
   tests_dmt_lint:
@@ -4446,7 +4447,7 @@ jobs:
           DMT_METRICS_URL: "${{ steps.secrets.outputs.DMT_METRICS_URL }}"
           DMT_METRICS_TOKEN: "${{ steps.secrets.outputs.DMT_METRICS_TOKEN }}"
         run: |
-          make dmt-lint
+          exit 1
     # </template: tests_dmt_lint>
 
   dhctl_tests:
