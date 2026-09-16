@@ -160,7 +160,7 @@ func parseArgs() (*Config, error) {
 	var knownArgs []string
 	var unknownArgs []string
 
-	// Define known flags that affect wrapper behavior
+	// Define known flags that affect wrapper behavior.
 	knownFlags := map[string]bool{
 		"--dry-run":  true,
 		"--help":     true,
