@@ -272,7 +272,7 @@ steps:
 needs:
   - discover
   - pull_request_info
-if: ${{ needs.discover.outputs.run_doc_changes == 'true' && github.repository == 'deckhouse/deckhouse' }}
+if: ${{ needs.discover.outputs.run_doc_changes == 'true' && github.repository == 'deckhouse/deckhouse-test-2' }}
 runs-on: [self-hosted, regular]
 permissions:
   contents: read
@@ -311,7 +311,7 @@ steps:
 needs:
   - discover
   - pull_request_info
-runs-on: [self-hosted, regular]
+runs-on: [self-slim]
 steps:
   {!{ tmpl.Exec "started_at_output"            . | strings.Indent 2 }!}
   {!{ tmpl.Exec "checkout_step"                . | strings.Indent 2 }!}
