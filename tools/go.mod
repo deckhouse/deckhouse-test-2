@@ -12,7 +12,7 @@ require (
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
 	k8s.io/apiserver v0.34.8
-	k8s.io/utils v0.0.0-20260507154919-ff6756f316d2
+	k8s.io/utils cf1189d6abe3
 )
 
 require (
