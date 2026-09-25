@@ -19,6 +19,8 @@ github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260916084219-04ecff6aaa5a
 github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260916084219-04ecff6aaa5a/go.mod h1:KDf44MqEif8jAKCehKJqOg0k4sJcnetKJKDGd0IFQjI=
 github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260916084840-a97e86c61556 h1:knIw8XMoq5XC1aaeTf3+Qo6KtU9nMOuNV3rsACxtZEU=
 github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260916084840-a97e86c61556/go.mod h1:KDf44MqEif8jAKCehKJqOg0k4sJcnetKJKDGd0IFQjI=
+github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260925144830-cba918816ced h1:ey9SjQNSSE9AKosD7znCqGOuZfuD2C/QJvKXSTAbPHU=
+github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260925144830-cba918816ced/go.mod h1:KDf44MqEif8jAKCehKJqOg0k4sJcnetKJKDGd0IFQjI=
 github.com/docker/cli v29.2.0+incompatible h1:9oBd9+YM7rxjZLfyMGxjraKBKE4/nVyvVfN4qNl9XRM=
 github.com/docker/cli v29.2.0+incompatible/go.mod h1:JLrzqnKDaYBop7H2jaqPtU4hHvMKP+vjCwu2uszcLI8=
 github.com/docker/distribution v2.8.3+incompatible h1:AtKxIZ36LoNK51+Z6RpzLpddBirtxJnzDrHLEKxTAYk=
