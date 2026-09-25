@@ -21,7 +21,8 @@ require (
 	k8s.io/client-go v0.34.3
 	k8s.io/component-base v0.34.3
 	k8s.io/klog/v2 v2.130.1
-	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397
+	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b
+	k8s.io/utils v0.0.0-20260707023825-cf1189d6abe3
 	sigs.k8s.io/cluster-api v1.12.2
 	sigs.k8s.io/controller-runtime v0.22.5
 	sigs.k8s.io/yaml v1.6.0
@@ -142,7 +143,6 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	k8s.io/cli-runtime v0.32.10 // indirect
 	k8s.io/kms v0.34.3 // indirect
-	k8s.io/kube-openapi v0.0.0-20250710124328-f3f2b991d03b // indirect
 	k8s.io/kubectl v0.32.10 // indirect
 	sigs.k8s.io/apiserver-network-proxy/konnectivity-client v0.31.2 // indirect
 	sigs.k8s.io/json v0.0.0-20241014173422-cfa47c3a1cc8 // indirect
