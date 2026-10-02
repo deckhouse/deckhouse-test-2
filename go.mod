@@ -45,7 +45,7 @@ require (
 	k8s.io/apimachinery v0.34.8
 	k8s.io/apiserver v0.34.8
 	k8s.io/client-go v0.34.8
-	k8s.io/utils v0.0.0-20260507154919-ff6756f316d2
+	k8s.io/utils cf1189d6abe3
 	sigs.k8s.io/yaml v1.6.0
 )
 
