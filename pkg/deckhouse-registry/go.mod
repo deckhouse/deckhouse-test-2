@@ -4,7 +4,7 @@ go 1.24.6
 
 require (
 	github.com/deckhouse/deckhouse/pkg/log v0.2.1
-	github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20260916084840-a97e86c61556
+	github.com/deckhouse/deckhouse/pkg/registry v0.0.2-0.20261003061828-e86c6b700fb6
 	github.com/google/go-containerregistry v0.20.2
 	github.com/stretchr/testify v1.10.0
 	gopkg.in/yaml.v3 v3.0.1
